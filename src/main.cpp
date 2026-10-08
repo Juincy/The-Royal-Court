@@ -589,6 +589,7 @@ static std::wstring noteText(int i, char& sev) {
     sev = (char)issueSeverity(iss);
     std::string sum = issueSummary(iss);
     if (!sum.empty()) return W(sum);
+    if (ps) if (auto pit = g_info.find(ps->mods[(size_t)i].id); pit != g_info.end() && pit->second.pending) return L"Downloaded from Steam. Tick the box to add it";
     if (ps && ps->mods[(size_t)i].enabled && g_info.count(ps->mods[(size_t)i].id)) { sev = 3; return L"\u2713"; }  // 3 = checked, all fine
     return L"";
 }
@@ -726,25 +727,50 @@ static void fillCombo() {
 }
 
 static std::string findGameExeInSteam();
+static std::vector<std::string> workshopDirs();
 static void refreshGameVersion(const std::string& exe) {
     g_gameVer = readGameVersion(exe);
     SetWindowTextW(hGameVer, g_gameVer.empty() ? L"CK3 version: unknown" : (L"CK3 version: " + W(g_gameVer)).c_str());
 }
 
+// Changes whenever a mod descriptor appears in the mod folder or a new Workshop download appears/finishes in Steam's folder.
 static long long modDirStamp() {
     std::string dir = effectiveDir();
     if (dir.empty()) return 0;
     std::error_code ec;
+    long long best = 0;
     auto t = fs::last_write_time(P(dir) / "mod", ec);
-    return ec ? 0 : (long long)t.time_since_epoch().count();
+    if (!ec) best = (long long)t.time_since_epoch().count();
+    for (auto& wd : workshopDirs()) {
+        std::error_code e2;
+        auto tw = fs::last_write_time(P(wd), e2);
+        if (e2) continue;
+        best = std::max(best, (long long)tw.time_since_epoch().count());
+        for (auto& e : fs::directory_iterator(P(wd), e2)) {
+            auto tc = fs::last_write_time(e.path(), e2);
+            if (!e2) best = std::max(best, (long long)tc.time_since_epoch().count());
+            e2.clear();
+        }
+    }
+    return best;
 }
 static long long g_modStamp = 0;
+static int g_hiddenPresent = 0;   // installed mods that are not shown because they were removed from the list
 
 static void reload() {
     std::error_code gec;
     refreshGameVersion((!g_settings.gameExe.empty() && fs::exists(P(g_settings.gameExe), gec)) ? g_settings.gameExe : findGameExeInSteam());
     std::string dir = effectiveDir();
     g_mods = scanMods(dir);
+    {
+        std::set<std::string> have;
+        for (auto& m : g_mods) have.insert(m.id);
+        auto pend = scanWorkshopFolders(workshopDirs(), have);
+        for (auto& m : pend) g_mods.push_back(std::move(m));
+        if (!g_mods.empty()) std::sort(g_mods.begin(), g_mods.end(), [](const ModInfo& a, const ModInfo& b) { return lower(a.name) < lower(b.name); });
+    }
+    g_hiddenPresent = 0;
+    for (auto& m : g_mods) if (g_settings.hidden.count(m.id)) g_hiddenPresent++;
     if (!g_settings.hidden.empty()) g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [](const ModInfo& m) { return g_settings.hidden.count(m.id) > 0; }), g_mods.end());
     g_fpNow.clear();
     g_known = loadKnownMods();
@@ -856,10 +882,17 @@ static void resync(bool automatic) {
     std::set<std::string> after;
     for (auto& m : g_mods) { after.insert(m.id); if (!before.count(m.id)) added++; }
     for (auto& b : before) if (!after.count(b)) gone++;
+    int pend = 0;
+    for (auto& m : g_mods) if (m.pending) pend++;
     std::wstring msg = std::wstring(automatic ? L"The mod folder changed, list refreshed: " : L"Rescanned: ") + std::to_wstring(g_mods.size()) + L" mods installed";
     if (added) msg += L", " + std::to_wstring(added) + L" new (added at the end of your playsets, disabled)";
     if (gone) msg += L", " + std::to_wstring(gone) + L" removed";
-    say(msg + L".");
+    msg += L".";
+    if (pend) msg += L" " + std::to_wstring(pend) + L" from Steam are not registered by the Paradox launcher yet (Play registers them).";
+    if (g_hiddenPresent) msg += L" " + std::to_wstring(g_hiddenPresent) + L" hidden because you removed them (Advanced > Show removed mods).";
+    if (!automatic && !added) msg += L" Nothing new found: if you just subscribed, wait until Steam has finished downloading the mod, then rescan.";
+    say(msg);
+    logLine("rescan: " + std::to_string(g_mods.size()) + " mods, " + std::to_string(added) + " new, " + std::to_string(pend) + " pending, " + std::to_string(g_hiddenPresent) + " hidden");
     g_resyncing = false;
 }
 
@@ -1567,13 +1600,25 @@ static std::string regString(HKEY root, const wchar_t* sub, const wchar_t* name)
 }
 
 // Looks for ck3.exe in the Steam library that holds Crusader Kings III.
-static std::string findGameExeInSteam() {
+static std::vector<std::string> steamLibraries() {
     std::string steam = regString(HKEY_CURRENT_USER, L"Software\\Valve\\Steam", L"SteamPath");
     if (steam.empty()) steam = regString(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Valve\\Steam", L"InstallPath");
-    if (steam.empty()) return "";
+    if (steam.empty()) return {};
     std::vector<std::string> libs = {steam};
     std::string vdf;
     if (readFile(P(steam) / "steamapps" / "libraryfolders.vdf", vdf)) for (auto& l : steamLibraryPaths(vdf)) libs.push_back(l);
+    return libs;
+}
+// Where Steam keeps subscribed CK3 Workshop mods (RC_WORKSHOP_DIR overrides it, for tests).
+static std::vector<std::string> workshopDirs() {
+    if (const char* e = getenv("RC_WORKSHOP_DIR"); e && *e) return {e};
+    std::vector<std::string> out;
+    for (auto& lib : steamLibraries()) out.push_back((P(lib) / "steamapps" / "workshop" / "content" / CK3_APPID).u8string());
+    return out;
+}
+static std::string findGameExeInSteam() {
+    std::vector<std::string> libs = steamLibraries();
+    if (libs.empty()) return "";
     std::error_code ec;
     for (auto& lib : libs) {
         std::string acf;
@@ -1920,9 +1965,11 @@ static void restoreBackup() {
 // Only https://github.com/<this project>/releases/... is ever downloaded, and the exe must match SHA256SUMS.txt from the same release.
 static constexpr UINT WM_UPD_CHECKED = WM_APP + 5, WM_UPD_DOWNLOADED = WM_APP + 6;
 static bool g_updBusy = false;
+static std::vector<std::pair<UINT, LPARAM>> g_deferred;   // update messages that arrived while a dialog was open
 static ReleaseInfo g_updRel;                       // the release found by the last successful check
 
 static bool httpGet(const std::wstring& url, size_t maxBytes, std::string& body, std::wstring& err) {
+#ifdef RC_TEST_HOOKS   // test builds only: serve the "release" from a folder instead of GitHub (never compiled into the shipped exe)
     if (const wchar_t* testDir = _wgetenv(L"RC_UPDATE_DIR"); testDir && *testDir) {   // test hook (like RC_DATA_DIR): serve the "release" from a folder instead of GitHub
         size_t cut = url.find_last_of(L'/');
         std::wstring leaf = url.find(L"/releases/latest") != std::wstring::npos ? L"latest.json" : url.substr(cut + 1);
@@ -1930,6 +1977,7 @@ static bool httpGet(const std::wstring& url, size_t maxBytes, std::string& body,
         err = L"Test release file missing: " + leaf;
         return false;
     }
+#endif
     wchar_t host[256] = L"", path[2048] = L"", extra[1024] = L"";
     URL_COMPONENTSW uc{};
     uc.dwStructSize = sizeof uc;
@@ -2201,12 +2249,34 @@ static void advancedMenu() {
     }
 }
 
+// A Steam download that the launcher has not set up yet becomes a normal mod when the user ticks it: its ugc_<id>.mod is written (what the launcher would do).
+static bool addPendingMod(const std::string& mid, std::wstring& err) {
+    auto it = g_info.find(mid);
+    if (it == g_info.end() || !it->second.pending) return true;
+    std::string dir = effectiveDir(), e;
+    Playset one;
+    one.mods.push_back({mid, true, ""});
+    int n = registerPendingMods(dir, one, g_info, &e);
+    std::error_code ec;
+    if (n == 0 && !fs::exists(P(dir) / "mod" / mid, ec)) { err = L"Could not add \"" + W(it->second.name) + L"\" to your mod folder." + (e.empty() ? L"" : L" " + W(e)); logLine("add Workshop mod failed: " + mid + " " + e); return false; }
+    logLine("added Workshop mod " + mid);
+    it->second.pending = false;
+    for (auto& m : g_mods) if (m.id == mid) m.pending = false;
+    g_modStamp = modDirStamp();   // our own write must not look like a change made by someone else
+    return true;
+}
+
 static void setShown(bool on) {
     Playset* ps = active();
     if (!ps) return;
-    for (int idx : g_shown) ps->mods[(size_t)idx].enabled = on;
+    std::wstring err;
+    for (int idx : g_shown) {
+        if (on && !addPendingMod(ps->mods[(size_t)idx].id, err)) continue;   // could not be added: stays off
+        ps->mods[(size_t)idx].enabled = on;
+    }
     saveActive();
     populate();
+    if (!err.empty()) say(err);
 }
 
 static void info(const wchar_t* text) { MessageBoxW(hMain, text, L"The Royal Court", MB_ICONINFORMATION); }
@@ -2352,6 +2422,15 @@ static void onCommand(int id, int code) {
             if (!processRunning(L"steam.exe")) { info(L"Steam needs to be running to start the game without the launcher. Start Steam, then press Play again."); break; }
             std::set<std::string> inst;
             for (auto& m : g_mods) inst.insert(m.id);
+            std::string regErr;
+            int registered = registerPendingMods(dir, *ps, g_info, &regErr);
+            if (registered) logLine("registered " + std::to_string(registered) + " Workshop mod(s) that the launcher had not set up yet");
+            if (!regErr.empty()) logLine("register failed: " + regErr);
+            int notAdded = 0;
+            for (auto& m : ps->mods) {   // a Steam download that could not be written into the mod folder cannot be loaded: leave it out and say so
+                std::error_code pe;
+                if (m.enabled && inst.count(m.id) && g_info.count(m.id) && g_info[m.id].pending && !fs::exists(P(dir) / "mod" / m.id, pe)) { inst.erase(m.id); notAdded++; }
+            }
             ApplyResult r = writeGameModList(dir, *ps, inst);
             if (!r.ok) { info(W(r.message).c_str()); break; }
             std::wstring err;
@@ -2361,7 +2440,7 @@ static void onCommand(int id, int code) {
             for (auto it = g_settings.seen.begin(); it != g_settings.seen.end();) it = g_info.count(it->first) ? std::next(it) : g_settings.seen.erase(it);   // forget mods that are gone
             for (auto& m : ps->mods) if (m.enabled) if (auto f = fpNow().find(m.id); f != fpNow().end()) g_settings.seen[m.id] = f->second;
             saveSettingsNow(); refreshNotes();
-            say(W(r.message) + L". Starting Crusader Kings III directly (launcher skipped).");
+            say(W(r.message) + L". Starting Crusader Kings III directly (launcher skipped)." + (registered ? L" Registered " + std::to_wstring(registered) + L" new Steam mod(s) for you." : L"") + (notAdded ? L" WARNING: " + std::to_wstring(notAdded) + L" Steam mod(s) could not be added to your mod folder and were left out." : L""));
             break;
         }
         case ID_FOLDER: ShellExecuteW(hMain, L"open", playsetsDir().c_str(), nullptr, nullptr, SW_SHOWNORMAL); break;
@@ -2448,6 +2527,7 @@ static void onCommand(int id, int code) {
                 for (const std::string& mid : ids) { g_settings.hidden.insert(mid); done.push_back(mid); logLine("removed mod from list " + mid); }
                 saveSettingsNow();
             }
+            if (files) g_modStamp = modDirStamp();   // our own deletions are not a change made by someone else
             if (!done.empty()) {
                 std::set<std::string> gone(done.begin(), done.end());
                 for (auto& pl : g_playsets) { pl.mods.erase(std::remove_if(pl.mods.begin(), pl.mods.end(), [&](const ModRef& m) { return gone.count(m.id) != 0; }), pl.mods.end()); savePlayset(pl, g_info); }
@@ -2536,6 +2616,11 @@ static LRESULT onNotify(LPARAM l) {
                 rowSel = (ListView_GetItemState(hList, (int)row, LVIS_SELECTED) & LVIS_SELECTED) != 0;
                 rowBg = rowSel ? t.sel : (row & 1) ? t.alt : t.list;
                 rowFg = rowSel ? t.selText : en ? t.text : t.muted;
+                if (!rowSel && ps && row < g_shown.size()) {   // a Steam download that is not added yet: fainter than a disabled mod
+                    auto pit = g_info.find(ps->mods[(size_t)g_shown[row]].id);
+                    if (pit != g_info.end() && pit->second.pending)
+                        rowFg = RGB((GetRValue(rowFg) + GetRValue(rowBg)) / 2, (GetGValue(rowFg) + GetGValue(rowBg)) / 2, (GetBValue(rowFg) + GetBValue(rowBg)) / 2);
+                }
                 cd->nmcd.uItemState &= ~(CDIS_SELECTED | CDIS_FOCUS);
                 cd->clrTextBk = rowBg; cd->clrText = rowFg;
                 return CDRF_NOTIFYSUBITEMDRAW;
@@ -2558,7 +2643,14 @@ static LRESULT onNotify(LPARAM l) {
         if (!g_populating && (nm->uChanged & LVIF_STATE) && ((nm->uNewState ^ nm->uOldState) & LVIS_STATEIMAGEMASK)) {
             Playset* ps = active();
             if (ps && nm->iItem >= 0 && nm->iItem < (int)g_shown.size()) {
-                ps->mods[(size_t)g_shown[(size_t)nm->iItem]].enabled = ListView_GetCheckState(hList, nm->iItem) != 0;
+                bool on = ListView_GetCheckState(hList, nm->iItem) != 0;
+                std::wstring perr;
+                if (on && !addPendingMod(ps->mods[(size_t)g_shown[(size_t)nm->iItem]].id, perr)) {
+                    g_populating = true; ListView_SetCheckState(hList, nm->iItem, FALSE); g_populating = false;
+                    say(perr);
+                    return 0;
+                }
+                ps->mods[(size_t)g_shown[(size_t)nm->iItem]].enabled = on;
                 saveActive();
                 refreshNotes();
                 PostMessageW(hMain, WM_APP + 4, 0, 0);
@@ -2619,14 +2711,32 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             if (!cancelled) { g_confSig.clear(); refreshNotes(); maybeScan(false); }
             return 0;
         }
-        case WM_UPD_CHECKED: onUpdateChecked((UpdJob*)l); return 0;
-        case WM_UPD_DOWNLOADED: onUpdateDownloaded((UpdJob*)l); return 0;
+        case WM_UPD_CHECKED:
+        case WM_UPD_DOWNLOADED:
+            if (!IsWindowEnabled(h)) { g_deferred.push_back({m, l}); SetTimer(h, 77, 400, nullptr); return 0; }   // a dialog is open: wait until it is closed
+            if (m == WM_UPD_CHECKED) onUpdateChecked((UpdJob*)l); else onUpdateDownloaded((UpdJob*)l);
+            return 0;
         case WM_APP + 4: try { maybeScan(w != 0); } catch (...) {} return 0;
         case WM_ACTIVATE:
-            if (LOWORD(w) != WA_INACTIVE && g_modStamp && modDirStamp() != g_modStamp) {
+            // Never rescan from inside this message: it is also sent while a message box or dialog is closing, in the middle of a handler
+            // that still holds pointers into the playset data. Look again from the main loop, and only when no dialog is open.
+            if (LOWORD(w) != WA_INACTIVE) PostMessageW(h, WM_APP + 7, 0, 0);
+            return 0;
+        case WM_APP + 7:
+            if (IsWindowEnabled(h) && g_modStamp && modDirStamp() != g_modStamp) {
                 try { resync(true); } catch (...) { g_resyncing = false; }
             }
             return 0;
+        case WM_TIMER:
+            if (w == 77) {   // messages that arrived while a dialog was open are handled once it is closed
+                if (!IsWindowEnabled(h)) return 0;
+                KillTimer(h, 77);
+                std::vector<std::pair<UINT, LPARAM>> todo;
+                todo.swap(g_deferred);
+                for (auto& d : todo) SendMessageW(h, d.first, 0, d.second);
+                return 0;
+            }
+            break;
         case WM_CONTEXTMENU: {
             if ((HWND)w != hList) break;
             Playset* ps = active();

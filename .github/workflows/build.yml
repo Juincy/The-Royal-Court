@@ -26,6 +26,11 @@ jobs:
           g++ -std=c++17 -fsanitize=address,undefined -o "$RUNNER_TEMP/core_tests" src/tests/test_core.cpp
           "$RUNNER_TEMP/core_tests"
 
+      - name: Fuzz the file parsers (short run)
+        run: |
+          g++ -std=c++17 -O1 -fsanitize=address,undefined -o "$RUNNER_TEMP/fuzz" src/tests/fuzz_core.cpp
+          "$RUNNER_TEMP/fuzz" 30000
+
       - name: Build TheRoyalCourt.exe
         run: sh src/build.sh
 

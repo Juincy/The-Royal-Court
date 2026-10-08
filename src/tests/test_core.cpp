@@ -663,5 +663,31 @@ int main() {
         logLine("test line");
         std::string lg; assert(readFile(logPath(), lg) && lg.find("test line") != std::string::npos);
     }
+    // v0.14.1: Workshop downloads without a launcher descriptor yet
+    {
+        fs::path W = T / "ws"; fs::path content = W / "content" / "1158310";
+        fs::create_directories(content / "111111"); fs::create_directories(content / "222222"); fs::create_directories(content / "333333"); fs::create_directories(content / "notanid");
+        writeFile(content / "111111" / "descriptor.mod", "version=\"2.0\"\ntags={\n\t\"Gameplay\"\n}\nname=\"Fresh Mod\"\nsupported_version=\"1.20.*\"\npath=\"/old/place\"\n");
+        writeFile(content / "222222" / "descriptor.mod", "name=\"Already Registered\"\n");
+        // 333333 has no descriptor.mod: still downloading
+        std::set<std::string> known = {"ugc_222222.mod"};
+        auto pend = scanWorkshopFolders({content.u8string(), (W / "missing").u8string()}, known);
+        assert(pend.size() == 1 && pend[0].id == "ugc_111111.mod" && pend[0].name == "Fresh Mod" && pend[0].pending && pend[0].source == "Workshop" && pend[0].contentState == 1 && pend[0].supported == "1.20.*");
+        std::string reg = registeredDescriptorText("name=\"X\"\npath=\"/old/place\"\nremote_file_id=\"9\"\ntags={\n\t\"A\"\n}\n", "111111", "C:\\Steam\\content\\111111");
+        assert(reg.find("/old/place") == std::string::npos && reg.find("remote_file_id=\"111111\"") != std::string::npos && reg.find("path=\"C:/Steam/content/111111\"") != std::string::npos && reg.find("tags={") != std::string::npos);
+        fs::path ck3 = W / "ck3"; fs::create_directories(ck3 / "mod");
+        Playset ps; ps.name = "P"; ps.mods = {{"ugc_111111.mod", true, ""}, {"ugc_222222.mod", true, ""}};
+        std::map<std::string, ModInfo> inf; inf[pend[0].id] = pend[0];
+        assert(registerPendingMods(ck3.u8string(), ps, inf) == 1);
+        std::string wrote; assert(readFile(ck3 / "mod" / "ugc_111111.mod", wrote) && wrote.find("name=\"Fresh Mod\"") != std::string::npos);
+        assert(registerPendingMods(ck3.u8string(), ps, inf) == 0);   // never overwrites
+        auto again = scanMods(ck3.u8string());
+        assert(again.size() == 1 && again[0].id == "ugc_111111.mod" && again[0].name == "Fresh Mod" && again[0].contentState == 1);
+        assert(scanWorkshopFolders({content.u8string()}, {"ugc_111111.mod", "ugc_222222.mod"}).empty());
+        Playset ps2; ps2.mods = {{"ugc_111111.mod", true, ""}};
+        auto iss = analyzePlayset(ps2, inf, "1.20.0");
+        bool hasNote = false; for (auto& i : iss[0]) if (i.text.find("Tick the box") != std::string::npos) hasNote = true;
+        assert(hasNote);
+    }
     std::cout << "ALL CORE TESTS PASSED\n";
 }

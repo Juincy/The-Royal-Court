@@ -6,6 +6,21 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.14.1] - 2026-10-08
+Subscribed Workshop mods now show up, plus a bug sweep.
+
+### Added
+- **Steam downloads show up before the launcher has set them up.** If you subscribe to a Workshop mod, the Paradox launcher only creates its entry (ugc_<id>.mod) the next time it runs, so the mod never appeared in the list after pressing Rescan. The app now also reads Steam's own Workshop download folder. Such mods are listed greyed out with the note "Downloaded from Steam. Tick the box to add it". Ticking the box adds the mod (the app writes the same entry the launcher would) and it becomes a normal mod. Enable shown and Play do the same for any that are ticked.
+- Rescan now says why a mod may be missing: how many Steam downloads are waiting, how many mods are hidden because you removed them, or that Steam may still be downloading.
+- The window watches Steam's Workshop folder too, so new downloads are picked up when you switch back to the app.
+- Fuzz test for the file parsers (src/tests/fuzz_core.cpp), also run by the GitHub build.
+
+### Fixed
+- A rescan could start while a confirmation box or dialog was still open (when Steam or the launcher changed the mod folder at that moment), and the dialog's action then ran on stale data. Rescans and update messages now wait until no dialog is open.
+- Play now warns if a Steam mod could not be added to your mod folder, instead of starting the game with a missing entry.
+- Deleting mods no longer triggers a needless rescan right afterwards.
+- The test-only update override (RC_UPDATE_DIR) is no longer compiled into the released exe.
+
 ## [0.14.0] - 2026-10-08
 Updates from inside the app, plus a hardening pass.
 

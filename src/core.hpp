@@ -22,7 +22,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.14.0";
+inline const char* VERSION = "0.14.1";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -254,6 +254,7 @@ struct ModInfo {
     std::vector<std::string> deps, replacePaths, tags;
     std::string contentDir;                          // resolved folder with the mod's files ("" if unknown / archive)
     int contentState = 0;                            // 0 unknown (archive or no path), 1 folder exists, 2 folder missing
+    bool pending = false;                            // found in Steam's Workshop folder, but the Paradox launcher has not created its ugc_ descriptor yet
 };
 struct Settings {
     std::string ck3Dir, active, gameExe, theme;                       // theme: "dark", "light" or "" (follow Windows)
@@ -588,6 +589,7 @@ inline std::vector<std::vector<ModIssue>> analyzePlayset(const Playset& ps, cons
         auto& iss = out[i];
         auto it = info.find(ps.mods[i].id);
         if (it == info.end()) { iss.push_back({ps.mods[i].enabled ? 2 : 0, "Not installed"}); continue; }
+        if (it->second.pending) iss.push_back({0, "Subscribed on Steam, not added yet. Tick the box to add it"});
         if (!ps.mods[i].enabled) continue;
         const ModInfo& m = it->second;
         std::string self = lower(trimmed(m.name));
@@ -1879,6 +1881,77 @@ inline std::vector<std::string> steamLibraryPaths(const std::string& libraryfold
 inline std::string acfInstallDir(const std::string& appmanifestAcf) {
     auto v = vdfValues(appmanifestAcf, "installdir");
     return v.empty() || v[0].empty() ? "Crusader Kings III" : v[0];
+}
+
+// Steam keeps subscribed Workshop mods in <library>/steamapps/workshop/content/<CK3 app id>/<mod id>/ (with a descriptor.mod inside).
+// The Paradox launcher turns each into mod/ugc_<id>.mod when it runs. Until it does, the mod has no descriptor in the mod folder,
+// so scanMods() cannot see it. These are the downloads that are still waiting for that descriptor.
+inline std::vector<ModInfo> scanWorkshopFolders(const std::vector<std::string>& contentDirs, const std::set<std::string>& knownIds) {
+    std::vector<ModInfo> out;
+    std::set<std::string> seen;
+    std::error_code ec;
+    for (auto& cd : contentDirs) {
+        if (!fs::is_directory(P(cd), ec)) continue;
+        for (auto& e : fs::directory_iterator(P(cd), ec)) {
+            if (!e.is_directory(ec)) continue;
+            std::string num = e.path().filename().u8string();
+            if (num.empty() || num.size() > 20 || num.find_first_not_of("0123456789") != std::string::npos) continue;
+            std::string id = "ugc_" + num + ".mod";
+            if (knownIds.count(id) || !seen.insert(id).second) continue;
+            std::string text;
+            if (!readFile(e.path() / "descriptor.mod", text, 1u << 20)) continue;   // still downloading, or not a mod folder
+            auto kv = parseDescriptor(text);
+            auto first = [&](const char* k) -> std::string { auto it = kv.find(k); return it == kv.end() || it->second.empty() ? std::string() : it->second[0]; };
+            ModInfo mi;
+            mi.id = id; mi.source = "Workshop"; mi.pending = true;
+            mi.name = first("name"); mi.version = first("version"); mi.supported = first("supported_version");
+            if (kv.count("dependencies")) mi.deps = kv["dependencies"];
+            if (kv.count("replace_path")) mi.replacePaths = kv["replace_path"];
+            if (kv.count("tags")) mi.tags = kv["tags"];
+            mi.path = mi.contentDir = e.path().u8string();
+            mi.contentState = 1;
+            if (mi.name.empty()) mi.name = num;
+            out.push_back(std::move(mi));
+        }
+    }
+    return out;
+}
+// The text of the ugc_<id>.mod the launcher would write: the mod's own descriptor.mod plus remote_file_id and path.
+inline std::string registeredDescriptorText(const std::string& descriptorText, const std::string& workshopId, const std::string& folder) {
+    std::string out, line;
+    std::istringstream in(descriptorText);
+    bool skipping = false;   // inside a multi-line value we are dropping
+    while (std::getline(in, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        std::string t = trimmed(line);
+        if (skipping) { if (t.find('}') != std::string::npos) skipping = false; continue; }
+        if (t.rfind("path", 0) == 0 || t.rfind("remote_file_id", 0) == 0) {
+            if (t.find('{') != std::string::npos && t.find('}') == std::string::npos) skipping = true;
+            continue;
+        }
+        out += line + "\n";
+    }
+    std::string f = folder;
+    for (char& c : f) if (c == '\\') c = '/';
+    return out + "remote_file_id=\"" + workshopId + "\"\npath=\"" + f + "\"\n";
+}
+// Writes mod/ugc_<id>.mod for the enabled mods of the playset that only exist as Workshop downloads. Never overwrites an existing file.
+inline int registerPendingMods(const std::string& dir, const Playset& ps, const std::map<std::string, ModInfo>& info, std::string* err = nullptr) {
+    int n = 0;
+    std::error_code ec;
+    for (auto& m : ps.mods) {
+        if (!m.enabled) continue;
+        auto it = info.find(m.id);
+        if (it == info.end() || !it->second.pending || !validID(m.id)) continue;
+        fs::path target = P(dir) / "mod" / m.id;
+        if (fs::exists(target, ec)) continue;
+        std::string text;
+        if (!readFile(P(it->second.contentDir) / "descriptor.mod", text, 1u << 20)) { if (err) *err = "Could not read the downloaded mod \"" + it->second.name + "\"."; continue; }
+        std::string wid = m.id.substr(4, m.id.size() - 8);
+        if (writeFile(target, registeredDescriptorText(text, wid, it->second.contentDir))) n++;
+        else if (err) *err = "Could not write " + m.id + " into your mod folder.";
+    }
+    return n;
 }
 
 struct ApplyResult { bool ok = false; std::string message; int written = 0, skipped = 0; };

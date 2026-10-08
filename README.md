@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.14.0
+# The Royal Court | CK3 Mod Manager  v0.14.1
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -15,6 +15,7 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or delete it permanently from disk (for a Workshop mod you unsubscribed from, this clears the leftover entry).
 - Mods that changed since you last pressed Play are flagged in Notes. Advanced has Compare with another playset and per-playset game launch options. The window remembers its size, position and column widths.
 - Select several mods with Ctrl/Shift-click to move, lock, retype, remove or delete them together.
+- Mods you just subscribed to on Steam appear greyed out right away (before the Paradox launcher has set them up); tick the box to add one.
 - The Updates button checks GitHub for a newer version and can update the program in place (the new exe is verified against the release's SHA-256 checksum first). It only runs when you press it, unless you switch on checking at startup in Advanced.
 - Advanced > Open diagnostics log opens royalcourt.log, a small file useful for bug reports.
 - Dark and light themes, and an Advanced menu (for example, delete all saves).
