@@ -50,13 +50,13 @@ static std::wstring wenv(const wchar_t* name) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT,
     ID_TREE, ID_EXPAND, ID_COLLAPSE
 };
 
 static HINSTANCE g_inst;
 static HWND hMain, hL1, hL2, hL3, hCombo, hNew, hDup, hRen, hDel, hExport, hImport, hPlay, hAdv, hLog, hFilter, hAllOn, hAllOff,
-    hCount, hUp, hDown, hConflicts, hResync, hTheme, hTip, hList, hStatus, hGameVer, hDir, hBrowse, hSaveDir;
+    hCount, hUp, hDown, hConflicts, hSort, hUndo, hResync, hTheme, hTip, hList, hStatus, hGameVer, hDir, hBrowse, hSaveDir;
 static HFONT g_font;
 static int g_dpi = 96;
 static Settings g_settings;
@@ -552,6 +552,26 @@ static std::wstring noteText(int i, char& sev) {
     return L"";
 }
 
+// ---------- auto sort state ----------
+static std::vector<std::string> g_undoIds;     // load order (mod ids) before the last Auto Sort
+static std::string g_undoPlayset;
+static int g_ctxIdx = -1;                      // playset position of the row the context menu was opened on
+static const int ID_CTX_LOCK = 700, ID_CTX_CAT = 710;   // ID_CTX_CAT + category; ID_CTX_CAT + CAT_COUNT = automatic
+
+static std::set<std::string>& lockedIds() { static std::set<std::string> none; Playset* ps = active(); return ps ? g_settings.locks[ps->name] : none; }
+static int catOfMod(const std::string& id, bool* overridden = nullptr) {
+    auto ov = g_settings.cats.find(id);
+    if (overridden) *overridden = ov != g_settings.cats.end();
+    if (ov != g_settings.cats.end()) return ov->second;
+    auto it = g_info.find(id);
+    return it == g_info.end() ? (int)CAT_CONTENT : guessCategory(it->second).cat;
+}
+static void updateUndoBtn() {
+    Playset* ps = active();
+    bool on = ps && !g_undoIds.empty() && g_undoPlayset == ps->name;
+    if (hUndo) { EnableWindow(hUndo, on ? TRUE : FALSE); InvalidateRect(hUndo, nullptr, TRUE); }
+}
+
 static void populate() {
     Playset* ps = active();
     if (!ps) return;
@@ -586,6 +606,7 @@ static void populate() {
                 case 2: return inst ? it->second.version : "";
                 case 3: return inst ? it->second.supported : "";
                 case 4: return inst ? it->second.source : "";
+                case 5: return inst ? std::string(catName(catOfMod(m.id))) : "";
                 default: return issueSummary(g_issues[(size_t)i]);
             }
         };
@@ -595,7 +616,7 @@ static void populate() {
         int col = g_sortCol;
         std::stable_sort(keyed.begin(), keyed.end(), [&](const std::pair<std::string, int>& x, const std::pair<std::string, int>& y) {
             if (x.first.empty() != y.first.empty()) return y.first.empty();
-            if (col == 5) {
+            if (col == 6) {
                 int sx = issueSeverity(g_issues[(size_t)x.second]), sy = issueSeverity(g_issues[(size_t)y.second]);
                 if (sx != sy) return asc ? sx > sy : sx < sy;   // worst first when ascending
             }
@@ -612,6 +633,7 @@ static void populate() {
         std::wstring name = shownName(i);
         int row = (int)g_shown.size();
         std::wstring num = std::to_wstring(i + 1);
+        if (g_settings.locks.count(ps->name) && g_settings.locks[ps->name].count(m.id)) num += L" \U0001F512";
         LVITEMW li{};
         li.mask = LVIF_TEXT;
         li.iItem = row;
@@ -627,7 +649,10 @@ static void populate() {
         ListView_SetItemText(hList, row, 4, (LPWSTR)src.c_str());
         char nsev = 0;
         std::wstring note = noteText(i, nsev);
-        ListView_SetItemText(hList, row, 5, (LPWSTR)note.c_str());
+        bool ovr = false;
+        std::wstring ty = inst ? W(catName(catOfMod(m.id, &ovr))) + (ovr ? L" *" : L"") : L"";
+        ListView_SetItemText(hList, row, 5, (LPWSTR)ty.c_str());
+        ListView_SetItemText(hList, row, 6, (LPWSTR)note.c_str());
         g_noteSev.push_back(nsev);
         ListView_SetCheckState(hList, row, m.enabled ? TRUE : FALSE);
         g_shown.push_back(i);
@@ -636,6 +661,7 @@ static void populate() {
     g_populating = false;
     resizeCols();
     updateCount();
+    updateUndoBtn();
 }
 
 static void fillCombo() {
@@ -702,7 +728,7 @@ static void refreshNotes() {
     for (size_t r = 0; r < g_shown.size(); r++) {
         char nsev = 0;
         std::wstring note = noteText(g_shown[r], nsev);
-        ListView_SetItemText(hList, (int)r, 5, (LPWSTR)note.c_str());
+        ListView_SetItemText(hList, (int)r, 6, (LPWSTR)note.c_str());
         if (r < g_noteSev.size()) g_noteSev[r] = nsev;
     }
     g_populating = false;
@@ -712,7 +738,7 @@ static void refreshNotes() {
 
 static void updateSortArrows() {
     HWND hdr = ListView_GetHeader(hList);
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
         HDITEMW hi{};
         hi.mask = HDI_FORMAT;
         if (!Header_GetItem(hdr, i, &hi)) continue;
@@ -741,6 +767,8 @@ static void showDetails(int row) {
             "\nDescriptor: " + mi.id + "\nSource: " + mi.source + "\nMod version: " + (mi.version.empty() ? "-" : mi.version) +
             "\nGame version: " + (mi.supported.empty() ? "-" : mi.supported) +
             "\nFiles: " + (mi.path.empty() ? (mi.archive.empty() ? std::string("-") : "archive " + mi.archive) : mi.contentDir + (mi.contentState == 2 ? "  (NOT FOUND)" : "")) +
+            "\nType: " + catName(catOfMod(mi.id)) + (g_settings.cats.count(mi.id) ? " (set by you)" : " (" + guessCategory(mi).why + ")") +
+            (lockedIds().count(mi.id) ? "\nPosition: locked (Auto Sort will not move it)" : "") +
             "\nDependencies: " + join(mi.deps) + "\nReplaces vanilla folders: " + join(mi.replacePaths) + "\nTags: " + join(mi.tags) + "\n";
     }
     const auto& iss = g_issues[(size_t)idx];
@@ -772,12 +800,12 @@ static void resync(bool automatic) {
 
 static void resizeCols() {
     RECT r; GetClientRect(hList, &r);
-    int fixed = S(50) + S(100) + S(110) + S(90), notes = S(300);
+    int fixed = S(64) + S(100) + S(110) + S(90) + S(90), notes = S(280);
     int w = r.right - fixed - notes - GetSystemMetrics(SM_CXVSCROLL);
     if (w < S(150)) w = S(150);
     ListView_SetColumnWidth(hList, 1, w);
     int last = r.right - fixed - w;                    // the last column takes what is left, so the header has no empty strip
-    ListView_SetColumnWidth(hList, 5, last < S(120) ? S(120) : last);
+    ListView_SetColumnWidth(hList, 6, last < S(120) ? S(120) : last);
 }
 
 static void selectRow(int row) {
@@ -851,6 +879,134 @@ static bool askText(const wchar_t* title, const wchar_t* prompt, std::wstring& v
     DestroyWindow(d);
     SetForegroundWindow(hMain);
     return ctx.ok;
+}
+
+
+// ---------- Auto Sort preview ----------
+struct SortCtx {
+    const SortPlan* plan = nullptr; const Playset* ps = nullptr;
+    HWND list = nullptr, label = nullptr, ok = nullptr, cancel = nullptr;
+    bool done = false, apply = false;
+};
+static void sortDlgLayout(HWND h, SortCtx* c) {
+    RECT rc; GetClientRect(h, &rc);
+    int m = S(12);
+    MoveWindow(c->label, m, m, rc.right - 2 * m, S(44), TRUE);
+    MoveWindow(c->list, m, m + S(50), rc.right - 2 * m, rc.bottom - S(50) - S(52) - 2 * m + S(12), TRUE);
+    MoveWindow(c->ok, rc.right - m - S(150) - S(8) - S(100), rc.bottom - m - S(30), S(150), S(30), TRUE);
+    MoveWindow(c->cancel, rc.right - m - S(100), rc.bottom - m - S(30), S(100), S(30), TRUE);
+    RECT lr; GetClientRect(c->list, &lr);
+    ListView_SetColumnWidth(c->list, 4, lr.right - S(56) - S(300) - S(100) - S(90) > S(160) ? lr.right - S(56) - S(300) - S(100) - S(90) : S(160));
+}
+static LRESULT CALLBACK SortProc(HWND h, UINT m, WPARAM w, LPARAM l) {
+    SortCtx* c = (SortCtx*)GetWindowLongPtrW(h, GWLP_USERDATA);
+    switch (m) {
+        case WM_CREATE: SetWindowLongPtrW(h, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCTW*)l)->lpCreateParams); themeFrame(h); return 0;
+        case WM_ERASEBKGND: { RECT rc; GetClientRect(h, &rc); paintBackdrop((HDC)w, rc, false); return 1; }
+        case WM_CTLCOLORSTATIC: { LRESULT r; if (themeCtlColor(m, w, l, r)) return r; break; }
+        case WM_DRAWITEM: drawButton((DRAWITEMSTRUCT*)l); return TRUE;
+        case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(720); mi->ptMinTrackSize.y = S(360); return 0; }
+        case WM_SIZE: if (c && c->list && w != SIZE_MINIMIZED) { sortDlgLayout(h, c); RedrawWindow(h, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN); } return 0;
+        case WM_NOTIFY: {
+            NMHDR* nh = (NMHDR*)l;
+            if (c && nh->hwndFrom == c->list && nh->code == NM_CUSTOMDRAW) {
+                auto* cd = (NMLVCUSTOMDRAW*)l;
+                const Theme& t = T();
+                if (cd->nmcd.dwDrawStage == CDDS_PREPAINT) return CDRF_NOTIFYITEMDRAW;
+                if (cd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT) {
+                    size_t row = (size_t)cd->nmcd.dwItemSpec;
+                    cd->clrTextBk = (row & 1) ? t.alt : t.list;
+                    cd->clrText = t.text;
+                    return CDRF_NOTIFYSUBITEMDRAW;
+                }
+                if (cd->nmcd.dwDrawStage == (CDDS_ITEMPREPAINT | CDDS_SUBITEM)) {
+                    size_t row = (size_t)cd->nmcd.dwItemSpec;
+                    cd->clrTextBk = (row & 1) ? t.alt : t.list;
+                    cd->clrText = t.text;
+                    if (cd->iSubItem == 3 && c->plan && row < c->plan->order.size()) {
+                        int old = c->plan->order[row];
+                        cd->clrText = old > (int)row ? t.ok : old < (int)row ? t.warn : t.muted;
+                    }
+                    return CDRF_DODEFAULT;
+                }
+            }
+            break;
+        }
+        case WM_COMMAND:
+            if (c && LOWORD(w) == IDOK) { c->apply = true; c->done = true; }
+            else if (c && LOWORD(w) == IDCANCEL) c->done = true;
+            return 0;
+        case WM_CLOSE: if (c) c->done = true; return 0;
+    }
+    return DefWindowProcW(h, m, w, l);
+}
+
+static bool showSortPreview(const SortPlan& plan, const Playset& ps) {
+    static bool reg = false;
+    if (!reg) {
+        WNDCLASSW wc{};
+        wc.lpfnWndProc = SortProc; wc.hInstance = g_inst; wc.lpszClassName = L"RCSort";
+        wc.hbrBackground = nullptr; wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        wc.hIcon = LoadIconW(g_inst, MAKEINTRESOURCEW(1));
+        RegisterClassW(&wc); reg = true;
+    }
+    SortCtx ctx; ctx.plan = &plan; ctx.ps = &ps;
+    RECT pr; GetWindowRect(hMain, &pr);
+    int w = S(980), h = S(620);
+    int x = pr.left + ((pr.right - pr.left) - w) / 2, y = pr.top + ((pr.bottom - pr.top) - h) / 2;
+    HWND d = CreateWindowExW(WS_EX_DLGMODALFRAME, L"RCSort", L"Auto Sort preview - The Royal Court", WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_CLIPCHILDREN, x, y, w, h, hMain, nullptr, g_inst, &ctx);
+    std::wstring sum = L"Auto Sort will move " + std::to_wstring(plan.moves.size()) + L" of " + std::to_wstring(ps.mods.size()) +
+        L" mods. Green = moves earlier, amber = moves later. Nothing is changed until you press Apply, and you can undo it afterwards.";
+    if (plan.conflictChoices > 0) sum += L" " + std::to_wstring(plan.conflictChoices) + L" file-conflict tie-break(s) applied.";
+    for (auto& wn : plan.warnings) sum += L"\n⚠ " + W(wn);
+    ctx.label = CreateWindowW(L"STATIC", sum.c_str(), WS_CHILD | WS_VISIBLE, 0, 0, 10, 10, d, nullptr, g_inst, nullptr);
+    setFont(ctx.label);
+    ctx.list = CreateWindowExW(0, WC_LISTVIEWW, L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS, 0, 0, 10, 10, d, nullptr, g_inst, nullptr);
+    ListView_SetExtendedListViewStyle(ctx.list, LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
+    setFont(ctx.list);
+    SetWindowSubclass(ctx.list, ListSub, 2, 0);
+    SetWindowTheme(ctx.list, g_dark ? L"DarkMode_Explorer" : L"Explorer", nullptr);
+    const Theme& t = T();
+    ListView_SetBkColor(ctx.list, t.list); ListView_SetTextBkColor(ctx.list, t.list); ListView_SetTextColor(ctx.list, t.text);
+    const wchar_t* heads[5] = {L"New #", L"Mod", L"Type", L"Change", L"Why"};
+    int widths[5] = {S(56), S(300), S(100), S(90), S(300)};
+    for (int i = 0; i < 5; i++) { LVCOLUMNW col{}; col.mask = LVCF_TEXT | LVCF_WIDTH; col.pszText = (LPWSTR)heads[i]; col.cx = widths[i]; ListView_InsertColumn(ctx.list, i, &col); }
+    std::map<int, const SortMove*> mv;
+    for (auto& m : plan.moves) mv[m.from] = &m;
+    auto& lk = g_settings.locks[ps.name];
+    for (int p = 0; p < (int)plan.order.size(); p++) {
+        int old = plan.order[(size_t)p];
+        auto it = g_info.find(ps.mods[(size_t)old].id);
+        std::wstring num = std::to_wstring(p + 1), name = it != g_info.end() ? W(it->second.name) : W(ps.mods[(size_t)old].name.empty() ? ps.mods[(size_t)old].id : ps.mods[(size_t)old].name);
+        LVITEMW li{}; li.mask = LVIF_TEXT; li.iItem = p; li.pszText = &num[0];
+        ListView_InsertItem(ctx.list, &li);
+        ListView_SetItemText(ctx.list, p, 1, (LPWSTR)name.c_str());
+        std::wstring ty = W(catName(plan.cat[(size_t)old]));
+        ListView_SetItemText(ctx.list, p, 2, (LPWSTR)ty.c_str());
+        std::wstring ch, why;
+        if (lk.count(ps.mods[(size_t)old].id)) { ch = L"\U0001F512 locked"; }
+        else if (old > p) { ch = L"▲ from " + std::to_wstring(old + 1); }
+        else if (old < p) { ch = L"▼ from " + std::to_wstring(old + 1); }
+        auto f = mv.find(old);
+        if (f != mv.end()) why = W(f->second->reason);
+        ListView_SetItemText(ctx.list, p, 3, (LPWSTR)ch.c_str());
+        ListView_SetItemText(ctx.list, p, 4, (LPWSTR)why.c_str());
+    }
+    ctx.ok = mkBtn(d, L"✓", L"Apply sort", IDOK);
+    ctx.cancel = mkBtn(d, L"", L"Cancel", IDCANCEL);
+    sortDlgLayout(d, &ctx);
+    themeFrame(d);
+    EnableWindow(hMain, FALSE);
+    ShowWindow(d, SW_SHOW);
+    SetFocus(ctx.ok);
+    MSG msg;
+    while (!ctx.done && GetMessageW(&msg, nullptr, 0, 0)) {
+        if (!IsDialogMessageW(d, &msg)) { TranslateMessage(&msg); DispatchMessageW(&msg); }
+    }
+    EnableWindow(hMain, TRUE);
+    DestroyWindow(d);
+    SetForegroundWindow(hMain);
+    return ctx.apply;
 }
 
 // ---------- changelog window: one expandable branch per version ----------
@@ -1374,9 +1530,11 @@ static void layout() {
     y += rowH + gap + S(2); x = m;
     place(hL2, x, y + S(4), S(24), S(24)); x += S(30);
     place(hFilter, x, y + S(2), S(230), rowH - S(4)); x += S(230) + gap * 2;
-    place(hAllOn, x, y, S(150), rowH); x += S(150) + gap;
-    place(hAllOff, x, y, S(156), rowH); x += S(156) + gap * 2;
-    place(hConflicts, x, y, S(130), rowH); x += S(130) + gap * 2;
+    place(hAllOn, x, y, S(140), rowH); x += S(140) + gap;
+    place(hAllOff, x, y, S(146), rowH); x += S(146) + gap * 2;
+    place(hConflicts, x, y, S(120), rowH); x += S(120) + gap;
+    place(hSort, x, y, S(124), rowH); x += S(124) + gap;
+    place(hUndo, x, y, S(112), rowH); x += S(112) + gap * 2;
     rx = Wd - m - S(90);
     place(hDown, rx, y, S(90), rowH);
     rx -= gap + S(80);
@@ -1426,15 +1584,18 @@ static void createControls() {
     hAllOn = mkBtn(hMain, L"\u2611", L"Enable shown", ID_ALLON);
     hAllOff = mkBtn(hMain, L"\u2610", L"Disable shown", ID_ALLOFF);
     hConflicts = mkBtn(hMain, L"\u2694", L"Conflicts", ID_CONFLICTS);
+    hSort = mkBtn(hMain, L"\u21C5", L"Auto Sort", ID_SORT);
+    hUndo = mkBtn(hMain, L"\u21B6", L"Undo sort", ID_UNDOSORT);
+    EnableWindow(hUndo, FALSE);
     hCount = mk(L"STATIC", L"", SS_ENDELLIPSIS, ID_COUNT);
     hUp = mkBtn(hMain, L"\u25B2", L"Up", ID_UP);
     hDown = mkBtn(hMain, L"\u25BC", L"Down", ID_DOWN);
     hList = mk(WC_LISTVIEWW, L"", LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_TABSTOP, ID_LIST, 0);
     ListView_SetExtendedListViewStyle(hList, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
     SetWindowSubclass(hList, ListSub, 2, 0);
-    const wchar_t* heads[6] = {L"#", L"Mod", L"Version", L"Game Version", L"Source", L"Notes"};
-    int widths[6] = {S(50), S(400), S(100), S(110), S(90), S(280)};
-    for (int i = 0; i < 6; i++) {
+    const wchar_t* heads[7] = {L"#", L"Mod", L"Version", L"Game Version", L"Source", L"Type", L"Notes"};
+    int widths[7] = {S(64), S(400), S(100), S(110), S(90), S(90), S(280)};
+    for (int i = 0; i < 7; i++) {
         LVCOLUMNW c{};
         c.mask = LVCF_TEXT | LVCF_WIDTH;
         c.pszText = (LPWSTR)heads[i];
@@ -1534,6 +1695,14 @@ static void reportError(const char* what) {
 
 static void onCommand(int id, int code) {
     Playset* ps = active();
+    if (id >= ID_CTX_CAT && id <= ID_CTX_CAT + CAT_COUNT) {          // "Type" choice from the right-click menu
+        if (ps && g_ctxIdx >= 0 && g_ctxIdx < (int)ps->mods.size()) {
+            const std::string& mid = ps->mods[(size_t)g_ctxIdx].id;
+            if (id == ID_CTX_CAT + CAT_COUNT) g_settings.cats.erase(mid); else g_settings.cats[mid] = id - ID_CTX_CAT;
+            saveSettingsNow(); populate();
+        }
+        return;
+    }
     switch (id) {
         case ID_COMBO:
             if (code == CBN_SELCHANGE) {
@@ -1574,7 +1743,10 @@ static void onCommand(int id, int code) {
             std::string n = sanitizeFileName(U(v));
             if (n == ps->name) break;
             if (nameTaken(g_playsets, n, ps->name)) { info(L"A playset with that name already exists."); break; }
+            std::string oldName = ps->name;
             if (!renamePlayset(*ps, n, g_info)) { info(L"Could not rename the playset file."); break; }
+            if (g_settings.locks.count(oldName)) { g_settings.locks[ps->name] = g_settings.locks[oldName]; g_settings.locks.erase(oldName); }
+            if (g_undoPlayset == oldName) g_undoPlayset = ps->name;
             g_settings.active = ps->name;
             sortPlaysets(); saveSettingsNow(); fillCombo(); populate();
             break;
@@ -1586,6 +1758,7 @@ static void onCommand(int id, int code) {
             if (MessageBoxW(hMain, q.c_str(), L"The Royal Court", MB_YESNO | MB_ICONQUESTION) != IDYES) break;
             std::string gone = ps->name;
             deletePlayset(gone);
+            g_settings.locks.erase(gone);
             g_playsets.erase(std::remove_if(g_playsets.begin(), g_playsets.end(), [&](const Playset& p) { return p.name == gone; }), g_playsets.end());
             g_settings.active = g_playsets[0].name; saveSettingsNow(); fillCombo(); populate();
             break;
@@ -1664,6 +1837,48 @@ static void onCommand(int id, int code) {
         case ID_ADV: advancedMenu(); break;
         case ID_RESYNC: g_fileIndex.clear(); g_confSig.clear(); resync(false); break;
         case ID_CONFLICTS: showConflicts(); break;
+        case ID_CTX_LOCK: {
+            if (!ps || g_ctxIdx < 0 || g_ctxIdx >= (int)ps->mods.size()) break;
+            auto& lk = g_settings.locks[ps->name];
+            const std::string& id = ps->mods[(size_t)g_ctxIdx].id;
+            if (lk.count(id)) lk.erase(id); else lk.insert(id);
+            saveSettingsNow(); populate();
+            break;
+        }
+        case ID_SORT: {
+            if (!ps || ps->mods.size() < 2) { say(L"Nothing to sort."); break; }
+            ensureConflicts();
+            SortPlan plan = planSort(*ps, g_info, lockedIds(), g_settings.cats, g_conf.valid ? &g_conf : nullptr, &g_fileIndex);
+            if (!plan.changed) {
+                std::wstring m = L"Already in a good order, nothing to move.";
+                for (auto& wn : plan.warnings) m += L"  ⚠ " + W(wn);
+                say(m); break;
+            }
+            if (!showSortPreview(plan, *ps)) { say(L"Auto Sort cancelled, nothing changed."); break; }
+            g_undoIds.clear();
+            for (auto& m : ps->mods) g_undoIds.push_back(m.id);
+            g_undoPlayset = ps->name;
+            std::vector<ModRef> nm;
+            for (int o : plan.order) nm.push_back(ps->mods[(size_t)o]);
+            ps->mods = nm;
+            saveActive(); populate();
+            say(L"Auto Sort moved " + std::to_wstring(plan.moves.size()) + L" mods. Press Undo sort to go back.");
+            break;
+        }
+        case ID_UNDOSORT: {
+            if (!ps || g_undoIds.empty() || g_undoPlayset != ps->name) break;
+            std::map<std::string, ModRef> byId;
+            for (auto& m : ps->mods) byId.emplace(m.id, m);
+            std::vector<ModRef> nm; std::set<std::string> used;
+            for (auto& id : g_undoIds) { auto f = byId.find(id); if (f != byId.end() && used.insert(id).second) nm.push_back(f->second); }
+            for (auto& m : ps->mods) if (!used.count(m.id)) nm.push_back(m);
+            ps->mods = nm;
+            g_undoIds.clear();
+            saveActive(); populate();
+            say(L"Load order restored to how it was before Auto Sort.");
+            break;
+        }
+
         case ID_THEME:
             g_dark = !g_dark;
             g_settings.theme = g_dark ? "dark" : "light";
@@ -1709,7 +1924,7 @@ static LRESULT onNotify(LPARAM l) {
                 cd->nmcd.uItemState &= ~(CDIS_SELECTED | CDIS_FOCUS);
                 cd->clrTextBk = rowBg; cd->clrText = rowFg;
                 if (!rowSel) {
-                    if (cd->iSubItem == 5 && row < g_noteSev.size() && g_noteSev[row] > 0)
+                    if (cd->iSubItem == 6 && row < g_noteSev.size() && g_noteSev[row] > 0)
                         cd->clrText = g_noteSev[row] == 2 ? t.bad : g_noteSev[row] == 1 ? t.warn : t.ok;
                     if (cd->iSubItem == 3 && row < g_verState.size() && g_verState[row] == 2) cd->clrText = t.warn;
                 }
@@ -1785,8 +2000,29 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 try { resync(true); } catch (...) { g_resyncing = false; }
             }
             return 0;
+        case WM_CONTEXTMENU: {
+            if ((HWND)w != hList) break;
+            Playset* ps = active();
+            POINT pt{(short)LOWORD(l), (short)HIWORD(l)};
+            int row = -1;
+            if (l == -1) { row = ListView_GetNextItem(hList, -1, LVNI_SELECTED); RECT ir; if (row >= 0 && ListView_GetItemRect(hList, row, &ir, LVIR_BOUNDS)) { pt = {ir.left + S(60), ir.bottom}; ClientToScreen(hList, &pt); } }
+            else { POINT cp = pt; ScreenToClient(hList, &cp); LVHITTESTINFO hi{}; hi.pt = cp; row = ListView_HitTest(hList, &hi); }
+            if (!ps || row < 0 || row >= (int)g_shown.size()) return 0;
+            g_ctxIdx = g_shown[(size_t)row];
+            const ModRef& mr = ps->mods[(size_t)g_ctxIdx];
+            bool locked = g_settings.locks.count(ps->name) && g_settings.locks[ps->name].count(mr.id);
+            bool ovr = false; int cur = catOfMod(mr.id, &ovr);
+            HMENU menu = CreatePopupMenu();
+            AppendMenuW(menu, MF_STRING | (locked ? MF_CHECKED : 0), ID_CTX_LOCK, L"Lock position (Auto Sort never moves it)");
+            AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
+            for (int c = 0; c < CAT_COUNT; c++) AppendMenuW(menu, MF_STRING | (ovr && cur == c ? MF_CHECKED : 0), ID_CTX_CAT + c, (L"Type: " + W(catName(c))).c_str());
+            AppendMenuW(menu, MF_STRING | (!ovr ? MF_CHECKED : 0), ID_CTX_CAT + CAT_COUNT, L"Type: automatic");
+            TrackPopupMenu(menu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, h, nullptr);
+            DestroyMenu(menu);
+            return 0;
+        }
         case WM_SIZE: if (w != SIZE_MINIMIZED) layout(); return 0;
-        case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(1100); mi->ptMinTrackSize.y = S(420); return 0; }
+        case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(1200); mi->ptMinTrackSize.y = S(420); return 0; }
         case WM_COMMAND:
             if (LOWORD(w) == IDOK || LOWORD(w) == IDCANCEL) return 0;
             try { onCommand(LOWORD(w), HIWORD(w)); }
@@ -1875,7 +2111,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     RegisterClassExW(&wc);
 
     std::wstring title = L"The Royal Court | CK3 Mod Manager  v" + W(VERSION);
-    HWND win = CreateWindowExW(WS_EX_CONTROLPARENT, L"RoyalCourtMain", title.c_str(), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, S(1140), S(660), nullptr, nullptr, inst, nullptr);
+    HWND win = CreateWindowExW(WS_EX_CONTROLPARENT, L"RoyalCourtMain", title.c_str(), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, S(1260), S(660), nullptr, nullptr, inst, nullptr);
     if (!win) return 1;
 
     try { reload(); }

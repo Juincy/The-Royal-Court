@@ -365,5 +365,64 @@ int main() {
         auto cr3 = findConflicts(bp, infoMap(big), bi);
         assert(cr3.files.size() == 1 && cr3.pairs.size() == 19 && cr3.wins[19] == 1 && cr3.loses[0] == 1);
     }
+    {   // ---- auto sort ----
+        auto mkm = [](const char* id, const char* name, std::vector<std::string> deps = {}, std::vector<std::string> tags = {}) {
+            ModInfo m; m.id = id; m.name = name; m.deps = deps; m.tags = tags; return m;
+        };
+        std::vector<ModInfo> ms = {
+            mkm("p.mod", "Big Content Patch"), mkm("c1.mod", "Cool Events", {"Lib Core Framework"}), mkm("ui.mod", "Better UI"),
+            mkm("lib.mod", "Lib Core Framework"), mkm("g.mod", "Nice Portraits"), mkm("t.mod", "Foo", {}, {"Translation"}),
+            mkm("c2.mod", "More Stuff")};
+        auto inf = infoMap(ms);
+        Playset ps; ps.name = "s";
+        for (auto& m : ms) ps.mods.push_back({m.id, true, ""});
+        assert(guessCategory(inf["p.mod"]).cat == CAT_PATCH && guessCategory(inf["lib.mod"]).cat == CAT_LIBRARY);
+        assert(guessCategory(inf["ui.mod"]).cat == CAT_UI && guessCategory(inf["g.mod"]).cat == CAT_GRAPHICS && guessCategory(inf["t.mod"]).cat == CAT_TRANSLATION);
+        assert(guessCategory(inf["c1.mod"]).cat == CAT_CONTENT && guessCategory(mkm("x", "Compatibility for X")).cat == CAT_PATCH);
+        assert(guessCategory(mkm("x", "Quiet Hill")).cat == CAT_CONTENT);   // "ui" inside a word must not match
+        auto plan = planSort(ps, inf, {}, {}, nullptr, nullptr);
+        std::vector<std::string> ids;
+        for (int o : plan.order) ids.push_back(ps.mods[(size_t)o].id);
+        assert((ids == std::vector<std::string>{"lib.mod", "c1.mod", "c2.mod", "g.mod", "ui.mod", "t.mod", "p.mod"}));
+        assert(plan.changed && plan.warnings.empty() && !plan.moves.empty());
+        // sorting an already sorted playset changes nothing
+        Playset sorted; sorted.name = "s2";
+        for (auto& id : ids) sorted.mods.push_back({id, true, ""});
+        assert(!planSort(sorted, inf, {}, {}, nullptr, nullptr).changed);
+        // a locked mod keeps its position; the rest still sorts around it
+        auto pl = planSort(ps, inf, {"p.mod"}, {}, nullptr, nullptr);
+        assert(pl.order[0] == 0 && pl.changed);
+        // override moves a mod to another group
+        auto po = planSort(ps, inf, {}, {{"c2.mod", CAT_LIBRARY}}, nullptr, nullptr);
+        assert(ps.mods[(size_t)po.order[0]].id == "c2.mod" || ps.mods[(size_t)po.order[1]].id == "c2.mod");
+        // dependency on a LATER, lower-priority mod still ends up in order; cycles do not hang
+        std::vector<ModInfo> cy = {mkm("a.mod", "A", {"B"}), mkm("b.mod", "B", {"A"}), mkm("c.mod", "C", {"C"})};
+        Playset cp; cp.name = "cy"; for (auto& m : cy) cp.mods.push_back({m.id, true, ""});
+        auto pc = planSort(cp, infoMap(cy), {}, {}, nullptr, nullptr);
+        assert(pc.order.size() == 3 && !pc.warnings.empty());
+        std::set<int> seen(pc.order.begin(), pc.order.end()); assert(seen.size() == 3);
+        // locked mod that blocks a dependency is reported
+        std::vector<ModInfo> lk = {mkm("x.mod", "X", {"Y"}), mkm("y.mod", "Y")};
+        Playset lp; lp.name = "lk"; for (auto& m : lk) lp.mods.push_back({m.id, true, ""});
+        auto plk = planSort(lp, infoMap(lk), {"x.mod"}, {}, nullptr, nullptr);
+        assert(!plk.warnings.empty());
+        // conflict tie-break: small targeted mod goes after the big one it overlaps
+        std::vector<ModInfo> cf = {mkm("small.mod", "Small Tweaks"), mkm("big.mod", "Big Pack Stuff")};
+        Playset fp; fp.name = "cf"; for (auto& m : cf) fp.mods.push_back({m.id, true, ""});
+        std::map<std::string, ModFiles> fi;
+        ModFiles sm; sm.complete = true; sm.files = {"common/a.txt", "common/b.txt", "common/c.txt"};
+        ModFiles bg; bg.complete = true; bg.files = {"common/a.txt", "common/b.txt", "common/c.txt"};
+        for (int i = 0; i < 20; i++) bg.files.push_back("events/e" + std::to_string(i) + ".txt");
+        fi["small.mod"] = sm; fi["big.mod"] = bg;
+        auto fcr = findConflicts(fp, infoMap(cf), fi);
+        auto pf = planSort(fp, infoMap(cf), {}, {}, &fcr, &fi);
+        assert(pf.conflictChoices == 1 && fp.mods[(size_t)pf.order[1]].id == "small.mod");
+        // settings round trip for locks and categories
+        Settings st; st.ck3Dir = "x"; st.locks["Default"] = {"a.mod", "b.mod"}; st.cats["a.mod"] = CAT_PATCH;
+        setenv("RC_DATA_DIR", "/tmp/rc_sort_settings", 1);
+        assert(saveSettings(st));
+        Settings back; loadSettings(back);
+        assert(back.locks["Default"].size() == 2 && back.cats["a.mod"] == CAT_PATCH);
+    }
     std::cout << "ALL CORE TESTS PASSED\n";
 }

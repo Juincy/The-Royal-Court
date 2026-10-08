@@ -6,6 +6,20 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.10.0] - 2026-10-08
+Auto Sort.
+
+### Added
+- **Auto Sort** button: works out a better load order and shows a preview first (every mod's new position, what moved, and why). Nothing changes until you press Apply. **Undo sort** puts the old order back.
+- Sort rules, strongest first: a mod loads after the mods it depends on; mods are grouped by type (Library, Overhaul, Content, Graphics, Interface, Translation, Patch); when two mods in a group overwrite the same files, the smaller targeted mod loads last so it wins; otherwise your current order is kept. Circular dependencies are detected and reported instead of hanging.
+- New **Type** column. Types are guessed from the mod's tags and name; right-click a mod to set its type yourself ("*" marks a type you set) or go back to automatic.
+- **Lock position** (right-click a mod): Auto Sort never moves a locked mod (shown with a lock in the # column). Locks are saved per playset in settings.json, along with your type choices.
+- Mod details now show the mod's type and whether it is locked.
+- Core tests for the sorter (types, dependencies, cycles, locks, overrides, conflict tie-break, settings round trip).
+
+### Changed
+- The main window is a little wider by default (and has a larger minimum width) to fit the new buttons.
+
 ## [0.9.1] - 2026-10-07
 ### Fixed
 - Crash when switching views in the Conflicts window (stale list rows). Views now switch safely.

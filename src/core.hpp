@@ -20,7 +20,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.9.1";
+inline const char* VERSION = "0.10.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -253,7 +253,11 @@ struct ModInfo {
     std::string contentDir;                          // resolved folder with the mod's files ("" if unknown / archive)
     int contentState = 0;                            // 0 unknown (archive or no path), 1 folder exists, 2 folder missing
 };
-struct Settings { std::string ck3Dir, active, gameExe, theme; };  // theme: "dark", "light" or "" (follow Windows)
+struct Settings {
+    std::string ck3Dir, active, gameExe, theme;                       // theme: "dark", "light" or "" (follow Windows)
+    std::map<std::string, std::set<std::string>> locks;               // playset name -> mod ids that Auto Sort never moves
+    std::map<std::string, int> cats;                                  // mod id -> category chosen by the user (overrides the guess)
+};
 
 // A playset IS a Paradox Launcher playset file: <Playsets folder>/<name>.json. The file name is the playset name.
 // Only the launcher's own JSON format is used; there is no separate database.
@@ -310,6 +314,12 @@ inline void loadSettings(Settings& st) {
     if (J* a = root.get("active"); a && a->t == J::Str) st.active = a->s;
     if (J* g = root.get("gameExe"); g && g->t == J::Str) st.gameExe = g->s;
     if (J* th = root.get("theme"); th && th->t == J::Str && (th->s == "dark" || th->s == "light")) st.theme = th->s;
+    if (J* lk = root.get("locks"); lk && lk->t == J::Obj)
+        for (size_t i = 0; i < lk->keys.size(); i++)
+            if (lk->vals[i].t == J::Arr) for (auto& e : lk->vals[i].a) if (e.t == J::Str) st.locks[lk->keys[i]].insert(e.s);
+    if (J* ct = root.get("categories"); ct && ct->t == J::Obj)
+        for (size_t i = 0; i < ct->keys.size(); i++)
+            if (ct->vals[i].t == J::Num && ct->vals[i].n >= 0 && ct->vals[i].n < 7) st.cats[ct->keys[i]] = (int)ct->vals[i].n;
 }
 inline bool saveSettings(const Settings& st) {
     J root = J::obj();
@@ -317,6 +327,17 @@ inline bool saveSettings(const Settings& st) {
     root.set("active", J::str(st.active));
     root.set("gameExe", J::str(st.gameExe));
     if (!st.theme.empty()) root.set("theme", J::str(st.theme));
+    J lk = J::obj();
+    for (auto& kv : st.locks) {
+        if (kv.second.empty()) continue;
+        J a = J::arr();
+        for (auto& id : kv.second) a.a.push_back(J::str(id));
+        lk.set(kv.first, a);
+    }
+    if (!lk.keys.empty()) root.set("locks", lk);
+    J ct = J::obj();
+    for (auto& kv : st.cats) ct.set(kv.first, J::num(kv.second));
+    if (!ct.keys.empty()) root.set("categories", ct);
     std::string out; dump(root, out); out += "\n";
     return writeFileAtomic(settingsPath(), out);
 }
@@ -735,6 +756,175 @@ inline void addConflictIssues(std::vector<std::vector<ModIssue>>& issues, const 
         if (cr.loses[i] > 0) issues[i].push_back({0, std::to_string(cr.loses[i]) + " of its files are overridden by later mods"});
         std::stable_sort(issues[i].begin(), issues[i].end(), [](const ModIssue& a, const ModIssue& b) { return a.sev > b.sev; });
     }
+}
+
+
+// ---------- auto sort ----------
+// Rules, strongest first: (1) a mod loads after the mods it depends on, (2) mods are grouped by type
+// (libraries first ... patches last), (3) when two mods in a group overwrite the same files, the smaller,
+// more targeted one loads last (so it wins), (4) otherwise the current order is kept. Locked mods never move.
+enum Cat { CAT_LIBRARY = 0, CAT_OVERHAUL = 1, CAT_CONTENT = 2, CAT_GRAPHICS = 3, CAT_UI = 4, CAT_TRANSLATION = 5, CAT_PATCH = 6, CAT_COUNT = 7 };
+inline const char* catName(int c) {
+    static const char* n[CAT_COUNT] = {"Library", "Overhaul", "Content", "Graphics", "Interface", "Translation", "Patch"};
+    return (c >= 0 && c < CAT_COUNT) ? n[c] : "Content";
+}
+// whole-word match inside a lower-case string; prefix=true also accepts longer words ("compat" -> "compatibility")
+inline bool hasWord(const std::string& hay, const char* w, bool prefix = false) {
+    size_t wl = std::strlen(w), pos = 0;
+    auto alnum = [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'); };
+    while ((pos = hay.find(w, pos)) != std::string::npos) {
+        bool left = pos == 0 || !alnum(hay[pos - 1]);
+        bool right = pos + wl >= hay.size() || !alnum(hay[pos + wl]) || prefix;
+        if (left && right) return true;
+        pos++;
+    }
+    return false;
+}
+struct CatGuess { int cat = CAT_CONTENT; std::string why; };
+inline CatGuess guessCategory(const ModInfo& m) {
+    std::string n = lower(m.name);
+    std::set<std::string> tags;
+    for (auto& t : m.tags) tags.insert(lower(trimmed(t)));
+    auto name = [&](std::initializer_list<const char*> ws, bool prefix = false) -> const char* {
+        for (const char* w : ws) if (hasWord(n, w, prefix)) return w;
+        return nullptr;
+    };
+    if (const char* w = name({"patch", "patches", "hotfix", "bridge", "submod", "sub-mod", "addon", "add-on"})) return {CAT_PATCH, std::string("name has \"") + w + "\""};
+    if (const char* w = name({"compat", "compatch", "compatibility"}, true)) return {CAT_PATCH, std::string("name has \"") + w + "\""};
+    if (tags.count("fixes")) return {CAT_PATCH, "tag Fixes"};
+    if (tags.count("translation")) return {CAT_TRANSLATION, "tag Translation"};
+    if (const char* w = name({"translation", "localization", "localisation", "l10n", "locale"})) return {CAT_TRANSLATION, std::string("name has \"") + w + "\""};
+    if (const char* w = name({"library", "framework", "api", "lib", "core", "dependency", "dependencies", "requirements"})) return {CAT_LIBRARY, std::string("name has \"") + w + "\""};
+    if (tags.count("total conversion")) return {CAT_OVERHAUL, "tag Total Conversion"};
+    if (const char* w = name({"overhaul", "total conversion"})) return {CAT_OVERHAUL, std::string("name has \"") + w + "\""};
+    if (tags.count("interface")) return {CAT_UI, "tag Interface"};
+    if (const char* w = name({"ui", "gui", "hud", "interface", "tooltip", "tooltips"})) return {CAT_UI, std::string("name has \"") + w + "\""};
+    if (tags.count("graphics")) return {CAT_GRAPHICS, "tag Graphics"};
+    if (tags.count("character models")) return {CAT_GRAPHICS, "tag Character Models"};
+    if (tags.count("sound")) return {CAT_GRAPHICS, "tag Sound"};
+    if (const char* w = name({"portrait", "portraits", "clothing", "clothes", "hair", "hairstyle", "hairstyles", "beard", "beards", "texture", "textures", "skin", "skins", "ethnicity", "ethnicities", "visual", "visuals", "3d", "gfx", "models", "music", "soundtrack", "artwork", "icons"})) return {CAT_GRAPHICS, std::string("name has \"") + w + "\""};
+    return {CAT_CONTENT, "default"};
+}
+
+struct SortMove { int from = 0, to = 0; std::string id, reason; };
+struct SortPlan {
+    std::vector<int> order;                  // order[newPosition] = old position
+    std::vector<SortMove> moves;             // only mods whose position changed, in new order
+    std::vector<std::string> warnings;       // things the sort could not satisfy
+    std::vector<int> cat;                    // per OLD position
+    std::vector<std::string> catWhy;         // per OLD position
+    int conflictChoices = 0;                 // how many conflict tie-breaks were applied
+    bool changed = false;
+};
+
+inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>& info, const std::set<std::string>& locked,
+                         const std::map<std::string, int>& overrides, const ConflictReport* cr, const std::map<std::string, ModFiles>* index) {
+    SortPlan plan;
+    const int n = (int)ps.mods.size();
+    plan.cat.assign((size_t)n, CAT_CONTENT);
+    plan.catWhy.assign((size_t)n, "");
+    std::map<std::string, int> byName;                       // lower(name) -> first position
+    for (int i = 0; i < n; i++) {
+        auto it = info.find(ps.mods[(size_t)i].id);
+        if (it == info.end()) { plan.catWhy[(size_t)i] = "not installed"; continue; }
+        auto ov = overrides.find(ps.mods[(size_t)i].id);
+        if (ov != overrides.end() && ov->second >= 0 && ov->second < CAT_COUNT) { plan.cat[(size_t)i] = ov->second; plan.catWhy[(size_t)i] = "set by you"; }
+        else { CatGuess g = guessCategory(it->second); plan.cat[(size_t)i] = g.cat; plan.catWhy[(size_t)i] = g.why; }
+        byName.emplace(lower(trimmed(it->second.name)), i);
+    }
+    auto isLocked = [&](int i) { return locked.count(ps.mods[(size_t)i].id) > 0; };
+    auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? ps.mods[(size_t)i].id : it->second.name; };
+
+    struct Edge { int from, to, kind; std::string text; };   // from loads before to; kind 0 dependency, 1 conflict tie-break
+    std::vector<Edge> edges;
+    std::vector<std::vector<int>> out((size_t)n);            // adjacency (edge indices)
+    auto addEdge = [&](int a, int b, int kind, const std::string& text) { out[(size_t)a].push_back((int)edges.size()); edges.push_back({a, b, kind, text}); };
+    for (int i = 0; i < n; i++) {
+        auto it = info.find(ps.mods[(size_t)i].id);
+        if (it == info.end()) continue;
+        std::string self = lower(trimmed(it->second.name));
+        for (auto& d : it->second.deps) {
+            auto f = byName.find(lower(trimmed(d)));
+            if (f == byName.end() || f->second == i || lower(trimmed(d)) == self) continue;
+            addEdge(f->second, i, 0, "needs \"" + nameOf(f->second) + "\" to load first");
+        }
+    }
+    auto reaches = [&](int from, int target) {               // is there a path from -> target?
+        std::vector<char> seen((size_t)n, 0);
+        std::vector<int> st{from};
+        while (!st.empty()) {
+            int u = st.back(); st.pop_back();
+            if (u == target) return true;
+            if (seen[(size_t)u]) continue;
+            seen[(size_t)u] = 1;
+            for (int e : out[(size_t)u]) st.push_back(edges[(size_t)e].to);
+        }
+        return false;
+    };
+    if (cr && cr->valid && index) {
+        auto sizeOf = [&](int i) -> size_t { auto f = index->find(ps.mods[(size_t)i].id); return f == index->end() ? 0 : f->second.files.size(); };
+        int budget = 3000;
+        for (auto& p : cr->pairs) {
+            if (budget-- <= 0 || p.count < 3) continue;
+            int a = p.a, b = p.b;                            // a currently loads before b (b wins)
+            if (a < 0 || b < 0 || a >= n || b >= n || isLocked(a) || isLocked(b) || plan.cat[(size_t)a] != plan.cat[(size_t)b]) continue;
+            size_t sa = sizeOf(a), sb = sizeOf(b);
+            if (sb <= sa * 2 || sa == 0) continue;           // only act when b is clearly the bigger mod: it should load first
+            if (reaches(a, b)) continue;                     // would contradict a dependency or an earlier choice
+            addEdge(b, a, 1, "loads after \"" + nameOf(b) + "\" (they overwrite " + std::to_string(p.count) + " of the same files; the smaller, more targeted mod goes last so it wins)");
+            plan.conflictChoices++;
+        }
+    }
+    // Kahn's algorithm over the movable mods, always taking the ready mod with the lowest (type, current position)
+    std::vector<int> indeg((size_t)n, 0);
+    std::vector<char> done((size_t)n, 0);
+    for (auto& e : edges) if (!isLocked(e.from) && !isLocked(e.to)) indeg[(size_t)e.to]++;
+    std::set<std::pair<std::pair<int, int>, int>> ready;
+    int freeCount = 0;
+    for (int i = 0; i < n; i++) { if (isLocked(i)) continue; freeCount++; if (indeg[(size_t)i] == 0) ready.insert({{plan.cat[(size_t)i], i}, i}); }
+    std::vector<int> seq;
+    bool cycleWarned = false;
+    while ((int)seq.size() < freeCount) {
+        int pick;
+        if (!ready.empty()) { pick = ready.begin()->second; ready.erase(ready.begin()); }
+        else {                                               // circular dependency: break it at the lowest-ranked mod left
+            pick = -1;
+            for (int i = 0; i < n && pick < 0; i++) if (!isLocked(i) && !done[(size_t)i]) pick = i;
+            for (int i = 0; i < n; i++) if (!isLocked(i) && !done[(size_t)i] && std::make_pair(plan.cat[(size_t)i], i) < std::make_pair(plan.cat[(size_t)pick], pick)) pick = i;
+            if (!cycleWarned) { plan.warnings.push_back("Circular dependency around \"" + nameOf(pick) + "\"; the dependency was ignored."); cycleWarned = true; }
+        }
+        if (done[(size_t)pick]) continue;
+        done[(size_t)pick] = 1;
+        seq.push_back(pick);
+        for (int e : out[(size_t)pick]) {
+            int to = edges[(size_t)e].to;
+            if (isLocked(to) || isLocked(pick) || done[(size_t)to]) continue;
+            if (--indeg[(size_t)to] == 0) ready.insert({{plan.cat[(size_t)to], to}, to});
+        }
+    }
+    plan.order.assign((size_t)n, -1);
+    size_t k = 0;
+    for (int p = 0; p < n; p++) plan.order[(size_t)p] = isLocked(p) ? p : seq[k++];
+    std::vector<int> newPos((size_t)n, 0);
+    for (int p = 0; p < n; p++) newPos[(size_t)plan.order[(size_t)p]] = p;
+    for (auto& e : edges) {
+        if (e.kind != 0 || newPos[(size_t)e.from] < newPos[(size_t)e.to]) continue;
+        if (isLocked(e.from) || isLocked(e.to)) plan.warnings.push_back("\"" + nameOf(e.to) + "\" " + e.text + ", but a locked mod prevents it.");
+    }
+    for (int p = 0; p < n; p++) {
+        int old = plan.order[(size_t)p];
+        if (old != p) plan.changed = true;
+        if (old == p) continue;
+        SortMove mv; mv.from = old; mv.to = p; mv.id = ps.mods[(size_t)old].id;
+        std::string why;
+        for (auto& e : edges)                                // a dependency that used to sit after this mod is the strongest reason
+            if (e.to == old && e.kind == 0 && e.from > old && why.empty()) why = e.text.substr(0, 0) + "Needs \"" + nameOf(e.from) + "\" to load first";
+        if (why.empty()) for (auto& e : edges) if (e.to == old && e.kind == 1) { why = "Loads after \"" + nameOf(e.from) + "\" (they overwrite the same files; this is the smaller mod, so it wins)"; break; }
+        if (why.empty()) why = std::string(catName(plan.cat[(size_t)old])) + " group" + (plan.catWhy[(size_t)old].empty() || plan.catWhy[(size_t)old] == "default" ? "" : " (" + plan.catWhy[(size_t)old] + ")");
+        mv.reason = why;
+        plan.moves.push_back(std::move(mv));
+    }
+    return plan;
 }
 
 // Natural order for versions and names: digit runs compare as numbers ("1.9" < "1.10"), letters ignore case.
