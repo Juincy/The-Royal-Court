@@ -9,6 +9,7 @@
 #include "core.hpp"
 
 #include <windows.h>
+#include <winhttp.h>
 #include <algorithm>
 using std::min;
 using std::max;
@@ -22,6 +23,7 @@ using std::max;
 #include <tlhelp32.h>
 
 #include <exception>
+#include <memory>
 
 using namespace rc;
 
@@ -50,12 +52,12 @@ static std::wstring wenv(const wchar_t* name) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD,
     ID_TREE, ID_EXPAND, ID_COLLAPSE
 };
 
 static HINSTANCE g_inst;
-static HWND hMain, hL1, hL2, hL3, hCombo, hNew, hDup, hRen, hDel, hExport, hImport, hPlay, hAdv, hLog, hFilter, hAllOn, hAllOff,
+static HWND hMain, hL1, hL2, hL3, hCombo, hNew, hDup, hRen, hDel, hExport, hImport, hPlay, hAdv, hLog, hUpd, hFilter, hAllOn, hAllOff,
     hCount, hUp, hDown, hConflicts, hSort, hUndo, hResync, hTheme, hTip, hList, hStatus, hGameVer, hDir, hBrowse, hSaveDir;
 static HFONT g_font;
 static int g_dpi = 96;
@@ -595,6 +597,7 @@ static std::wstring noteText(int i, char& sev) {
 static std::vector<KnownMod> g_known;           // built-in known mods + knownmods.json
 static std::vector<std::string> g_undoIds;     // load order (mod ids) before the last Auto Sort
 static std::string g_undoPlayset;
+static std::vector<int> g_ctxSel;               // playset positions the context menu acts on (the clicked row alone, or the whole selection)
 static int g_ctxIdx = -1;                      // playset position of the row the context menu was opened on
 static const int ID_CTX_LOCK = 700, ID_CTX_CAT = 710;   // ID_CTX_CAT + category; ID_CTX_CAT + CAT_COUNT = automatic
 
@@ -879,6 +882,34 @@ static void selectRow(int row) {
 }
 
 static bool filterActive() { return !getText(hFilter).empty(); }
+
+// Playset positions of all selected rows, in list order.
+static std::vector<int> selectedMods() {
+    std::vector<int> v;
+    for (int r = ListView_GetNextItem(hList, -1, LVNI_SELECTED); r >= 0; r = ListView_GetNextItem(hList, r, LVNI_SELECTED))
+        if (r < (int)g_shown.size()) v.push_back(g_shown[(size_t)r]);
+    return v;
+}
+// Moves every selected mod one step up or down (a block stays together; unselected mods hop over it).
+static void moveSelection(bool up) {
+    Playset* ps = active();
+    if (!ps) return;
+    std::vector<int> sel = selectedMods();
+    if (sel.empty()) { say(L"Select a mod first."); return; }
+    std::vector<char> isSel(ps->mods.size(), 0);
+    for (int i : sel) isSel[(size_t)i] = 1;
+    int n = (int)ps->mods.size();
+    bool moved = false;
+    if (up) { for (int i = 1; i < n; i++) if (isSel[(size_t)i] && !isSel[(size_t)i - 1]) { std::swap(ps->mods[(size_t)i], ps->mods[(size_t)i - 1]); std::swap(isSel[(size_t)i], isSel[(size_t)i - 1]); moved = true; } }
+    else { for (int i = n - 2; i >= 0; i--) if (isSel[(size_t)i] && !isSel[(size_t)i + 1]) { std::swap(ps->mods[(size_t)i], ps->mods[(size_t)i + 1]); std::swap(isSel[(size_t)i], isSel[(size_t)i + 1]); moved = true; } }
+    if (!moved) return;
+    saveActive();
+    populate();
+    ListView_SetItemState(hList, -1, 0, LVIS_SELECTED);
+    int first = -1;
+    for (int i = 0; i < n; i++) if (isSel[(size_t)i]) { ListView_SetItemState(hList, i, LVIS_SELECTED, LVIS_SELECTED); if (first < 0) first = i; }
+    if (first >= 0) ListView_EnsureVisible(hList, first, FALSE);
+}
 
 // Move the mod at position `from` so it ends up at position `to` (both indices into the full playset).
 static void moveMod(int from, int to) {
@@ -1638,6 +1669,46 @@ static void place(HWND h, int x, int y, int w, int hgt) {
     else SetWindowPos(h, nullptr, x, y, w, hgt, SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
+static void layout();
+// ---------- DPI (per monitor) ----------
+static NONCLIENTMETRICSW g_ncm;     // system font metrics, measured at the system DPI
+static int g_sysDpi = 96;
+static void createFonts() {
+    for (HFONT* f : {&g_font, &g_fontSym, &g_fontBold, &g_fontCrown, &g_fontTitle, &g_fontSub}) if (*f) { DeleteObject(*f); *f = nullptr; }
+    LOGFONTW base = g_ncm.lfMessageFont;
+    base.lfHeight = MulDiv(base.lfHeight, g_dpi, g_sysDpi);   // the message font is measured at the system DPI
+    g_font = CreateFontIndirectW(&base);
+    LOGFONTW lf = base;
+    wcscpy(lf.lfFaceName, L"Segoe UI Symbol");
+    g_fontSym = CreateFontIndirectW(&lf);
+    lf = base; lf.lfWeight = FW_SEMIBOLD;
+    g_fontBold = CreateFontIndirectW(&lf);
+    lf = base; wcscpy(lf.lfFaceName, L"Segoe UI Symbol"); lf.lfHeight = -S(24);
+    g_fontCrown = CreateFontIndirectW(&lf);
+    lf = base; wcscpy(lf.lfFaceName, L"Georgia"); lf.lfHeight = -S(24); lf.lfWeight = FW_BOLD;
+    g_fontTitle = CreateFontIndirectW(&lf);
+    lf = base; lf.lfHeight = -S(11); lf.lfWeight = FW_SEMIBOLD;
+    g_fontSub = CreateFontIndirectW(&lf);
+}
+static UINT windowDpi(HWND h) {
+    using Fn = UINT(WINAPI*)(HWND);
+    static Fn f = (Fn)(void*)GetProcAddress(GetModuleHandleW(L"user32.dll"), "GetDpiForWindow");   // Windows 10 1607+; older systems keep the system DPI
+    return f ? f(h) : 0;
+}
+// The window moved to a monitor with another scale (or the user changed it): rebuild fonts and redo the layout.
+static void applyDpi(int nd, const RECT* suggested) {
+    if (nd <= 0 || nd == g_dpi) return;
+    int old = g_dpi;
+    g_dpi = nd;
+    if (hList) for (int c = 0; c < 7; c++) ListView_SetColumnWidth(hList, c, MulDiv(ListView_GetColumnWidth(hList, c), nd, old));
+    createFonts();
+    EnumChildWindows(hMain, [](HWND c, LPARAM) -> BOOL { SendMessageW(c, WM_SETFONT, (WPARAM)g_font, TRUE); return TRUE; }, 0);
+    SendMessageW(hL2, WM_SETFONT, (WPARAM)g_fontCrown, TRUE);
+    if (suggested) SetWindowPos(hMain, nullptr, suggested->left, suggested->top, suggested->right - suggested->left, suggested->bottom - suggested->top, SWP_NOZORDER | SWP_NOACTIVATE);
+    layout();
+    logLine("DPI changed to " + std::to_string(nd));
+}
+
 static void layout() {
     RECT rc; GetClientRect(hMain, &rc);
     if (rc.right <= 0 || rc.bottom <= 0) return;  // minimized
@@ -1651,6 +1722,7 @@ static void layout() {
     place(hTheme, rx - S(64), by + S(2), S(64), S(28)); rx -= S(64) + S(14);
     place(hLog, rx - S(126), by, S(126), S(32)); rx -= S(126) + gap;
     place(hAdv, rx - S(116), by, S(116), S(32)); rx -= S(116) + gap;
+    place(hUpd, rx - S(104), by, S(104), S(32)); rx -= S(104) + gap;
     place(hResync, rx - S(36), by, S(36), S(32));
 
     int y = g_bannerH + m, x = m;
@@ -1714,6 +1786,7 @@ static void createControls() {
     hResync = mkBtn(hMain, L"\u21BB", L"", ID_RESYNC);
     hAdv = mkBtn(hMain, L"\u2699", L"Advanced", ID_ADV);
     hLog = mkBtn(hMain, L"\u2630", L"Changelog", ID_LOG);
+    hUpd = mkBtn(hMain, L"\u2B06", L"Updates", ID_UPDATE);
     hTheme = mkBtn(hMain, L"", L"", ID_THEME);
     hL2 = mk(L"STATIC", L"\u2315", SS_CENTER, ID_L2);
     SendMessageW(hL2, WM_SETFONT, (WPARAM)g_fontCrown, TRUE);
@@ -1727,7 +1800,7 @@ static void createControls() {
     hCount = mk(L"STATIC", L"", SS_ENDELLIPSIS, ID_COUNT);
     hUp = mkBtn(hMain, L"\u25B2", L"Up", ID_UP);
     hDown = mkBtn(hMain, L"\u25BC", L"Down", ID_DOWN);
-    hList = mk(WC_LISTVIEWW, L"", LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_TABSTOP, ID_LIST, 0);
+    hList = mk(WC_LISTVIEWW, L"", LVS_REPORT | LVS_SHOWSELALWAYS | WS_TABSTOP, ID_LIST, 0);
     ListView_SetExtendedListViewStyle(hList, LVS_EX_CHECKBOXES | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
     SetWindowSubclass(hList, ListSub, 2, 0);
     const wchar_t* heads[7] = {L"#", L"Mod", L"Version", L"Game Version", L"Source", L"Type", L"Notes"};
@@ -1754,10 +1827,27 @@ static void createControls() {
         ti.cbSize = sizeof ti; ti.uFlags = TTF_SUBCLASS | TTF_IDISHWND; ti.hwnd = hMain; ti.uId = (UINT_PTR)c; ti.lpszText = (LPWSTR)text;
         SendMessageW(hTip, TTM_ADDTOOLW, 0, (LPARAM)&ti);
     };
+    tip(hNew, L"Create an empty playset");
+    tip(hDup, L"Copy the selected playset under a new name");
+    tip(hRen, L"Rename the selected playset");
+    tip(hDel, L"Delete the selected playset (your mods are not touched)");
+    tip(hExport, L"Save this playset as a Paradox Launcher playset file");
+    tip(hImport, L"Load a Paradox Launcher playset file");
+    tip(hPlay, L"Start Crusader Kings III with this playset (skips the launcher)");
+    tip(hAdv, L"Backups, compare playsets, launch options, saves, updates and the diagnostics log");
+    tip(hLog, L"What changed in each version");
+    tip(hUpd, L"Check GitHub for a newer version of The Royal Court");
+    tip(hAllOn, L"Enable every mod currently shown in the list");
+    tip(hAllOff, L"Disable every mod currently shown in the list");
+    tip(hConflicts, L"Find mods that change the same files or definitions");
+    tip(hSort, L"Propose a better load order (you see a preview first)");
+    tip(hUndo, L"Go back to the load order from before the last Auto Sort");
+    tip(hBrowse, L"Pick your Crusader Kings III folder");
+    tip(hSaveDir, L"Remember this folder");
     tip(hResync, L"Rescan the mod folder (use after subscribing to a mod while the app is open)");
     tip(hTheme, L"Switch between dark and light");
-    tip(hUp, L"Move the selected mod up in the load order");
-    tip(hDown, L"Move the selected mod down in the load order");
+    tip(hUp, L"Move the selected mod(s) up in the load order");
+    tip(hDown, L"Move the selected mod(s) down in the load order");
 }
 
 static void info(const wchar_t* text);
@@ -1825,6 +1915,206 @@ static void restoreBackup() {
     say(L"Playset restored from the backup.");
 }
 
+// ---------- updates (GitHub Releases) ----------
+// Nothing is contacted until the Updates button is pressed (or, if switched on in Advanced, once at startup).
+// Only https://github.com/<this project>/releases/... is ever downloaded, and the exe must match SHA256SUMS.txt from the same release.
+static constexpr UINT WM_UPD_CHECKED = WM_APP + 5, WM_UPD_DOWNLOADED = WM_APP + 6;
+static bool g_updBusy = false;
+static ReleaseInfo g_updRel;                       // the release found by the last successful check
+
+static bool httpGet(const std::wstring& url, size_t maxBytes, std::string& body, std::wstring& err) {
+    if (const wchar_t* testDir = _wgetenv(L"RC_UPDATE_DIR"); testDir && *testDir) {   // test hook (like RC_DATA_DIR): serve the "release" from a folder instead of GitHub
+        size_t cut = url.find_last_of(L'/');
+        std::wstring leaf = url.find(L"/releases/latest") != std::wstring::npos ? L"latest.json" : url.substr(cut + 1);
+        if (readFile(fs::path(testDir) / leaf, body, maxBytes)) return true;
+        err = L"Test release file missing: " + leaf;
+        return false;
+    }
+    wchar_t host[256] = L"", path[2048] = L"", extra[1024] = L"";
+    URL_COMPONENTSW uc{};
+    uc.dwStructSize = sizeof uc;
+    uc.lpszHostName = host; uc.dwHostNameLength = 256;
+    uc.lpszUrlPath = path; uc.dwUrlPathLength = 2048;
+    uc.lpszExtraInfo = extra; uc.dwExtraInfoLength = 1024;
+    if (!WinHttpCrackUrl(url.c_str(), 0, 0, &uc) || uc.nScheme != INTERNET_SCHEME_HTTPS) { err = L"Bad update address."; return false; }
+    std::wstring ua = L"TheRoyalCourt/" + W(VERSION);
+    HINTERNET ses = WinHttpOpen(ua.c_str(), 4 /* WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY */, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!ses) ses = WinHttpOpen(ua.c_str(), WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!ses) { err = L"Could not start the Windows network library."; return false; }
+    DWORD protos = 0x800;   // TLS 1.2 (also on Windows 7)
+    WinHttpSetOption(ses, WINHTTP_OPTION_SECURE_PROTOCOLS, &protos, sizeof protos);
+    WinHttpSetTimeouts(ses, 10000, 10000, 20000, 30000);
+    bool ok = false;
+    HINTERNET con = WinHttpConnect(ses, host, uc.nPort, 0);
+    HINTERNET req = con ? WinHttpOpenRequest(con, L"GET", (std::wstring(path) + extra).c_str(), nullptr, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE) : nullptr;
+    if (!req) err = L"Could not reach GitHub.";
+    else if (!WinHttpSendRequest(req, L"Accept: application/vnd.github+json\r\n", (DWORD)-1, nullptr, 0, 0, 0) || !WinHttpReceiveResponse(req, nullptr)) err = L"Could not reach GitHub (are you online?).";
+    else {
+        DWORD status = 0, sz = sizeof status;
+        WinHttpQueryHeaders(req, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER, nullptr, &status, &sz, nullptr);
+        if (status == 404) err = L"No release was found on GitHub yet.";
+        else if (status == 403 || status == 429) err = L"GitHub is limiting requests right now. Try again in a little while.";
+        else if (status != 200) err = L"GitHub answered with error " + std::to_wstring(status) + L".";
+        else {
+            ok = true;
+            for (;;) {
+                DWORD avail = 0;
+                if (!WinHttpQueryDataAvailable(req, &avail)) { ok = false; err = L"The connection was interrupted."; break; }
+                if (avail == 0) break;
+                if (body.size() + avail > maxBytes) { ok = false; err = L"The download is larger than expected."; break; }
+                size_t at = body.size();
+                body.resize(at + avail);
+                DWORD got = 0;
+                if (!WinHttpReadData(req, &body[at], avail, &got)) { ok = false; err = L"The connection was interrupted."; break; }
+                body.resize(at + got);
+            }
+        }
+    }
+    if (req) WinHttpCloseHandle(req);
+    if (con) WinHttpCloseHandle(con);
+    WinHttpCloseHandle(ses);
+    return ok;
+}
+
+struct UpdJob { bool silent = false; bool ok = false; std::wstring err; ReleaseInfo rel; std::string exeData; };
+static std::string exePath() { wchar_t b[MAX_PATH * 2]; DWORD n = GetModuleFileNameW(nullptr, b, MAX_PATH * 2); return U(std::wstring(b, n)); }
+
+static DWORD WINAPI updCheckThread(LPVOID p) {
+    UpdJob* j = (UpdJob*)p;
+    std::string body;
+    if (httpGet(W(std::string("https://api.github.com/repos/") + UPDATE_REPO + "/releases/latest"), 1u << 20, body, j->err)) {
+        j->rel = parseRelease(body);
+        j->ok = j->rel.ok;
+        if (!j->ok) j->err = L"GitHub's answer could not be read.";
+    }
+    if (!PostMessageW(hMain, WM_UPD_CHECKED, 0, (LPARAM)j)) delete j;
+    return 0;
+}
+// Downloads the exe and SHA256SUMS.txt of the release, and keeps the exe only if its checksum matches.
+static DWORD WINAPI updDownloadThread(LPVOID p) {
+    UpdJob* j = (UpdJob*)p;
+    const ReleaseAsset* ea = j->rel.asset(UPDATE_EXE_ASSET);
+    const ReleaseAsset* sa = j->rel.asset(UPDATE_SUMS_ASSET);
+    std::string sums;
+    if (!ea || !sa) j->err = L"This release has no update file attached.";
+    else if (httpGet(W(sa->url), 1u << 16, sums, j->err) && httpGet(W(ea->url), 64u << 20, j->exeData, j->err)) {
+        std::string want = findSumFor(sums, UPDATE_EXE_ASSET);
+        if (want.empty()) j->err = L"The release's checksum list does not include the program.";
+        else if (j->exeData.size() < 100000 || j->exeData.compare(0, 2, "MZ") != 0) j->err = L"The downloaded file is not a program.";
+        else if (sha256Hex(j->exeData) != want) j->err = L"The downloaded file does not match its checksum, so it was thrown away.";
+        else j->ok = true;
+    }
+    if (!j->ok) j->exeData.clear();
+    if (!PostMessageW(hMain, WM_UPD_DOWNLOADED, 0, (LPARAM)j)) delete j;
+    return 0;
+}
+static void startUpdateCheck(bool silent) {
+    if (g_updBusy) return;
+    UpdJob* j = new UpdJob;
+    j->silent = silent;
+    g_updBusy = true;
+    if (!silent) say(L"Checking GitHub for a newer version...");
+    HANDLE t = CreateThread(nullptr, 0, updCheckThread, j, 0, nullptr);
+    if (t) CloseHandle(t); else { g_updBusy = false; delete j; }
+}
+static std::wstring plainNotes(const std::string& md) {
+    std::string o;
+    for (size_t i = 0; i < md.size() && o.size() < 3000; i++) {
+        char c = md[i];
+        if (c == '*' || c == '`' || c == '\r') continue;
+        if (c == '#') { while (i + 1 < md.size() && (md[i + 1] == '#' || md[i + 1] == ' ')) i++; continue; }
+        o += c;
+    }
+    return W(o);
+}
+// Swaps the running exe for the downloaded one (Windows lets a running exe be renamed, not overwritten) and starts the new copy.
+static bool installUpdate(const std::string& data, std::wstring& err) {
+    std::wstring self = W(exePath());
+    std::wstring neu = self + L".new", old = self + L".old";
+    if (!writeFile(P(U(neu)), data)) { err = L"Could not write next to the program (is it in a protected folder like Program Files?). Download the new version from GitHub instead."; return false; }
+    DeleteFileW(old.c_str());
+    if (!MoveFileExW(self.c_str(), old.c_str(), MOVEFILE_REPLACE_EXISTING)) { DeleteFileW(neu.c_str()); err = L"Could not replace the program file (Windows error " + std::to_wstring(GetLastError()) + L")."; return false; }
+    if (!MoveFileExW(neu.c_str(), self.c_str(), MOVEFILE_REPLACE_EXISTING)) {
+        MoveFileExW(old.c_str(), self.c_str(), MOVEFILE_REPLACE_EXISTING);   // put the old one back
+        DeleteFileW(neu.c_str());
+        err = L"Could not put the new program in place.";
+        return false;
+    }
+    std::wstring args = L"--wait-pid " + std::to_wstring(GetCurrentProcessId());
+    if (!startProgram(U(self), err, U(args))) {
+        err = L"The update was installed but the new copy could not be started (" + err + L"). Start the program again.";
+        return false;
+    }
+    return true;
+}
+using TaskDialogIndirectFn = HRESULT(WINAPI*)(const TASKDIALOGCONFIG*, int*, int*, BOOL*);
+static void showUpdateDialog(const ReleaseInfo& r) {
+    bool canInstall = r.asset(UPDATE_EXE_ASSET) && r.asset(UPDATE_SUMS_ASSET);
+    std::wstring head = L"Version " + W(r.tag) + L" is available";
+    std::wstring body = L"You have version " + W(VERSION) + L"." + (canInstall ? L" \"Update now\" downloads the new program, checks it against the release's checksum, replaces this one and restarts. Your playsets and settings are not touched." : L" Open the release page to download it.");
+    std::wstring notes = plainNotes(r.body);
+    int choice = IDCANCEL;
+    static TaskDialogIndirectFn td = (TaskDialogIndirectFn)(void*)GetProcAddress(GetModuleHandleW(L"comctl32.dll"), "TaskDialogIndirect");
+    if (td) {
+        TASKDIALOG_BUTTON btns[2]; int nb = 0;
+        if (canInstall) btns[nb++] = {1001, L"Update now\nDownload, verify and restart"};
+        if (!r.pageUrl.empty()) btns[nb++] = {1002, L"Open the release page\nSee what changed and download it yourself"};
+        TASKDIALOGCONFIG c{};
+        c.cbSize = sizeof c; c.hwndParent = hMain; c.hInstance = g_inst;
+        c.dwFlags = TDF_ALLOW_DIALOG_CANCELLATION | TDF_USE_COMMAND_LINKS | TDF_EXPAND_FOOTER_AREA;
+        c.dwCommonButtons = TDCBF_CANCEL_BUTTON;
+        c.pszWindowTitle = L"The Royal Court"; c.pszMainInstruction = head.c_str(); c.pszContent = body.c_str();
+        c.pszMainIcon = TD_INFORMATION_ICON;
+        c.cButtons = (UINT)nb; c.pButtons = btns;
+        if (!notes.empty()) { c.pszExpandedInformation = notes.c_str(); c.pszCollapsedControlText = L"What's new"; c.pszExpandedControlText = L"Hide"; }
+        int pressed = 0;
+        if (SUCCEEDED(td(&c, &pressed, nullptr, nullptr))) choice = pressed;
+    } else {
+        std::wstring q = head + L"\n\n" + body + L"\n\nYes = " + (canInstall ? L"update now" : L"open release page") + L", No = not now.";
+        if (MessageBoxW(hMain, q.c_str(), L"The Royal Court", MB_YESNO | MB_ICONINFORMATION) == IDYES) choice = canInstall ? 1001 : 1002;
+    }
+    if (choice == 1002 && !r.pageUrl.empty()) ShellExecuteW(hMain, L"open", W(r.pageUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    else if (choice == 1001) {
+        UpdJob* j = new UpdJob;
+        j->rel = r;
+        g_updBusy = true;
+        say(L"Downloading version " + W(r.tag) + L"...");
+        HANDLE t = CreateThread(nullptr, 0, updDownloadThread, j, 0, nullptr);
+        if (t) CloseHandle(t); else { g_updBusy = false; delete j; }
+    }
+}
+static void onUpdateChecked(UpdJob* j) {
+    g_updBusy = false;
+    std::unique_ptr<UpdJob> job(j);
+    if (!job->ok) {
+        logLine("update check failed: " + U(job->err));
+        if (job->silent) return;
+        say(L"Update check failed.");
+        info((job->err + L"\n\nYou can always get the latest version from the GitHub page.").c_str());
+        return;
+    }
+    bool newer = compareVersions(job->rel.tag, VERSION) > 0;
+    logLine("update check: latest " + job->rel.tag + (newer ? " (newer)" : " (up to date)"));
+    if (!newer) { if (!job->silent) { say(L"You have the latest version."); info((L"You have the latest version (" + W(VERSION) + L").").c_str()); } return; }
+    g_updRel = job->rel;
+    if (job->silent) { say(L"A newer version (" + W(job->rel.tag) + L") is available - press Updates."); return; }
+    say(L"A newer version is available: " + W(job->rel.tag) + L".");
+    showUpdateDialog(job->rel);
+}
+static void onUpdateDownloaded(UpdJob* j) {
+    g_updBusy = false;
+    std::unique_ptr<UpdJob> job(j);
+    std::wstring err = job->err;
+    if (job->ok && installUpdate(job->exeData, err)) {
+        logLine("updated to " + job->rel.tag + ", restarting");
+        PostMessageW(hMain, WM_CLOSE, 0, 0);   // saves the window state, then the new copy takes over
+        return;
+    }
+    logLine("update failed: " + U(err));
+    say(L"Update failed.");
+    info((err + L"\n\nYour current version was left as it is.").c_str());
+}
+
 static void advancedMenu() {
     HMENU m = CreatePopupMenu();
     AppendMenuW(m, MF_STRING, ID_FOLDER, L"Open playsets folder");
@@ -1841,6 +2131,9 @@ static void advancedMenu() {
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING, ID_ADV_OPENSAVES, L"Open saves folder");
     AppendMenuW(m, MF_STRING, ID_ADV_OPENLOGS, L"Open game logs folder");
+    AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
+    AppendMenuW(m, MF_STRING | (g_settings.checkUpdates ? MF_CHECKED : 0), ID_ADV_AUTOUPD, L"Check for updates when the program starts");
+    AppendMenuW(m, MF_STRING, ID_ADV_LOG, L"Open diagnostics log (for bug reports)");
     RECT r; GetWindowRect(hAdv, &r);
     int cmd = TrackPopupMenu(m, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_TOPALIGN, r.left, r.bottom, 0, hMain, nullptr);
     DestroyMenu(m);
@@ -1856,6 +2149,12 @@ static void advancedMenu() {
     else if (cmd == ID_ADV_OPENBACKUPS) {
         Playset* ps = active();
         ShellExecuteW(hMain, L"open", (ps ? backupsDir(ps->name) : P(dataDir()) / "Backups").c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    }
+    else if (cmd == ID_ADV_AUTOUPD) { g_settings.checkUpdates = !g_settings.checkUpdates; saveSettingsNow(); say(g_settings.checkUpdates ? L"The program will look for updates when it starts." : L"The program will no longer look for updates by itself."); }
+    else if (cmd == ID_ADV_LOG) {
+        std::error_code lec;
+        if (!fs::exists(logPath(), lec)) logLine("log opened by user");
+        ShellExecuteW(hMain, L"open", logPath().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     }
     else if (cmd == ID_ADV_RESTORE) restoreBackup();
     else if (cmd == ID_ADV_UNHIDE) { g_settings.hidden.clear(); saveSettingsNow(); resync(false); }
@@ -1921,9 +2220,12 @@ static void reportError(const char* what) {
 static void onCommand(int id, int code) {
     Playset* ps = active();
     if (id >= ID_CTX_CAT && id <= ID_CTX_CAT + CAT_COUNT) {          // "Type" choice from the right-click menu
-        if (ps && g_ctxIdx >= 0 && g_ctxIdx < (int)ps->mods.size()) {
-            const std::string& mid = ps->mods[(size_t)g_ctxIdx].id;
-            if (id == ID_CTX_CAT + CAT_COUNT) g_settings.cats.erase(mid); else g_settings.cats[mid] = id - ID_CTX_CAT;
+        if (ps) {
+            for (int i : g_ctxSel) {
+                if (i < 0 || i >= (int)ps->mods.size()) continue;
+                const std::string& mid = ps->mods[(size_t)i].id;
+                if (id == ID_CTX_CAT + CAT_COUNT) g_settings.cats.erase(mid); else g_settings.cats[mid] = id - ID_CTX_CAT;
+            }
             saveSettingsNow(); populate();
         }
         return;
@@ -2029,9 +2331,7 @@ static void onCommand(int id, int code) {
         case ID_UP:
         case ID_DOWN: {
             if (orderLocked()) { say(L"Clear the filter and column sorting (click the # header) to change load order."); break; }
-            int row = ListView_GetNextItem(hList, -1, LVNI_SELECTED);
-            if (row < 0) { say(L"Select a mod first."); break; }
-            moveMod(row, id == ID_UP ? row - 1 : row + 1);
+            moveSelection(id == ID_UP);
             break;
         }
         case ID_PLAY: {
@@ -2067,65 +2367,102 @@ static void onCommand(int id, int code) {
         case ID_FOLDER: ShellExecuteW(hMain, L"open", playsetsDir().c_str(), nullptr, nullptr, SW_SHOWNORMAL); break;
         case ID_LOG: showChangelog(); break;
         case ID_ADV: advancedMenu(); break;
+        case ID_UPDATE:
+            if (g_updBusy) { say(L"Already checking..."); break; }
+            if (!g_updRel.tag.empty() && compareVersions(g_updRel.tag, VERSION) > 0) { showUpdateDialog(g_updRel); break; }   // already found by the startup check
+            startUpdateCheck(false);
+            break;
         case ID_RESYNC: g_fileIndex.clear(); g_defIndex.clear(); g_confSig.clear(); resync(false); break;
         case ID_CONFLICTS: showConflicts(); break;
         case ID_CTX_LOCK: {
             if (!ps || g_ctxIdx < 0 || g_ctxIdx >= (int)ps->mods.size()) break;
             auto& lk = g_settings.locks[ps->name];
-            const std::string& modId = ps->mods[(size_t)g_ctxIdx].id;
-            if (lk.count(modId)) lk.erase(modId); else lk.insert(modId);
+            bool unlock = lk.count(ps->mods[(size_t)g_ctxIdx].id) != 0;   // the row that was clicked decides for the whole selection
+            for (int i : g_ctxSel) {
+                if (i < 0 || i >= (int)ps->mods.size()) continue;
+                const std::string& modId = ps->mods[(size_t)i].id;
+                if (unlock) lk.erase(modId); else lk.insert(modId);
+            }
             saveSettingsNow(); populate();
             break;
         }
         case ID_CTX_REMOVE:
         case ID_CTX_DELFILES: {
-            if (!ps || g_ctxIdx < 0 || g_ctxIdx >= (int)ps->mods.size()) break;
-            std::string mid = ps->mods[(size_t)g_ctxIdx].id;
-            auto mit = g_info.find(mid);
-            std::wstring nm = W(mit != g_info.end() ? mit->second.name : mid);
+            if (!ps) break;
             bool files = id == ID_CTX_DELFILES;
-            std::wstring q;
-            bool ws = mit != g_info.end() && mit->second.source == "Workshop";
-            if (files && ws) q = L"Permanently delete \"" + nm + L"\"?\n\nThis erases the mod's entry (its descriptor file in your CK3 mod folder) from your disk and from every playset. This cannot be undone." +
-                (mit->second.contentState == 2 ? L"\n\nThe mod's files are already gone (you unsubscribed on Steam), so this just clears the leftover entry." : L"\n\nThe mod is still installed through Steam. Unsubscribe on Steam first, otherwise Steam will bring it back.");
-            else if (files) q = L"Permanently delete \"" + nm + L"\"?\n\nIts descriptor file and its folder inside your CK3 mod folder are erased from your disk. This cannot be undone.";
-            else q = L"Remove \"" + nm + L"\" from the list?\n\nNothing is deleted from your disk. The mod disappears from every playset and from this list (Advanced > Show removed mods brings it back).";
+            std::vector<std::string> ids;
+            for (int i : g_ctxSel) {
+                if (i < 0 || i >= (int)ps->mods.size()) continue;
+                const std::string& mid = ps->mods[(size_t)i].id;
+                if (files && !g_info.count(mid)) continue;   // nothing on disk to delete
+                ids.push_back(mid);
+            }
+            if (ids.empty()) break;
+            auto nameOf = [&](const std::string& mid) { auto it = g_info.find(mid); return W(it != g_info.end() ? it->second.name : mid); };
+            std::wstring q, firstName = nameOf(ids[0]);
+            if (ids.size() == 1) {
+                auto mit = g_info.find(ids[0]);
+                std::wstring nm = nameOf(ids[0]);
+                bool ws = mit != g_info.end() && mit->second.source == "Workshop";
+                if (files && ws) q = L"Permanently delete \"" + nm + L"\"?\n\nThis erases the mod's entry (its descriptor file in your CK3 mod folder) from your disk and from every playset. This cannot be undone." +
+                    (mit->second.contentState == 2 ? L"\n\nThe mod's files are already gone (you unsubscribed on Steam), so this just clears the leftover entry." : L"\n\nThe mod is still installed through Steam. Unsubscribe on Steam first, otherwise Steam will bring it back.");
+                else if (files) q = L"Permanently delete \"" + nm + L"\"?\n\nIts descriptor file and its folder inside your CK3 mod folder are erased from your disk. This cannot be undone.";
+                else q = L"Remove \"" + nm + L"\" from the list?\n\nNothing is deleted from your disk. The mod disappears from every playset and from this list (Advanced > Show removed mods brings it back).";
+            } else {
+                std::wstring cnt = std::to_wstring(ids.size()), list;
+                for (size_t k = 0; k < ids.size() && k < 8; k++) list += L"\n  \u2022 " + nameOf(ids[k]);
+                if (ids.size() > 8) list += L"\n  ... and " + std::to_wstring(ids.size() - 8) + L" more";
+                if (files) q = L"Permanently delete these " + cnt + L" mods?" + list + L"\n\nTheir descriptor files and folders inside your CK3 mod folder are erased from your disk and from every playset. This cannot be undone.\n\nMods that are still installed through Steam come back unless you unsubscribe on Steam first.";
+                else q = L"Remove these " + cnt + L" mods from the list?" + list + L"\n\nNothing is deleted from your disk. They disappear from every playset and from this list (Advanced > Show removed mods brings them back).";
+            }
             if (MessageBoxW(hMain, q.c_str(), L"The Royal Court", MB_YESNO | MB_ICONQUESTION) != IDYES) break;
             std::string dir = effectiveDir();
+            std::vector<std::string> done;
+            int failed = 0;
             if (files) {
-                if (mit == g_info.end() || dir.empty()) break;
+                if (dir.empty()) break;
+                backupPlayset(*ps, g_info, "before deleting mods");
                 std::error_code ec;
-                fs::path modDir = fs::weakly_canonical(P(dir) / "mod", ec), desc = modDir / mid;
-                bool failed = false;
-                // the mod's own folder is erased only if it really lies inside the CK3 mod folder (never the folder itself, never a link)
-                if (!mit->second.contentDir.empty()) {
-                    fs::path content = fs::weakly_canonical(P(mit->second.contentDir), ec);
-                    fs::path rel = content.lexically_relative(modDir);
-                    bool inside = !ec && !rel.empty() && rel != "." && *rel.begin() != ".." && fs::is_directory(content, ec) && !fs::is_symlink(P(mit->second.contentDir), ec);
-                    if (inside) { fs::remove_all(content, ec); if (ec || fs::exists(content, ec)) failed = true; }
+                fs::path modDir = fs::weakly_canonical(P(dir) / "mod", ec);
+                for (const std::string& mid : ids) {
+                    auto mit = g_info.find(mid);
+                    if (mit == g_info.end()) continue;
+                    bool bad = false;
+                    fs::path desc = modDir / mid;
+                    // the mod's own folder is erased only if it really lies inside the CK3 mod folder (never the folder itself, never a link)
+                    if (!mit->second.contentDir.empty()) {
+                        std::error_code e1;
+                        fs::path content = fs::weakly_canonical(P(mit->second.contentDir), e1);
+                        fs::path rel = content.lexically_relative(modDir);
+                        bool inside = !e1 && !rel.empty() && rel != "." && *rel.begin() != ".." && fs::is_directory(content, e1) && !fs::is_symlink(P(mit->second.contentDir), e1);
+                        if (inside) { fs::remove_all(content, e1); if (e1 || fs::exists(content, e1)) bad = true; }
+                    }
+                    std::error_code e2;
+                    fs::remove(desc, e2);
+                    if (e2 || fs::exists(desc, e2)) bad = true;
+                    if (bad) { failed++; g_fileIndex.erase(mid); logLine("delete failed for " + mid); }
+                    else { done.push_back(mid); logLine("deleted mod " + mid); }
                 }
-                std::error_code ec2;
-                fs::remove(desc, ec2);
-                if (ec2 || fs::exists(desc, ec2)) failed = true;
-                if (failed) { info(L"Some files could not be deleted (are they open in another program?). The mod is left in the list; close the other program and try again."); g_fileIndex.erase(mid); break; }
-                backupPlayset(*ps, g_info, "before deleting a mod");
-                for (auto& pl : g_playsets) { pl.mods.erase(std::remove_if(pl.mods.begin(), pl.mods.end(), [&](const ModRef& m) { return m.id == mid; }), pl.mods.end()); savePlayset(pl, g_info); }
-                g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& m) { return m.id == mid; }), g_mods.end());
-                g_info = infoMap(g_mods); g_fpNow.clear(); g_fileIndex.erase(mid); g_defIndex.erase(mid); g_confSig.clear();
-                g_settings.seen.erase(mid); g_settings.hidden.erase(mid); g_settings.cats.erase(mid); for (auto& lk : g_settings.locks) lk.second.erase(mid);
+            } else {
+                backupPlayset(*ps, g_info, ids.size() == 1 ? "before removing a mod" : "before removing mods");
+                for (const std::string& mid : ids) { g_settings.hidden.insert(mid); done.push_back(mid); logLine("removed mod from list " + mid); }
                 saveSettingsNow();
-                populate();
-                say(L"Deleted \"" + nm + L"\".");
-                break;
             }
-            backupPlayset(*ps, g_info, "before removing a mod");
-            g_settings.hidden.insert(mid);
-            saveSettingsNow();
-            for (auto& pl : g_playsets) { pl.mods.erase(std::remove_if(pl.mods.begin(), pl.mods.end(), [&](const ModRef& m) { return m.id == mid; }), pl.mods.end()); savePlayset(pl, g_info); }
-            g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& m) { return m.id == mid; }), g_mods.end());
-            g_info = infoMap(g_mods); g_fpNow.clear(); g_fileIndex.erase(mid); g_defIndex.erase(mid); g_confSig.clear();
-            populate();
-            say(L"Removed \"" + nm + L"\" from the list.");
+            if (!done.empty()) {
+                std::set<std::string> gone(done.begin(), done.end());
+                for (auto& pl : g_playsets) { pl.mods.erase(std::remove_if(pl.mods.begin(), pl.mods.end(), [&](const ModRef& m) { return gone.count(m.id) != 0; }), pl.mods.end()); savePlayset(pl, g_info); }
+                g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& m) { return gone.count(m.id) != 0; }), g_mods.end());
+                g_info = infoMap(g_mods); g_fpNow.clear(); g_confSig.clear();
+                for (const std::string& mid : done) {
+                    g_fileIndex.erase(mid); g_defIndex.erase(mid);
+                    if (files) { g_settings.seen.erase(mid); g_settings.hidden.erase(mid); g_settings.cats.erase(mid); for (auto& lk : g_settings.locks) lk.second.erase(mid); }
+                }
+                if (files) saveSettingsNow();
+                populate();
+            }
+            std::wstring what = files ? L"Deleted " : L"Removed ";
+            if (!done.empty()) say(what + (done.size() == 1 ? L"\"" + firstName + L"\"" : std::to_wstring(done.size()) + L" mods") + (files ? L"." : L" from the list."));
+            if (failed) info((std::to_wstring(failed) + L" mod(s) could not be fully deleted (are their files open in another program?). They are left in the list; close the other program and try again.").c_str());
             break;
         }
         case ID_SORT: {
@@ -2282,6 +2619,8 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             if (!cancelled) { g_confSig.clear(); refreshNotes(); maybeScan(false); }
             return 0;
         }
+        case WM_UPD_CHECKED: onUpdateChecked((UpdJob*)l); return 0;
+        case WM_UPD_DOWNLOADED: onUpdateDownloaded((UpdJob*)l); return 0;
         case WM_APP + 4: try { maybeScan(w != 0); } catch (...) {} return 0;
         case WM_ACTIVATE:
             if (LOWORD(w) != WA_INACTIVE && g_modStamp && modDirStamp() != g_modStamp) {
@@ -2297,18 +2636,23 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             else { POINT cp = pt; ScreenToClient(hList, &cp); LVHITTESTINFO hi{}; hi.pt = cp; row = ListView_HitTest(hList, &hi); }
             if (!ps || row < 0 || row >= (int)g_shown.size()) return 0;
             g_ctxIdx = g_shown[(size_t)row];
+            if (!(ListView_GetItemState(hList, row, LVIS_SELECTED) & LVIS_SELECTED)) selectRow(row);   // right-click on an unselected row selects just that row
+            g_ctxSel = selectedMods();
+            if (g_ctxSel.empty()) g_ctxSel.push_back(g_ctxIdx);
+            const size_t nsel = g_ctxSel.size();
+            const std::wstring mods = nsel > 1 ? std::to_wstring(nsel) + L" mods" : L"";
             const ModRef& mr = ps->mods[(size_t)g_ctxIdx];
             bool locked = g_settings.locks.count(ps->name) && g_settings.locks[ps->name].count(mr.id);
             bool ovr = false; int cur = catOfMod(mr.id, &ovr);
             HMENU menu = CreatePopupMenu();
-            AppendMenuW(menu, MF_STRING | (locked ? MF_CHECKED : 0), ID_CTX_LOCK, L"Lock position (Auto Sort never moves it)");
+            AppendMenuW(menu, MF_STRING | (locked && nsel == 1 ? MF_CHECKED : 0), ID_CTX_LOCK, nsel > 1 ? (L"Lock position of " + mods + L" (Auto Sort never moves them)").c_str() : L"Lock position (Auto Sort never moves it)");
             AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
-            for (int c = 0; c < CAT_COUNT; c++) AppendMenuW(menu, MF_STRING | (ovr && cur == c ? MF_CHECKED : 0), ID_CTX_CAT + c, (L"Type: " + W(catName(c))).c_str());
-            AppendMenuW(menu, MF_STRING | (!ovr ? MF_CHECKED : 0), ID_CTX_CAT + CAT_COUNT, L"Type: automatic");
+            for (int c = 0; c < CAT_COUNT; c++) AppendMenuW(menu, MF_STRING | (nsel == 1 && ovr && cur == c ? MF_CHECKED : 0), ID_CTX_CAT + c, ((nsel > 1 ? L"Type for all: " : L"Type: ") + W(catName(c))).c_str());
+            AppendMenuW(menu, MF_STRING | (nsel == 1 && !ovr ? MF_CHECKED : 0), ID_CTX_CAT + CAT_COUNT, nsel > 1 ? L"Type for all: automatic" : L"Type: automatic");
             AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
-            AppendMenuW(menu, MF_STRING, ID_CTX_REMOVE, L"Remove from list...");
+            AppendMenuW(menu, MF_STRING, ID_CTX_REMOVE, nsel > 1 ? (L"Remove " + mods + L" from list...").c_str() : L"Remove from list...");
             auto cit = g_info.find(mr.id);
-            if (cit != g_info.end()) AppendMenuW(menu, MF_STRING, ID_CTX_DELFILES, L"Delete mod permanently...");
+            if (cit != g_info.end()) AppendMenuW(menu, MF_STRING, ID_CTX_DELFILES, nsel > 1 ? (L"Delete " + mods + L" permanently...").c_str() : L"Delete mod permanently...");
             TrackPopupMenu(menu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, h, nullptr);
             DestroyMenu(menu);
             return 0;
@@ -2321,6 +2665,7 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             if (w != SIZE_MINIMIZED) layout();
             if (g_windowReady && (w == SIZE_MAXIMIZED || w == SIZE_RESTORED)) saveWindowState(h);   // maximize / restore buttons (a drag-resize saves when the drag ends)
             return 0;
+        case WM_DPICHANGED: applyDpi((int)HIWORD(w), (const RECT*)l); return 0;
         case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(1200); mi->ptMinTrackSize.y = S(420); return 0; }
         case WM_COMMAND:
             if (LOWORD(w) == IDOK || LOWORD(w) == IDCANCEL) return 0;
@@ -2352,6 +2697,16 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
 
 int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     g_inst = inst;
+    // Started by an update: wait for the old copy to finish closing, so the one-copy rule below does not turn the new one away.
+    {
+        int argc = 0;
+        wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+        for (int i = 1; argv && i + 1 < argc; i++)
+            if (wcscmp(argv[i], L"--wait-pid") == 0) {
+                if (HANDLE ph = OpenProcess(SYNCHRONIZE, FALSE, (DWORD)_wtoi(argv[i + 1]))) { WaitForSingleObject(ph, 15000); CloseHandle(ph); }
+            }
+        if (argv) LocalFree(argv);
+    }
     // Only one copy at a time: two copies would each keep their own picture of the playset files and overwrite each other's changes.
     HANDLE single = CreateMutexW(nullptr, FALSE, L"Local\\TheRoyalCourt.SingleInstance");
     if (single && GetLastError() == ERROR_ALREADY_EXISTS) {
@@ -2361,6 +2716,13 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
         }
         return 0;
     }
+    { std::wstring self = W(exePath()) + L".old"; DeleteFileW(self.c_str()); }   // left over from an update
+    SetUnhandledExceptionFilter([](EXCEPTION_POINTERS* ep) -> LONG {
+        char b[96];
+        snprintf(b, sizeof b, "CRASH: exception %08lx at %p", (unsigned long)ep->ExceptionRecord->ExceptionCode, ep->ExceptionRecord->ExceptionAddress);
+        logLine(b);
+        return EXCEPTION_CONTINUE_SEARCH;
+    });
     INITCOMMONCONTROLSEX icc{sizeof(icc), ICC_LISTVIEW_CLASSES | ICC_TREEVIEW_CLASSES | ICC_STANDARD_CLASSES};
     InitCommonControlsEx(&icc);
     CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
@@ -2368,25 +2730,11 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     Gdiplus::GdiplusStartup(&g_gdip, &gsi, nullptr);
 
     HDC dc = GetDC(nullptr);
-    g_dpi = GetDeviceCaps(dc, LOGPIXELSX);
+    g_dpi = g_sysDpi = GetDeviceCaps(dc, LOGPIXELSX);
     ReleaseDC(nullptr, dc);
-    NONCLIENTMETRICSW ncm{};
-    ncm.cbSize = sizeof ncm;
-    SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof ncm, &ncm, 0);
-    g_font = CreateFontIndirectW(&ncm.lfMessageFont);
-    {
-        LOGFONTW lf = ncm.lfMessageFont;
-        wcscpy(lf.lfFaceName, L"Segoe UI Symbol");
-        g_fontSym = CreateFontIndirectW(&lf);
-        lf = ncm.lfMessageFont; lf.lfWeight = FW_SEMIBOLD;
-        g_fontBold = CreateFontIndirectW(&lf);
-        lf = ncm.lfMessageFont; wcscpy(lf.lfFaceName, L"Segoe UI Symbol"); lf.lfHeight = -S(24);
-        g_fontCrown = CreateFontIndirectW(&lf);
-        lf = ncm.lfMessageFont; wcscpy(lf.lfFaceName, L"Georgia"); lf.lfHeight = -S(24); lf.lfWeight = FW_BOLD;
-        g_fontTitle = CreateFontIndirectW(&lf);
-        lf = ncm.lfMessageFont; lf.lfHeight = -S(11); lf.lfWeight = FW_SEMIBOLD;
-        g_fontSub = CreateFontIndirectW(&lf);
-    }
+    g_ncm.cbSize = sizeof g_ncm;
+    SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof g_ncm, &g_ncm, 0);
+    createFonts();
     g_appData = U(wenv(L"APPDATA"));   // must be known before anything reads or writes settings.json
     loadSettings(g_settings);
     g_dark = g_settings.theme.empty() ? systemPrefersDark() : g_settings.theme == "dark";
@@ -2417,14 +2765,17 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     }
     HWND win = CreateWindowExW(WS_EX_CONTROLPARENT, L"RoyalCourtMain", title.c_str(), WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN, wx, wy, ww, wh, nullptr, nullptr, inst, nullptr);
     if (!win) return 1;
+    if (UINT wd = windowDpi(win); wd && (int)wd != g_dpi) applyDpi((int)wd, nullptr);   // started on a monitor with another scale than the system one
     if (g_settings.winMax && show != SW_SHOWMINIMIZED) show = SW_SHOWMAXIMIZED;
 
     try { reload(); }
     catch (const std::exception& e) { reportError(e.what()); }
     catch (...) { reportError(nullptr); }
+    logLine(std::string("start v") + VERSION + ", " + std::to_string(g_mods.size()) + " mods, " + std::to_string(g_playsets.size()) + " playsets, dpi " + std::to_string(g_dpi) + ", game " + (g_gameVer.empty() ? "?" : g_gameVer));
     ShowWindow(win, show);
     UpdateWindow(win);
     g_windowReady = true;
+    if (g_settings.checkUpdates) startUpdateCheck(true);
 
     MSG msg;
     while (GetMessageW(&msg, nullptr, 0, 0) > 0) {

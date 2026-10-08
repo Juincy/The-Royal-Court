@@ -22,7 +22,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.13.2";
+inline const char* VERSION = "0.14.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -264,6 +264,7 @@ struct Settings {
     std::map<std::string, std::string> seen;                          // mod id -> fingerprint when Play was last pressed (update detection)
     int winX = 0, winY = 0, winW = 0, winH = 0; bool winMax = false;  // remembered window position and size (winW == 0: none)
     std::vector<int> colW;                                            // remembered widths of the list columns (0 = automatic)
+    bool checkUpdates = false;                                        // look for a newer release when the program starts (off by default)
 };
 
 // A playset IS a Paradox Launcher playset file: <Playsets folder>/<name>.json. The file name is the playset name.
@@ -319,6 +320,7 @@ inline void loadSettingsExtra(Settings& st, J& root) {
         for (size_t i = 0; i < l->keys.size(); i++) if (l->vals[i].t == J::Str && !l->vals[i].s.empty()) st.launch[l->keys[i]] = l->vals[i].s;
     if (J* l = root.get("seen"); l && l->t == J::Obj)
         for (size_t i = 0; i < l->keys.size(); i++) if (l->vals[i].t == J::Str) st.seen[l->keys[i]] = l->vals[i].s;
+    if (J* u = root.get("checkUpdates"); u && u->t == J::Bool) st.checkUpdates = u->b;
     if (J* w = root.get("window"); w && w->t == J::Obj) {
         auto num = [&](const char* k, int& o) { if (J* v = w->get(k); v && v->t == J::Num) o = (int)v->n; };
         num("x", st.winX); num("y", st.winY); num("w", st.winW); num("h", st.winH);
@@ -362,6 +364,7 @@ inline bool saveSettings(const Settings& st) {
     if (!st.hidden.empty()) { J a = J::arr(); for (auto& id : st.hidden) a.a.push_back(J::str(id)); root.set("hidden", a); }
     if (!st.launch.empty()) { J o = J::obj(); for (auto& kv : st.launch) o.set(kv.first, J::str(kv.second)); root.set("launch", o); }
     if (!st.seen.empty()) { J o = J::obj(); for (auto& kv : st.seen) o.set(kv.first, J::str(kv.second)); root.set("seen", o); }
+    if (st.checkUpdates) root.set("checkUpdates", J::boolean(true));
     if (st.winW > 0) {
         J w = J::obj();
         w.set("x", J::num(st.winX)); w.set("y", J::num(st.winY)); w.set("w", J::num(st.winW)); w.set("h", J::num(st.winH));
@@ -1165,6 +1168,7 @@ inline std::string normName(const std::string& in) {
         if (c == ']' || c == ')') { if (depth > 0) depth--; t += ' '; continue; }
         if (depth > 0) continue;
         if (c == '&') { t += " and "; continue; }
+        if (c == '+') { t += " plus "; continue; }       // "AGOT+" is not "AGOT"
         char l = (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
         t += ((l >= 'a' && l <= 'z') || (l >= '0' && l <= '9') || ((unsigned char)l >= 0x80)) ? l : (l == '.' ? '.' : ' ');
     }
@@ -1205,7 +1209,7 @@ struct KnownMod {
     std::vector<std::string> names;    // normalised names ("rise and fall")
     std::vector<std::string> ids;      // Steam Workshop ids
     int cat = -1;                      // -1 = keep the guessed type
-    int pos = 0;                       // -1 first, +1 last in the whole load order (after the other mods, before only what is listed in `after`)
+    int pos = 0;                       // -2 very first (total conversions), -1 first, +1 last in the whole load order (after the other mods, before only what is listed in `after`)
     int rank = 0;                      // order inside its type (higher = later)
     std::vector<std::string> after, before;   // must load after / before these mods (normalised names)
     std::string note;                  // shown as the reason
@@ -1215,13 +1219,42 @@ inline std::vector<KnownMod> builtinKnownMods() {
     std::vector<KnownMod> v;
     { KnownMod k; k.names = {"rise and fall"}; k.ids = {"3554844335"}; k.pos = 1; k.note = "Rise and Fall: its author says to place it at the very bottom of the load order"; v.push_back(k); }
     { KnownMod k; k.names = {"rui"}; k.after = {"rise and fall"}; k.note = "RUI: its page says to place it below Rise and Fall"; v.push_back(k); }
-    { KnownMod k; k.names = {"unofficial patch", "ck3 unofficial patch"}; k.pos = -1; k.note = "Unofficial Patch: its authors say it must be the first mod in the list"; v.push_back(k); }
+    { KnownMod k; k.names = {"unofficial patch", "ck3 unofficial patch"}; k.ids = {"2871648329"}; k.pos = -1;
+      k.note = "Unofficial Patch: its page says it must be loaded at the very top of your mod list (only a total conversion goes above it)"; v.push_back(k); }
     { KnownMod k; k.names = {"better barbershop", "better barbershop mod"}; k.ids = {"2220326926"}; k.cat = CAT_GRAPHICS; k.rank = 5;
       k.after = {"community flavor pack", "ethnicities and portraits expanded", "a game of thrones", "agot"}; k.note = "Better Barbershop: its page says to put it below CFP, EPE and AGOT"; v.push_back(k); }
     { KnownMod k; k.names = {"community flavor pack", "cfp"}; k.ids = {"2220098919"}; k.cat = CAT_CONTENT; k.note = "Community Flavor Pack (known mod)"; v.push_back(k); }
     { KnownMod k; k.names = {"ethnicities and portraits expanded", "epe"}; k.ids = {"2507209632"}; k.cat = CAT_GRAPHICS; k.note = "Ethnicities & Portraits Expanded (known mod)"; v.push_back(k); }
     { KnownMod k; k.names = {"better character ui"}; k.ids = {"2222540784"}; k.cat = CAT_UI; k.rank = 5; k.note = "Better Character UI: its page says it must be placed under other UI mods"; v.push_back(k); }
-    { KnownMod k; k.names = {"a game of thrones", "agot"}; k.ids = {"2962333032"}; k.cat = CAT_OVERHAUL; k.note = "A Game of Thrones (known total conversion)"; v.push_back(k); }
+    { KnownMod k; k.names = {"a game of thrones", "agot"}; k.ids = {"2962333032"}; k.cat = CAT_OVERHAUL; k.pos = -2;
+      k.note = "A Game of Thrones: the AGOT Submod Core page says it must remain at the top of the load order"; v.push_back(k); }
+    // Total conversions replace the whole game setting, so they always go first. Their own Workshop pages give no load-order
+    // sentence (checked), so this is the standard rule for total conversions rather than a quote.
+    { KnownMod k; k.names = {"lotr realms in exile", "realms in exile"}; k.ids = {"2291024373"}; k.cat = CAT_OVERHAUL; k.pos = -2;
+      k.note = "LotR: Realms in Exile is a total conversion, so it goes first (standard rule for total conversions)"; v.push_back(k); }
+    { KnownMod k; k.names = {"princes of darkness"}; k.ids = {"2216659254"}; k.cat = CAT_OVERHAUL; k.pos = -2;
+      k.note = "Princes of Darkness is a total conversion, so it goes first (standard rule for total conversions)"; v.push_back(k); }
+    { KnownMod k; k.names = {"elder kings 2"}; k.ids = {"2887120253"}; k.cat = CAT_OVERHAUL; k.pos = -2;
+      k.note = "Elder Kings 2 is a total conversion, so it goes first (standard rule for total conversions)"; v.push_back(k); }
+    { KnownMod k; k.names = {"agot submod core"}; k.cat = CAT_LIBRARY; k.pos = -2; k.after = {"a game of thrones", "agot"};
+      k.note = "AGOT Submod Core: its page says to load it immediately after A Game of Thrones"; v.push_back(k); }
+    for (const char* sub : {"agot crowns of westeros", "armor of the kingsguard", "legacy of the dragon", "valyrian steel", "agot plus", "the golden company", "agot brightboar westerosi house flavor"}) {
+        KnownMod k; k.names = {sub}; k.after = {"agot submod core"};
+        k.note = "AGOT submod: the AGOT Submod Core page says participating submods must load after AGOT Submod Core"; v.push_back(k);
+    }
+    { KnownMod k; k.names = {"more interactive vassals", "miv"}; k.ids = {"2712590542"}; k.pos = 1; k.before = {"rise and fall"};
+      k.note = "More Interactive Vassals: its page says to place it at the bottom of the load order (Rise and Fall still goes below it)"; v.push_back(k); }
+    { KnownMod k; k.names = {"battle graphics"}; k.ids = {"3225355262"}; k.cat = CAT_GRAPHICS;
+      k.after = {"community flavor pack", "ethnicities and portraits expanded"};
+      k.note = "Battle Graphics: its page lists the order: other mods, CFP, EPE, the CFP + EPE patch, then Battle Graphics, then its own compatibility patches"; v.push_back(k); }
+    { KnownMod k; k.names = {"dynamic family portrait"}; k.ids = {"3608374693"}; k.cat = CAT_GRAPHICS;
+      k.after = {"ethnicities and portraits expanded"}; k.note = "Dynamic Family Portrait: its page says to load it below EPE (above EPE disables its brighter portraits)"; v.push_back(k); }
+    { KnownMod k; k.names = {"visible disfigurement no more masks"}; k.ids = {"3245958435"}; k.after = {"community flavor pack", "ethnicities and portraits expanded"};
+      k.note = "Visible Disfigurement: its page says to load it after CFP / EPE"; v.push_back(k); }
+    { KnownMod k; k.names = {"unique artifacts plus"}; k.ids = {"3718999968"};
+      k.note = "Unique Artifacts +: no load order is given, but its page warns that conflicts may occur with mods that modify adventure inspiration rewards, unique artifact generation, pilgrimage artifact rewards, legend-related artifact rewards or the same artifact creation effects; if another mod changes the same systems, a compatibility patch may be required"; v.push_back(k); }
+    { KnownMod k; k.names = {"more lifestyles"}; k.ids = {"3013259695"}; k.cat = CAT_CONTENT; k.rank = 5;
+      k.note = "More Lifestyles: its page says to put it lower in the load order"; v.push_back(k); }
     return v;
 }
 // knownmods.json (in the app data folder) adds your own entries, or replaces a built-in one that has the same name:
@@ -1240,7 +1273,7 @@ inline std::vector<KnownMod> loadKnownMods() {
         k.after = strs(e.get("after"), true); k.before = strs(e.get("before"), true);
         if (k.names.empty() && k.ids.empty()) continue;
         if (J* t = e.get("type"); t && t->t == J::Str) k.cat = catFromName(t->s);
-        if (J* p = e.get("position"); p && p->t == J::Str) k.pos = lower(p->s) == "first" ? -1 : lower(p->s) == "last" ? 1 : 0;
+        if (J* p = e.get("position"); p && p->t == J::Str) k.pos = lower(p->s) == "top" ? -2 : lower(p->s) == "first" ? -1 : lower(p->s) == "last" ? 1 : 0;
         if (J* r = e.get("rank"); r && r->t == J::Num) k.rank = (int)r->n;
         if (J* n = e.get("note"); n && n->t == J::Str) k.note = n->s;
         v.erase(std::remove_if(v.begin(), v.end(), [&](const KnownMod& b) { for (auto& n : k.names) for (auto& m : b.names) if (n == m) return true; return false; }), v.end());
@@ -1884,5 +1917,132 @@ inline ApplyResult writeGameModList(const std::string& dir, const Playset& ps, c
     if (r.skipped) r.message += " (" + std::to_string(r.skipped) + " not installed, skipped)";
     return r;
 }
+
+// ---------- diagnostics log ----------
+// A small text file next to settings.json (royalcourt.log, rotated at 256 KB). Written from the main thread only.
+inline fs::path logPath() { return P(dataDir()) / "royalcourt.log"; }
+inline void logLine(const std::string& msg) {
+    try {
+        fs::path p = logPath();
+        std::error_code ec;
+        if (fs::exists(p, ec) && fs::file_size(p, ec) > 256u * 1024u) { fs::path old = p; old += ".1"; fs::remove(old, ec); fs::rename(p, old, ec); }
+        std::time_t t = std::time(nullptr);
+        char buf[32] = "";
+        if (const std::tm* tm = std::localtime(&t)) std::strftime(buf, sizeof buf, "%Y-%m-%d %H:%M:%S", tm);
+        std::ofstream f(p, std::ios::app | std::ios::binary);
+        f << buf << "  " << msg << "\n";
+    } catch (...) {}
+}
+
+// ---------- SHA-256 (used to verify a downloaded update) ----------
+inline std::string sha256Hex(const std::string& data) {
+    static const uint32_t K[64] = {
+        0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+        0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+        0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+        0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2};
+    uint32_t h[8] = {0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19};
+    auto rotr = [](uint32_t x, int n) { return (x >> n) | (x << (32 - n)); };
+    std::string m = data;
+    uint64_t bits = (uint64_t)data.size() * 8;
+    m += (char)0x80;
+    while (m.size() % 64 != 56) m += (char)0;
+    for (int i = 7; i >= 0; i--) m += (char)((bits >> (i * 8)) & 0xFF);
+    for (size_t off = 0; off < m.size(); off += 64) {
+        uint32_t w[64];
+        for (int i = 0; i < 16; i++) w[i] = ((uint32_t)(uint8_t)m[off + i * 4] << 24) | ((uint32_t)(uint8_t)m[off + i * 4 + 1] << 16) | ((uint32_t)(uint8_t)m[off + i * 4 + 2] << 8) | (uint32_t)(uint8_t)m[off + i * 4 + 3];
+        for (int i = 16; i < 64; i++) {
+            uint32_t s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >> 3), s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >> 10);
+            w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+        }
+        uint32_t a = h[0], b = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], hh = h[7];
+        for (int i = 0; i < 64; i++) {
+            uint32_t t1 = hh + (rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i];
+            uint32_t t2 = (rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c));
+            hh = g; g = f; f = e; e = d + t1; d = c; c = b; b = a; a = t1 + t2;
+        }
+        h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e; h[5] += f; h[6] += g; h[7] += hh;
+    }
+    char out[65];
+    for (int i = 0; i < 8; i++) std::snprintf(out + i * 8, 9, "%08x", h[i]);
+    return std::string(out, 64);
+}
+
+// ---------- update check (GitHub Releases) ----------
+inline const char* UPDATE_REPO = "Juincy/the-royal-court";
+inline const char* UPDATE_EXE_ASSET = "TheRoyalCourt.exe";
+inline const char* UPDATE_SUMS_ASSET = "SHA256SUMS.txt";
+
+// "v0.14.1" / "0.14" -> {0,14,1}; anything after the first non-numeric part is ignored
+inline std::vector<int> parseVersion(const std::string& s) {
+    std::vector<int> v;
+    size_t i = 0;
+    while (i < s.size() && (s[i] == 'v' || s[i] == 'V' || s[i] == ' ')) i++;
+    int cur = 0; bool any = false;
+    for (; i < s.size(); i++) {
+        if (s[i] >= '0' && s[i] <= '9') { cur = std::min(cur * 10 + (s[i] - '0'), 1000000); any = true; }
+        else if (s[i] == '.' && any) { v.push_back(cur); cur = 0; any = false; }
+        else break;
+    }
+    if (any) v.push_back(cur);
+    return v;
+}
+// <0 older, 0 same, >0 newer (a compared with b)
+inline int compareVersions(const std::string& a, const std::string& b) {
+    std::vector<int> x = parseVersion(a), y = parseVersion(b);
+    size_t n = std::max(x.size(), y.size());
+    for (size_t i = 0; i < n; i++) {
+        int p = i < x.size() ? x[i] : 0, q = i < y.size() ? y[i] : 0;
+        if (p != q) return p < q ? -1 : 1;
+    }
+    return 0;
+}
+struct ReleaseAsset { std::string name, url; long long size = 0; };
+struct ReleaseInfo {
+    bool ok = false;
+    std::string tag, name, body, pageUrl;
+    std::vector<ReleaseAsset> assets;
+    const ReleaseAsset* asset(const std::string& n) const { for (auto& a : assets) if (a.name == n) return &a; return nullptr; }
+};
+// Only downloads from this project's own GitHub releases are ever followed.
+inline bool trustedReleaseUrl(const std::string& url) {
+    std::string pre = lower(std::string("https://github.com/") + UPDATE_REPO + "/releases/");
+    return lower(url).compare(0, pre.size(), pre) == 0;
+}
+inline ReleaseInfo parseRelease(const std::string& json) {
+    ReleaseInfo r;
+    J root;
+    if (!parseJson(json, root) || root.t != J::Obj) return r;
+    auto str = [&](J& o, const char* k, std::string& out) { if (J* v = o.get(k); v && v->t == J::Str) out = v->s; };
+    str(root, "tag_name", r.tag); str(root, "name", r.name); str(root, "body", r.body); str(root, "html_url", r.pageUrl);
+    if (r.tag.empty() || parseVersion(r.tag).empty()) return r;
+    if (!r.pageUrl.empty() && !trustedReleaseUrl(r.pageUrl)) r.pageUrl.clear();
+    if (J* as = root.get("assets"); as && as->t == J::Arr)
+        for (auto& a : as->a) {
+            if (a.t != J::Obj) continue;
+            ReleaseAsset x;
+            str(a, "name", x.name); str(a, "browser_download_url", x.url);
+            if (J* sz = a.get("size"); sz && sz->t == J::Num) x.size = (long long)sz->n;
+            if (!x.name.empty() && trustedReleaseUrl(x.url)) r.assets.push_back(x);
+        }
+    r.ok = true;
+    return r;
+}
+// SHA256SUMS.txt lines look like "<64 hex>  name" (sha256sum) or "<64 hex> *name"; returns "" when not listed
+inline std::string findSumFor(const std::string& sums, const std::string& file) {
+    std::istringstream in(sums);
+    std::string line;
+    while (std::getline(in, line)) {
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (line.size() < 66) continue;
+        std::string hash = lower(line.substr(0, 64));
+        if (hash.find_first_not_of("0123456789abcdef") != std::string::npos) continue;
+        size_t p = 64;
+        while (p < line.size() && (line[p] == ' ' || line[p] == '*' || line[p] == '\t')) p++;
+        if (line.substr(p) == file) return hash;
+    }
+    return "";
+}
+
 
 }  // namespace rc

@@ -6,6 +6,37 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.14.0] - 2026-10-08
+Updates from inside the app, plus a hardening pass.
+
+### Added
+- **Updates button** (top right): checks this project's GitHub releases. If a newer version exists you see what's new and can press **Update now**: the app downloads the new exe, checks it against the release's SHA-256 checksum, swaps itself and restarts. A file that does not match is thrown away and nothing changes. Or open the release page and update by hand. Nothing is contacted until you press the button; Advanced has an optional "Check for updates when the program starts" (off by default). Only downloads from this project's own GitHub releases are accepted.
+- **Select several mods** (Ctrl/Shift-click): Up/Down moves the whole selection, and the right-click menu locks, sets the type of, removes or deletes all of them at once (one confirmation).
+- **Diagnostics log**: Advanced > Open diagnostics log. A small royalcourt.log in %APPDATA%\TheRoyalCourt (startup info, removals, update checks, crashes) to attach to bug reports.
+- **Tooltips** on every button.
+- **Per-monitor DPI**: the window stays sharp and correctly sized when moved between monitors with different scaling, or when Windows scaling changes.
+- GitHub Actions workflow: every push runs the tests and builds the exe; pushing a version tag creates a draft release with the exe, checksum file and zip attached.
+
+### Changed
+- The mod list now allows selecting more than one row.
+
+## [0.13.3] - 2026-10-08
+More known mods for Auto Sort. Rules come from each mod's own Workshop page, except total conversions, which follow the standard "total conversion loads first" rule.
+
+### Added
+- **Total conversions always load first**: A Game of Thrones, LotR: Realms in Exile, Princes of Darkness and Elder Kings 2 sit in a new top tier above everything else (including the Unofficial Patch). Their pages give no explicit order sentence; this is the standard rule.
+- Unofficial Patch recognised by Workshop id (page: load at the very top, right below total conversions here). Visible Disfigurement loads after CFP and EPE. Unique Artifacts + carries its compatibility warning as a note.
+- `knownmods.json` accepts position "top" (above "first").
+- **A Game of Thrones family** (rules from the AGOT Submod Core page): AGOT stays at the top of the load order; **AGOT Submod Core** loads immediately after it; the participating submods (AGOT - Crowns of Westeros, Armor of the Kingsguard, Legacy Of The Dragon, Valyrian Steel, AGOT+, The Golden Company, AGOT: Brightboar - Westerosi House Flavor) load after the Submod Core.
+- **More Interactive Vassals** goes at the bottom of the load order (Rise and Fall still goes below it, then RUI).
+- **Battle Graphics** loads after Community Flavor Pack and Ethnicities & Portraits Expanded; its compatibility patches load after it.
+- **Dynamic Family Portrait** loads below Ethnicities & Portraits Expanded.
+- **More Lifestyles** is recognised and placed lower in its group, as its page asks.
+
+### Fixed
+- A "+" in a mod name is no longer ignored, so **AGOT+** is no longer mistaken for AGOT itself.
+- Tests for all of the above, including two mods that both ask to be at the top.
+
 ## [0.13.2] - 2026-10-08
 ### Fixed
 - **Settings were read from the wrong place at startup.** The app looked for settings.json before it knew your AppData folder, so it read (and created an empty) `TheRoyalCourt` folder next to wherever it was started, while saving to `%APPDATA%\TheRoyalCourt`. That is why your window size, theme, locked mods, chosen mod types and CK3 folder were not remembered after restarting. Settings now load from the same place they are saved. You can delete the empty `TheRoyalCourt` folder next to the exe.

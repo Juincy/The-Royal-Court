@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.13.2
+# The Royal Court | CK3 Mod Manager  v0.14.0
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -14,6 +14,9 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - Auto Sort proposes a better load order (dependencies first, then Library, Overhaul, Content, Graphics, Interface, Translation, Patch; smaller targeted mods win file conflicts) and shows a preview before anything changes. Undo sort restores the old order. Right-click a mod to lock its position or set its type.
 - Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or delete it permanently from disk (for a Workshop mod you unsubscribed from, this clears the leftover entry).
 - Mods that changed since you last pressed Play are flagged in Notes. Advanced has Compare with another playset and per-playset game launch options. The window remembers its size, position and column widths.
+- Select several mods with Ctrl/Shift-click to move, lock, retype, remove or delete them together.
+- The Updates button checks GitHub for a newer version and can update the program in place (the new exe is verified against the release's SHA-256 checksum first). It only runs when you press it, unless you switch on checking at startup in Advanced.
+- Advanced > Open diagnostics log opens royalcourt.log, a small file useful for bug reports.
 - Dark and light themes, and an Advanced menu (for example, delete all saves).
 - The Changelog window lists every version as an expandable branch.
 
@@ -26,7 +29,7 @@ Auto Sort knows a few popular mods (for example Rise and Fall must be last). To 
    "position":"first", "rank":0, "after":["Some Other Mod"], "before":[], "note":"why it goes here"}
 ]}
 ```
-`names` are matched ignoring case, version numbers and brackets; `ids` are Steam Workshop ids; `type` is Library, Overhaul, Content, Graphics, Interface, Translation or Patch; `position` is "first" or "last" in the whole load order; `after`/`before` are mod names. An entry with the same name as a built-in one replaces it. Every field except `names` or `ids` is optional.
+`names` are matched ignoring case, version numbers and brackets; `ids` are Steam Workshop ids; `type` is Library, Overhaul, Content, Graphics, Interface, Translation or Patch; `position` is "top" (total conversions, above everything), "first" or "last" in the whole load order; `after`/`before` are mod names. An entry with the same name as a built-in one replaces it. Every field except `names` or `ids` is optional.
 
 ## About the antivirus warning
 The EXE is not code-signed (certificates cost money), and brand-new unsigned programs are often flagged by heuristic scanners even when clean. You can check it yourself:
@@ -36,7 +39,7 @@ The EXE is not code-signed (certificates cost money), and brand-new unsigned pro
 4. If Microsoft Defender flags it, you can report it as a false positive at https://www.microsoft.com/wdsi/filesubmission
 
 ## Rebuilding
-On Linux: install g++-mingw-w64-x86-64 and binutils-mingw-w64-x86-64, then run `src/build.sh`. Tests for the core logic are in `src/tests`.
+On Linux: install g++-mingw-w64-x86-64 and binutils-mingw-w64-x86-64, then run `src/build.sh`. Tests for the core logic are in `src/tests`. A GitHub Actions workflow (.github/workflows/build.yml) runs them and builds the exe on every push; pushing a tag like `v0.14.1` creates a draft release with the files the in-app updater needs (`TheRoyalCourt.exe` and `SHA256SUMS.txt`).
 
 Every change is logged in CHANGELOG.md.
 

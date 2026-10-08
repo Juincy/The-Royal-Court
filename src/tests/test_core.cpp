@@ -607,5 +607,61 @@ int main() {
         assert(iss[2].empty());                                               // c: never played before, nothing to compare
         assert(iss[4].empty());                                               // e: disabled
     }
+    {   // ---- v0.13.3 known mods: AGOT family, More Interactive Vassals, Battle Graphics ----
+        assert(normName("AGOT+") == "agot plus" && !nameIs(normName("AGOT+"), "agot") && !nameIs(normName("AGOT: Brightboar - Westerosi House Flavor"), "agot"));
+        auto mkm = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+        std::vector<ModInfo> ms = {
+            mkm("ugc_3554844335.mod", "Rise and Fall"), mkm("rui.mod", "RUI"), mkm("miv.mod", "More Interactive Vassals"), mkm("r1.mod", "Random Content"),
+            mkm("vs.mod", "Valyrian Steel"), mkm("ap.mod", "AGOT+"), mkm("core.mod", "AGOT Submod Core"), mkm("agot.mod", "A Game of Thrones"),
+            mkm("epe.mod", "Ethnicities & Portraits Expanded"), mkm("bg.mod", "Battle Graphics"), mkm("redux.mod", "Battle Graphics Redux Compatch"), mkm("cfp.mod", "Community Flavor Pack")};
+        auto inf = infoMap(ms);
+        Playset ps; ps.name = "agot";
+        for (auto& m : ms) ps.mods.push_back({m.id, true, ""});
+        auto db = builtinKnownMods();
+        auto plan = planSort(ps, inf, {}, {}, nullptr, nullptr, &db);
+        std::vector<std::string> ids; for (int o : plan.order) ids.push_back(ps.mods[(size_t)o].id);
+        auto pos = [&](const char* id) { return (int)(std::find(ids.begin(), ids.end(), id) - ids.begin()); };
+        assert(pos("agot.mod") == 0 && pos("core.mod") == 1);                                   // AGOT on top, the submod core right below it
+        assert(pos("vs.mod") > pos("core.mod") && pos("ap.mod") > pos("core.mod"));            // submods after the core
+        assert(pos("miv.mod") > pos("r1.mod") && pos("miv.mod") > pos("bg.mod") && pos("ugc_3554844335.mod") == pos("miv.mod") + 1 && pos("rui.mod") == (int)ids.size() - 1);
+        assert(pos("bg.mod") > pos("cfp.mod") && pos("bg.mod") > pos("epe.mod") && pos("redux.mod") > pos("bg.mod"));
+        // a total conversion goes above even the Unofficial Patch, and the AGOT core still sits right below AGOT
+        ms.push_back(mkm("up.mod", "Unofficial Patch")); ms.push_back(mkm("pod.mod", "Princes of Darkness: Extended Edition")); ms.push_back(mkm("ui.mod", "Unique Artifacts + 1.20")); ms.push_back(mkm("vd.mod", "Visible Disfigurement - No More Masks"));
+        inf = infoMap(ms); for (size_t i = ps.mods.size(); i < ms.size(); i++) ps.mods.push_back({ms[i].id, true, ""});
+        auto plan2 = planSort(ps, inf, {}, {}, nullptr, nullptr, &db);
+        std::vector<std::string> ids2; for (int o : plan2.order) ids2.push_back(ps.mods[(size_t)o].id);
+        auto pos2 = [&](const char* id) { return (int)(std::find(ids2.begin(), ids2.end(), id) - ids2.begin()); };
+        assert(plan2.order.size() == ps.mods.size());
+        assert(pos2("agot.mod") < pos2("core.mod") && pos2("pod.mod") < pos2("up.mod") && pos2("core.mod") < pos2("up.mod") && pos2("agot.mod") < pos2("up.mod") && pos2("up.mod") == 3);
+        assert(pos2("vd.mod") > pos2("cfp.mod") && pos2("vd.mod") > pos2("epe.mod"));
+        assert(!plan2.known[(size_t)(std::find_if(ms.begin(), ms.end(), [](const ModInfo& m) { return m.id == "ui.mod"; }) - ms.begin())].empty());   // Unique Artifacts + recognised (note shown)
+    }
+    // v0.14: SHA-256, version compare, release parsing, settings flag, log
+    {
+        assert(sha256Hex("") == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
+        assert(sha256Hex("abc") == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+        assert(sha256Hex(std::string(1000, 'a')) == "41edece42d63e8d9bf515a9ba6932e1c20cbc9f5a5d134645adb5db1b9737ea3");
+        assert(compareVersions("v0.14.0", "0.13.3") > 0 && compareVersions("0.13.3", "v0.13.3") == 0 && compareVersions("0.13", "0.13.0") == 0 && compareVersions("0.9.9", "0.10.0") < 0 && compareVersions("v1.0.0-beta", "0.99.9") > 0);
+        assert(parseVersion("garbage").empty());
+        std::string js = R"({"tag_name":"v0.14.1","name":"Release","body":"notes\nline","html_url":"https://github.com/Juincy/the-royal-court/releases/tag/v0.14.1","assets":[
+            {"name":"TheRoyalCourt.exe","size":1234,"browser_download_url":"https://github.com/Juincy/the-royal-court/releases/download/v0.14.1/TheRoyalCourt.exe"},
+            {"name":"evil.exe","size":1,"browser_download_url":"https://evil.example.com/evil.exe"},
+            {"name":"SHA256SUMS.txt","size":99,"browser_download_url":"https://github.com/juincy/The-Royal-Court/releases/download/v0.14.1/SHA256SUMS.txt"}]})";
+        ReleaseInfo ri = parseRelease(js);
+        assert(ri.ok && ri.tag == "v0.14.1" && ri.body == "notes\nline" && !ri.pageUrl.empty());
+        assert(ri.asset("TheRoyalCourt.exe") && ri.asset("TheRoyalCourt.exe")->size == 1234 && ri.asset("SHA256SUMS.txt") && !ri.asset("evil.exe"));
+        assert(!parseRelease("{}").ok && !parseRelease("not json").ok && !parseRelease(R"({"tag_name":"nightly"})").ok);
+        assert(!trustedReleaseUrl("https://github.com.evil.com/Juincy/the-royal-court/releases/x") && !trustedReleaseUrl("http://github.com/Juincy/the-royal-court/releases/x"));
+        std::string sums = std::string(64, 'A') + "  TheRoyalCourt.exe\r\n" + std::string(64, 'b') + " *other.zip\n";
+        assert(findSumFor(sums, "TheRoyalCourt.exe") == std::string(64, 'a') && findSumFor(sums, "other.zip") == std::string(64, 'b') && findSumFor(sums, "nope").empty());
+        Settings st; st.checkUpdates = true;
+        assert(saveSettings(st));
+        Settings st2; loadSettings(st2);
+        assert(st2.checkUpdates);
+        st.checkUpdates = false; saveSettings(st); loadSettings(st2);
+        assert(!st2.checkUpdates);
+        logLine("test line");
+        std::string lg; assert(readFile(logPath(), lg) && lg.find("test line") != std::string::npos);
+    }
     std::cout << "ALL CORE TESTS PASSED\n";
 }

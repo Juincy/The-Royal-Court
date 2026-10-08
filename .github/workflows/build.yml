@@ -1,0 +1,57 @@
+name: Build
+
+# Every push and pull request: run the tests and build the exe (download it from the run's "Artifacts").
+# Pushing a tag like v0.14.1: also creates a DRAFT release with TheRoyalCourt.exe, SHA256SUMS.txt and the release zip attached.
+# You then open the draft on GitHub, check the notes, and press Publish.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create the draft release on tag pushes
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install the Windows cross-compiler
+        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 zip
+
+      - name: Core tests (address + undefined-behaviour sanitizers)
+        run: |
+          g++ -std=c++17 -fsanitize=address,undefined -o "$RUNNER_TEMP/core_tests" src/tests/test_core.cpp
+          "$RUNNER_TEMP/core_tests"
+
+      - name: Build TheRoyalCourt.exe
+        run: sh src/build.sh
+
+      - name: Package
+        id: pkg
+        run: |
+          VER=$(grep -oP 'VERSION = "\K[^"]+' src/core.hpp)
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          mkdir -p dist pkg/TheRoyalCourt
+          cp TheRoyalCourt.exe dist/
+          (cd dist && sha256sum TheRoyalCourt.exe > SHA256SUMS.txt)
+          cp TheRoyalCourt.exe README.md CHANGELOG.md LICENSE dist/SHA256SUMS.txt pkg/TheRoyalCourt/
+          (cd pkg && zip -qr "../dist/TheRoyalCourt-v$VER-release.zip" TheRoyalCourt)
+          # release notes = this version's section of CHANGELOG.md
+          awk -v v="$VER" 'BEGIN{h="## [" v "]"} index($0,"## [")==1 { if (found) exit; if (index($0,h)==1) { found=1; next } } found' CHANGELOG.md > notes.md
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TheRoyalCourt-v${{ steps.pkg.outputs.version }}
+          path: dist/*
+
+      - name: Create draft release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ steps.pkg.outputs.version }}
+        run: |
+          if [ "v$VER" != "$GITHUB_REF_NAME" ]; then echo "Tag $GITHUB_REF_NAME does not match VERSION $VER in src/core.hpp"; exit 1; fi
+          gh release create "$GITHUB_REF_NAME" dist/* --draft --title "The Royal Court v$VER" --notes-file notes.md
