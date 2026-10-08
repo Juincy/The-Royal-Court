@@ -1,13 +1,14 @@
 name: Build
 
 # Every push and pull request: run the tests and build the exe (download it from the run's "Artifacts").
-# Pushing a tag like v0.14.1: also creates a DRAFT release with TheRoyalCourt.exe, SHA256SUMS.txt and the release zip attached.
-# You then open the draft on GitHub, check the notes, and press Publish.
+# Pushing a tag like v0.14.1, or pressing "Run workflow" on the Actions tab: also creates a DRAFT release (tag v<VERSION from src/core.hpp)
+# with TheRoyalCourt.exe, SHA256SUMS.txt and the release zip attached. You then open the draft on GitHub, check the notes, and press Publish.
 on:
   push:
     branches: [main]
     tags: ['v*']
   pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -47,11 +48,12 @@ jobs:
           name: TheRoyalCourt-v${{ steps.pkg.outputs.version }}
           path: dist/*
 
-      - name: Create draft release (tag pushes only)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Create draft release (tag pushes and manual runs)
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
           VER: ${{ steps.pkg.outputs.version }}
         run: |
-          if [ "v$VER" != "$GITHUB_REF_NAME" ]; then echo "Tag $GITHUB_REF_NAME does not match VERSION $VER in src/core.hpp"; exit 1; fi
-          gh release create "$GITHUB_REF_NAME" dist/* --draft --title "The Royal Court v$VER" --notes-file notes.md
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "v$VER" != "$GITHUB_REF_NAME" ]; then echo "Tag $GITHUB_REF_NAME does not match VERSION $VER in src/core.hpp"; exit 1; fi
+          if gh release view "v$VER" >/dev/null 2>&1; then echo "Release v$VER already exists - nothing to do"; exit 1; fi
+          gh release create "v$VER" dist/* --draft --target "$GITHUB_SHA" --title "The Royal Court v$VER" --notes-file notes.md
