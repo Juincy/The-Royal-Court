@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.13.0
+# The Royal Court | CK3 Mod Manager  v0.13.2
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -12,7 +12,7 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - Conflicts finds mods that overwrite the same files (by mod pair or by file) and mods that define the same trait, event ID, define, on_action or localization key (By definition). The mod loaded last usually wins; where that is unclear, the app says so.
 - Your playset is backed up automatically at startup and before Auto Sort (Advanced menu: Back up now, Restore, Open backups folder).
 - Auto Sort proposes a better load order (dependencies first, then Library, Overhaul, Content, Graphics, Interface, Translation, Patch; smaller targeted mods win file conflicts) and shows a preview before anything changes. Undo sort restores the old order. Right-click a mod to lock its position or set its type.
-- Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or, for local mods, send its files to the Recycle Bin.
+- Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or delete it permanently from disk (for a Workshop mod you unsubscribed from, this clears the leftover entry).
 - Mods that changed since you last pressed Play are flagged in Notes. Advanced has Compare with another playset and per-playset game launch options. The window remembers its size, position and column widths.
 - Dark and light themes, and an Advanced menu (for example, delete all saves).
 - The Changelog window lists every version as an expandable branch.

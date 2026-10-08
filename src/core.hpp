@@ -22,7 +22,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.13.0";
+inline const char* VERSION = "0.13.2";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -382,22 +382,6 @@ inline std::string autoFindCK3Dir(const std::vector<std::string>& docRoots) {
         if (fs::is_directory(c, ec)) return c.u8string();
     }
     return "";
-}
-
-inline bool keyLine(const std::string& line, const std::string& key, std::string& val) {
-    size_t i = 0;
-    auto skip = [&] { while (i < line.size() && (line[i] == ' ' || line[i] == '\t')) i++; };
-    skip();
-    if (line.compare(i, key.size(), key) != 0) return false;
-    i += key.size(); skip();
-    if (i >= line.size() || line[i] != '=') return false;
-    i++; skip();
-    if (i >= line.size() || line[i] != '"') return false;
-    i++;
-    size_t e = line.find('"', i);
-    if (e == std::string::npos) return false;
-    val = line.substr(i, e - i);
-    return true;
 }
 
 // ---------- .mod descriptor (Paradox script) ----------

@@ -556,6 +556,24 @@ static void updateCount() {
     SetWindowTextW(hCount, t.c_str());
 }
 
+static bool g_inSizeMove = false;
+static bool g_windowReady = false;     // set once the window is shown; before that nothing about the window is saved
+// Remembers where the window is, how big it is and how wide the columns are (written to settings.json straight away,
+// so it survives however the program ends).
+static void saveWindowState(HWND h) {
+    if (!g_windowReady || g_inSizeMove || !hList || !IsWindow(hList)) return;
+    WINDOWPLACEMENT wp{}; wp.length = sizeof wp;
+    if (!GetWindowPlacement(h, &wp)) return;
+    const RECT& n = wp.rcNormalPosition;
+    if (n.right - n.left < 200 || n.bottom - n.top < 200) return;
+    Settings& st = g_settings;
+    std::vector<int> cols;
+    for (int c = 0; c < 7; c++) cols.push_back(ListView_GetColumnWidth(hList, c));
+    bool max = wp.showCmd == SW_SHOWMAXIMIZED;
+    if (st.winX == n.left && st.winY == n.top && st.winW == n.right - n.left && st.winH == n.bottom - n.top && st.winMax == max && st.colW == cols) return;
+    st.winX = n.left; st.winY = n.top; st.winW = n.right - n.left; st.winH = n.bottom - n.top; st.winMax = max; st.colW = cols;
+    saveSettings(st);
+}
 static void resizeCols();
 // Fingerprints of the installed mods right now (cleared when the mod folder is rescanned).
 static std::map<std::string, std::string> g_fpNow;
@@ -1231,7 +1249,7 @@ static void showText(const std::wstring& title, const std::wstring& text) {
 
 // ---------- conflicts window ----------
 static int g_cfPairA = -1, g_cfPairB = -1;           // set when a pair row was opened: the file list shows only their shared files
-static std::vector<int> g_cfRows;                    // visible rows: indexes into pairs / files / wipes of g_conf
+static std::vector<int> g_cfRows;                    // visible rows: indexes into pairs / files / definitions of the open view
 static HWND hCfList = nullptr, hCfFilter = nullptr, hCfStatus = nullptr;
 static std::wstring g_cfText;
 
@@ -2040,6 +2058,7 @@ static void onCommand(int id, int code) {
             std::string args;
             if (auto lo = g_settings.launch.find(ps->name); lo != g_settings.launch.end()) args = lo->second;
             if (!startProgram(exe, err, args)) { info((L"Could not start the game (" + err + L").").c_str()); break; }
+            for (auto it = g_settings.seen.begin(); it != g_settings.seen.end();) it = g_info.count(it->first) ? std::next(it) : g_settings.seen.erase(it);   // forget mods that are gone
             for (auto& m : ps->mods) if (m.enabled) if (auto f = fpNow().find(m.id); f != fpNow().end()) g_settings.seen[m.id] = f->second;
             saveSettingsNow(); refreshNotes();
             say(W(r.message) + L". Starting Crusader Kings III directly (launcher skipped).");
@@ -2053,8 +2072,8 @@ static void onCommand(int id, int code) {
         case ID_CTX_LOCK: {
             if (!ps || g_ctxIdx < 0 || g_ctxIdx >= (int)ps->mods.size()) break;
             auto& lk = g_settings.locks[ps->name];
-            const std::string& id = ps->mods[(size_t)g_ctxIdx].id;
-            if (lk.count(id)) lk.erase(id); else lk.insert(id);
+            const std::string& modId = ps->mods[(size_t)g_ctxIdx].id;
+            if (lk.count(modId)) lk.erase(modId); else lk.insert(modId);
             saveSettingsNow(); populate();
             break;
         }
@@ -2066,22 +2085,38 @@ static void onCommand(int id, int code) {
             std::wstring nm = W(mit != g_info.end() ? mit->second.name : mid);
             bool files = id == ID_CTX_DELFILES;
             std::wstring q;
-            if (files) q = L"Move \"" + nm + L"\" to the Recycle Bin?\n\nIts descriptor file and its folder inside your CK3 mod folder are removed from the game. You can restore them from the Recycle Bin.";
+            bool ws = mit != g_info.end() && mit->second.source == "Workshop";
+            if (files && ws) q = L"Permanently delete \"" + nm + L"\"?\n\nThis erases the mod's entry (its descriptor file in your CK3 mod folder) from your disk and from every playset. This cannot be undone." +
+                (mit->second.contentState == 2 ? L"\n\nThe mod's files are already gone (you unsubscribed on Steam), so this just clears the leftover entry." : L"\n\nThe mod is still installed through Steam. Unsubscribe on Steam first, otherwise Steam will bring it back.");
+            else if (files) q = L"Permanently delete \"" + nm + L"\"?\n\nIts descriptor file and its folder inside your CK3 mod folder are erased from your disk. This cannot be undone.";
             else q = L"Remove \"" + nm + L"\" from the list?\n\nNothing is deleted from your disk. The mod disappears from every playset and from this list (Advanced > Show removed mods brings it back).";
-            if (mit != g_info.end() && mit->second.source == "Workshop" && !files) q += L"\n\nTo uninstall a Workshop mod completely, unsubscribe from it on Steam.";
             if (MessageBoxW(hMain, q.c_str(), L"The Royal Court", MB_YESNO | MB_ICONQUESTION) != IDYES) break;
             std::string dir = effectiveDir();
             if (files) {
                 if (mit == g_info.end() || dir.empty()) break;
                 std::error_code ec;
-                fs::path modDir = P(dir) / "mod", desc = modDir / mid, content = P(mit->second.contentDir);
-                std::wstring list = desc.wstring() + L'\0';
-                fs::path rel = content.lexically_relative(modDir);
-                bool inside = !mit->second.contentDir.empty() && !rel.empty() && *rel.begin() != ".." && rel != "." && fs::is_directory(content, ec);
-                if (inside) list += content.wstring() + L'\0';
-                SHFILEOPSTRUCTW op{};
-                op.hwnd = hMain; op.wFunc = FO_DELETE; op.pFrom = list.c_str(); op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT;
-                if (SHFileOperationW(&op) != 0 || op.fAnyOperationsAborted) { info(L"Could not move the mod to the Recycle Bin. It is left in the list."); break; }
+                fs::path modDir = fs::weakly_canonical(P(dir) / "mod", ec), desc = modDir / mid;
+                bool failed = false;
+                // the mod's own folder is erased only if it really lies inside the CK3 mod folder (never the folder itself, never a link)
+                if (!mit->second.contentDir.empty()) {
+                    fs::path content = fs::weakly_canonical(P(mit->second.contentDir), ec);
+                    fs::path rel = content.lexically_relative(modDir);
+                    bool inside = !ec && !rel.empty() && rel != "." && *rel.begin() != ".." && fs::is_directory(content, ec) && !fs::is_symlink(P(mit->second.contentDir), ec);
+                    if (inside) { fs::remove_all(content, ec); if (ec || fs::exists(content, ec)) failed = true; }
+                }
+                std::error_code ec2;
+                fs::remove(desc, ec2);
+                if (ec2 || fs::exists(desc, ec2)) failed = true;
+                if (failed) { info(L"Some files could not be deleted (are they open in another program?). The mod is left in the list; close the other program and try again."); g_fileIndex.erase(mid); break; }
+                backupPlayset(*ps, g_info, "before deleting a mod");
+                for (auto& pl : g_playsets) { pl.mods.erase(std::remove_if(pl.mods.begin(), pl.mods.end(), [&](const ModRef& m) { return m.id == mid; }), pl.mods.end()); savePlayset(pl, g_info); }
+                g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& m) { return m.id == mid; }), g_mods.end());
+                g_info = infoMap(g_mods); g_fpNow.clear(); g_fileIndex.erase(mid); g_defIndex.erase(mid); g_confSig.clear();
+                g_settings.seen.erase(mid); g_settings.hidden.erase(mid); g_settings.cats.erase(mid); for (auto& lk : g_settings.locks) lk.second.erase(mid);
+                saveSettingsNow();
+                populate();
+                say(L"Deleted \"" + nm + L"\".");
+                break;
             }
             backupPlayset(*ps, g_info, "before removing a mod");
             g_settings.hidden.insert(mid);
@@ -2119,7 +2154,7 @@ static void onCommand(int id, int code) {
             std::map<std::string, ModRef> byId;
             for (auto& m : ps->mods) byId.emplace(m.id, m);
             std::vector<ModRef> nm; std::set<std::string> used;
-            for (auto& id : g_undoIds) { auto f = byId.find(id); if (f != byId.end() && used.insert(id).second) nm.push_back(f->second); }
+            for (auto& uid : g_undoIds) { auto f = byId.find(uid); if (f != byId.end() && used.insert(uid).second) nm.push_back(f->second); }
             for (auto& m : ps->mods) if (!used.count(m.id)) nm.push_back(m);
             ps->mods = nm;
             g_undoIds.clear();
@@ -2273,25 +2308,19 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
             AppendMenuW(menu, MF_STRING, ID_CTX_REMOVE, L"Remove from list...");
             auto cit = g_info.find(mr.id);
-            if (cit != g_info.end() && cit->second.source == "Local") AppendMenuW(menu, MF_STRING, ID_CTX_DELFILES, L"Delete mod files from disk (Recycle Bin)...");
+            if (cit != g_info.end()) AppendMenuW(menu, MF_STRING, ID_CTX_DELFILES, L"Delete mod permanently...");
             TrackPopupMenu(menu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, h, nullptr);
             DestroyMenu(menu);
             return 0;
         }
-        case WM_CLOSE: {
-            WINDOWPLACEMENT wp{}; wp.length = sizeof wp;
-            if (GetWindowPlacement(h, &wp)) {
-                const RECT& n = wp.rcNormalPosition;
-                g_settings.winX = n.left; g_settings.winY = n.top; g_settings.winW = n.right - n.left; g_settings.winH = n.bottom - n.top;
-                g_settings.winMax = wp.showCmd == SW_SHOWMAXIMIZED;
-                g_settings.colW.clear();
-                for (int c = 0; c < 7; c++) g_settings.colW.push_back(ListView_GetColumnWidth(hList, c));
-                saveSettingsNow();
-            }
-            DestroyWindow(h);
+        case WM_CLOSE: saveWindowState(h); DestroyWindow(h); return 0;
+        case WM_ENDSESSION: if (w) saveWindowState(h); return 0;
+        case WM_ENTERSIZEMOVE: g_inSizeMove = true; return 0;
+        case WM_EXITSIZEMOVE: g_inSizeMove = false; saveWindowState(h); return 0;
+        case WM_SIZE:
+            if (w != SIZE_MINIMIZED) layout();
+            if (g_windowReady && (w == SIZE_MAXIMIZED || w == SIZE_RESTORED)) saveWindowState(h);   // maximize / restore buttons (a drag-resize saves when the drag ends)
             return 0;
-        }
-        case WM_SIZE: if (w != SIZE_MINIMIZED) layout(); return 0;
         case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(1200); mi->ptMinTrackSize.y = S(420); return 0; }
         case WM_COMMAND:
             if (LOWORD(w) == IDOK || LOWORD(w) == IDCANCEL) return 0;
@@ -2316,7 +2345,7 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             return 0;
         case WM_LBUTTONUP: endDrag(true); return 0;
         case WM_CAPTURECHANGED: if (g_drag) endDrag(false); return 0;
-        case WM_DESTROY: stopScan(); PostQuitMessage(0); return 0;
+        case WM_DESTROY: g_windowReady = false; stopScan(); PostQuitMessage(0); return 0;
     }
     return DefWindowProcW(h, m, w, l);
 }
@@ -2358,11 +2387,11 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
         lf = ncm.lfMessageFont; lf.lfHeight = -S(11); lf.lfWeight = FW_SEMIBOLD;
         g_fontSub = CreateFontIndirectW(&lf);
     }
+    g_appData = U(wenv(L"APPDATA"));   // must be known before anything reads or writes settings.json
     loadSettings(g_settings);
     g_dark = g_settings.theme.empty() ? systemPrefersDark() : g_settings.theme == "dark";
     rebuildBrushes();
 
-    g_appData = U(wenv(L"APPDATA"));
     PWSTR docs = nullptr;
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &docs)) && docs) { g_docRoots.push_back(U(docs)); CoTaskMemFree(docs); }
     std::wstring up = wenv(L"USERPROFILE");
@@ -2395,6 +2424,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     catch (...) { reportError(nullptr); }
     ShowWindow(win, show);
     UpdateWindow(win);
+    g_windowReady = true;
 
     MSG msg;
     while (GetMessageW(&msg, nullptr, 0, 0) > 0) {

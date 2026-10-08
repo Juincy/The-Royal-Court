@@ -4,8 +4,8 @@
 CHANGELOG RCDATA "../CHANGELOG.md"
 
 1 VERSIONINFO
-FILEVERSION 0,13,0,0
-PRODUCTVERSION 0,13,0,0
+FILEVERSION 0,13,2,0
+PRODUCTVERSION 0,13,2,0
 FILEOS 0x4
 FILETYPE 0x1
 BEGIN
@@ -15,11 +15,11 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "The Royal Court"
       VALUE "FileDescription", "The Royal Court - CK3 Mod Manager"
-      VALUE "FileVersion", "0.13.0.0"
+      VALUE "FileVersion", "0.13.2.0"
       VALUE "InternalName", "TheRoyalCourt"
       VALUE "OriginalFilename", "TheRoyalCourt.exe"
       VALUE "ProductName", "The Royal Court | CK3 Mod Manager"
-      VALUE "ProductVersion", "0.13.0"
+      VALUE "ProductVersion", "0.13.2"
     END
   END
   BLOCK "VarFileInfo"

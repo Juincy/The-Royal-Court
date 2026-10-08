@@ -6,6 +6,27 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.13.2] - 2026-10-08
+### Fixed
+- **Settings were read from the wrong place at startup.** The app looked for settings.json before it knew your AppData folder, so it read (and created an empty) `TheRoyalCourt` folder next to wherever it was started, while saving to `%APPDATA%\TheRoyalCourt`. That is why your window size, theme, locked mods, chosen mod types and CK3 folder were not remembered after restarting. Settings now load from the same place they are saved. You can delete the empty `TheRoyalCourt` folder next to the exe.
+
+### Changed
+- **Delete mod permanently now also works for Workshop mods.** When you unsubscribe on Steam, the game leaves a stale entry behind; Delete erases that entry (its descriptor file) from your disk and from every playset for good. If the mod is still installed through Steam, the dialog tells you to unsubscribe first, because Steam would bring it back. The mod's Steam files are never touched.
+
+## [0.13.1] - 2026-10-08
+Permanent delete, window memory fix, audit and cleanup.
+
+### Changed
+- **Delete mod permanently** (local mods): the mod's descriptor and its folder in your CK3 mod folder are erased from disk, with no Recycle Bin. The dialog says it cannot be undone. The folder is only erased if it really lies inside your CK3 mod folder (never the mod folder itself, never a link). If a file is in use, nothing is half-removed and the mod stays in the list. Workshop mods keep "Remove from list" (unsubscribe on Steam to uninstall them).
+
+### Fixed
+- **Window size, position and column widths were not remembered.** They are now saved as soon as you finish moving or resizing, on maximize/restore, and on close, so they survive however the program ends.
+
+### Audit and cleanup
+- Static analysis (clang-tidy bugprone, performance and analyzer checks) and all compiler warnings reviewed: no real defects found. Fixed two confusing variable-name shadows, removed an unused function, tidied a stale comment.
+- Update-detection records for mods that are no longer installed are forgotten.
+- Re-checked speed and memory with a 100-mod, 100 MB script benchmark (about 3 s in the background, about 76 MB peak in this extreme case); no change needed.
+
 ## [0.13.0] - 2026-10-08
 Remove mods, plus quality-of-life features.
 
