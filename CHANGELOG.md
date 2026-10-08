@@ -6,6 +6,55 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.13.0] - 2026-10-08
+Remove mods, plus quality-of-life features.
+
+### Added
+- **Remove a mod from the list:** right-click a mod > *Remove from list...*. Nothing is deleted from disk; the mod disappears from every playset (a backup is made first). *Advanced > Show removed mods* brings them all back. For Workshop mods the dialog reminds you to unsubscribe on Steam to uninstall completely.
+- **Delete mod files from disk:** for local mods only, the same menu has *Delete mod files from disk (Recycle Bin)...*. The descriptor and the mod's folder inside your CK3 mod folder go to the Recycle Bin, so you can still restore them.
+- **Update detection:** pressing Play remembers the state of every enabled mod. Afterwards a mod whose files changed (Workshop update or edited local mod) shows "Updated since you last pressed Play" in Notes. Mods you have never played with are not flagged. It compares the mod folder's modified time and version, so a rare update that leaves both unchanged is not seen.
+- **Compare playsets:** *Advanced > Compare with another playset...* lists mods enabled in only one, mods enabled in one and disabled in the other, and which mods sit at a different place in the shared load order (only the mods that actually moved are listed).
+- **Game launch options per playset:** *Advanced > Game launch options for this playset...* (for example `-debug_mode`). Used when you press Play; each playset has its own.
+- **Remembers window position, size, maximized state and column widths.**
+
+## [0.12.1] - 2026-10-08
+### Fixed
+- Too many yellow warnings in the Notes column. Overlapping on_actions and definitions where the winner is unclear are normal (patches and compatibility mods do this on purpose), so they are now information only: they no longer show in the Notes column, but stay in the mod's details and in Conflicts > By definition. Only duplicate event IDs are still a warning.
+
+## [0.12.0] - 2026-10-08
+Script-level conflicts and automatic backups.
+
+### Added
+- **Script-level conflict detection.** Besides files that overwrite each other, the app now reads the mods' script files and finds the same thing defined twice: traits and other `common/` objects, event IDs, defines, on_actions and localization keys.
+  - New **By definition** view in the Conflicts window, and warnings in the Notes column.
+  - It says who wins only when file-name order and load order agree (CK3 rules here are disputed); otherwise it says plainly that it is unclear.
+  - Localization overlaps are shown as information only.
+- **Automatic playset backups** at startup and before every Auto Sort, kept in a Backups folder (newest 30).
+- **Advanced menu:** Back up now, Restore a backup, Open backups folder.
+
+### Changed
+- The scan now also reads script definitions (still in the background).
+
+## [0.11.0] - 2026-10-08
+Smarter Auto Sort.
+
+### Added
+- **Known-mods list** built into the app, using only what the mods' own pages say:
+  - **Rise and Fall** (Workshop 3554844335) goes at the very bottom of the load order; **RUI** goes below it (as its page says).
+  - **Unofficial Patch** goes first.
+  - **Better Barbershop** loads below Community Flavor Pack, Ethnicities & Portraits Expanded and AGOT.
+  - **Better Character UI** loads after other interface mods.
+  - Community Flavor Pack, Ethnicities & Portraits Expanded and A Game of Thrones are recognised and typed correctly.
+  Recognition works by Workshop id or by name (version numbers, brackets and "&" vs "and" are ignored; "Rise and Fall Compatibility Patch" is not mistaken for Rise and Fall itself).
+- **Your own entries:** put a `knownmods.json` file in the app's data folder (the same folder as settings.json) to add mods or change a built-in entry. A broken file is ignored. See the README for the format.
+- **Patch linking:** a compatibility patch is now placed after the mods named in its title ("CFP + EPE Compatibility Patch" loads after Community Flavor Pack and Ethnicities & Portraits Expanded; acronyms such as CFP/EPE are understood).
+- **File-based types:** when a mod's name and tags say nothing, the files it ships decide its type (mostly localization = Translation, mostly interface = Interface, mostly graphics/audio = Graphics, mod that rewrites the map and history = Overhaul). Mods that replace four or more vanilla folders are treated as Overhauls.
+- The Auto Sort preview says how many mods were recognised and how many patches were linked, and the mod details window shows the known-mod note.
+- Tests for names, the known-mods list, patch links, file-based types and knownmods.json.
+
+### Changed
+- The Type column now reflects the known-mods list and the file scan (it updates when the background file scan finishes).
+
 ## [0.10.0] - 2026-10-08
 Auto Sort.
 

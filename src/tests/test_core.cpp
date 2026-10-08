@@ -424,5 +424,188 @@ int main() {
         Settings back; loadSettings(back);
         assert(back.locks["Default"].size() == 2 && back.cats["a.mod"] == CAT_PATCH);
     }
+    {   // ---- known mods, patch links, file-based types ----
+        assert(normName("Rise & Fall [1.17] v2.3") == "rise and fall" && normName("Better Barbershop Mod 1.2.3") == "better barbershop mod");
+        assert(nameIs("rise and fall", "rise and fall") && nameIs("rise and fall extended", "rise and fall"));
+        assert(!nameIs("rise and fall compatibility patch", "rise and fall") && !nameIs("rise and fall of rome", "rise and fall"));
+        assert(acronymOf("community flavor pack") == "cfp" && acronymOf("ethnicities and portraits expanded") == "epe" && acronymOf("two words").empty());
+        auto mkm = [](const char* id, const char* name, std::vector<std::string> deps = {}, std::vector<std::string> tags = {}) {
+            ModInfo m; m.id = id; m.name = name; m.deps = deps; m.tags = tags; return m;
+        };
+        std::vector<ModInfo> ms = {
+            mkm("ugc_3554844335.mod", "Anything at all"),                         // Rise and Fall recognised by its Workshop id
+            mkm("rui.mod", "RUI"), mkm("x1.mod", "Some Content"),
+            mkm("bb.mod", "Better Barbershop"), mkm("cfp.mod", "Community Flavor Pack"), mkm("epe.mod", "Ethnicities & Portraits Expanded"),
+            mkm("up.mod", "Unofficial Patch"), mkm("x2.mod", "More Content"),
+            mkm("pt.mod", "CFP + Some Content compatibility patch"), mkm("rf2.mod", "Rise and Fall Compatibility Patch")};
+        auto inf = infoMap(ms);
+        Playset ps; ps.name = "k";
+        for (auto& m : ms) ps.mods.push_back({m.id, true, ""});
+        auto db = builtinKnownMods();
+        auto plan = planSort(ps, inf, {}, {}, nullptr, nullptr, &db);
+        std::vector<std::string> ids; for (int o : plan.order) ids.push_back(ps.mods[(size_t)o].id);
+        auto pos = [&](const char* id) { return (int)(std::find(ids.begin(), ids.end(), id) - ids.begin()); };
+        assert(pos("up.mod") == 0);                                            // "must be first"
+        assert(pos("ugc_3554844335.mod") > pos("pt.mod") && pos("ugc_3554844335.mod") > pos("rf2.mod") && pos("ugc_3554844335.mod") > pos("x2.mod"));   // very bottom...
+        assert(pos("rui.mod") == pos("ugc_3554844335.mod") + 1 && pos("rui.mod") == (int)ids.size() - 1);       // ...except RUI, which goes below it
+        assert(pos("bb.mod") > pos("cfp.mod") && pos("bb.mod") > pos("epe.mod"));                         // barbershop below CFP and EPE
+        assert(pos("pt.mod") > pos("cfp.mod") && pos("pt.mod") > pos("x1.mod") && plan.patchLinks >= 2);   // patch named for CFP and "Some Content"
+        assert(plan.knownCount >= 6);
+        // the user can still lock a known mod
+        auto pl = planSort(ps, inf, {"ugc_3554844335.mod"}, {}, nullptr, nullptr, &db);
+        assert(pl.order[0] == 0);
+        // without the database nothing changes for them
+        auto none = planSort(ps, inf, {}, {}, nullptr, nullptr, nullptr);
+        assert(none.knownCount == 0);
+        // files tell what an unnamed mod is
+        ModFiles gf; gf.complete = true; for (int i = 0; i < 20; i++) gf.files.push_back("gfx/portraits/a" + std::to_string(i) + ".dds");
+        assert(guessFromFiles(gf).cat == CAT_GRAPHICS);
+        ModFiles lf; lf.complete = true; for (int i = 0; i < 20; i++) lf.files.push_back("localization/english/a" + std::to_string(i) + ".yml");
+        assert(guessFromFiles(lf).cat == CAT_TRANSLATION);
+        ModFiles uf; uf.complete = true; for (int i = 0; i < 20; i++) uf.files.push_back("gui/a" + std::to_string(i) + ".gui");
+        assert(guessFromFiles(uf).cat == CAT_UI);
+        ModFiles cf; cf.complete = true; cf.files = {"common/traits/a.txt", "events/b.txt", "gfx/x.dds"};
+        assert(guessFromFiles(cf).cat == CAT_CONTENT);
+        // user database file adds and overrides entries
+        setenv("RC_DATA_DIR", "/tmp/rc_known", 1);
+        fs::create_directories("/tmp/rc_known");
+        writeFile("/tmp/rc_known/knownmods.json", R"({"mods":[{"names":["My Cool Mod"],"type":"Graphics","position":"last","note":"mine"},{"names":["Rise and Fall"],"position":"first","note":"changed"}]})");
+        auto udb = loadKnownMods();
+        int mine = -1, rf = -1;
+        for (size_t i = 0; i < udb.size(); i++) { for (auto& nm : udb[i].names) { if (nm == "my cool mod") mine = (int)i; if (nm == "rise and fall") rf = (int)i; } }
+        assert(mine >= 0 && udb[(size_t)mine].cat == CAT_GRAPHICS && udb[(size_t)mine].pos == 1);
+        assert(rf >= 0 && udb[(size_t)rf].pos == -1 && udb[(size_t)rf].ids.empty());                       // replaced the built-in entry
+        writeFile("/tmp/rc_known/knownmods.json", "{not json");
+        assert(loadKnownMods().size() == builtinKnownMods().size());                                         // a broken file is ignored
+    }
+    {   // ---- backups ----
+        setenv("RC_DATA_DIR", "/tmp/rc_backup_test", 1);
+        std::error_code ec; fs::remove_all("/tmp/rc_backup_test", ec);
+        std::vector<ModInfo> ms;
+        for (int i = 0; i < 4; i++) { ModInfo m; m.id = "m" + std::to_string(i) + ".mod"; m.name = "Mod " + std::to_string(i); ms.push_back(m); }
+        auto inf = infoMap(ms);
+        Playset ps; ps.name = "My Set";
+        for (auto& m : ms) ps.mods.push_back({m.id, true, m.name});
+        std::string b1 = backupPlayset(ps, inf, "before sort");
+        assert(!b1.empty() && fs::exists(b1) && listBackups("My Set").size() == 1);
+        assert(backupPlayset(ps, inf, "again").empty());                       // identical to the newest: not duplicated
+        Playset changed = ps; std::swap(changed.mods[0], changed.mods[3]); changed.mods[1].enabled = false;
+        std::string b2 = backupPlayset(changed, inf, "x");
+        assert(!b2.empty() && listBackups("My Set").size() == 2 && listBackups("My Set")[0].u8string() == b2);   // newest first
+        // restoring: read the old backup, apply its order and enabled flags, keep mods it did not know
+        std::string text; assert(readFile(P(b1), text));
+        auto imp = parsePlaysetFile(text, ms); assert(imp.ok);
+        Playset now = changed; ModRef extra{"new.mod", false, "New"}; now.mods.push_back(extra);
+        applyBackupOrder(now, imp.playset);
+        assert(now.mods.size() == 5 && now.mods[0].id == "m0.mod" && now.mods[3].id == "m3.mod" && now.mods[1].enabled && now.mods[4].id == "new.mod");
+        // only the newest N are kept
+        std::string lastExpected;
+        for (int i = 0; i < 6; i++) { Playset p2 = ps; p2.mods[0].enabled = (i % 2) == 0; p2.mods[1].enabled = i < 3; p2.mods[2].enabled = i < 4; p2.mods[3].enabled = i < 5;
+            backupPlayset(p2, inf, "n", 3); lastExpected = exportLauncherPlayset(p2, inf); }
+        assert(listBackups("My Set").size() == 3);
+        std::string lastData, newest; auto lb = listBackups("My Set");
+        readFile(lb.front(), lastData);
+        assert(lastData == lastExpected);                      // the newest backup survived the pruning
+    }
+    {   // ---- script-level conflicts ----
+        // parser
+        std::vector<ScriptKey> k;
+        scanScriptKeys("\xEF\xBB\xBF# comment\n@my_var = 5\nbrave = { # trailing\n  index = 1\n  opposites = { craven }\n}\nnamespace = x\ncraven={ a = \"}{\" }\n  \"quoted\" = { }\nmulti_line\n=\n{\n}\n", 0, k);
+        assert(k.size() == 4 && k[0].key == "brave" && k[1].key == "craven" && k[2].key == "quoted" && k[3].key == "multi_line");
+        k.clear(); scanScriptKeys("a = 1\nb = { }\n@c = 2\nd ?= 3\n", 1, k);
+        assert(k.size() == 3 && k[0].key == "a" && k[1].key == "b" && k[2].key == "d");
+        k.clear(); scanScriptKeys("on_birth = {\n  effect = { x = 1 }\n  events = { a.1 }\n}\non_death = { events = { a.2 } }\n", 0, k);
+        assert(k.size() == 2 && (k[0].flags & DF_OVERWRITES) && !(k[1].flags & DF_OVERWRITES));
+        k.clear(); scanScriptKeys("my.1 = { id_override_priority = 5 type = character_event }\nmy.2 = { }\n", 0, k);
+        assert(k.size() == 2 && (k[0].flags & DF_PRIORITY) && !(k[1].flags & DF_PRIORITY));
+        k.clear(); scanScriptKeys("NGame = {\n  START_DATE = \"1066.9.15\"\n  LIST = { 1 2 3 }\n}\nNCharacter = { MAX = 5 }\n", 2, k);
+        assert(k.size() == 3 && k[0].key == "NGame.START_DATE" && k[1].key == "NGame.LIST" && k[2].key == "NCharacter.MAX");
+        std::vector<std::string> lk;
+        scanLocKeys("\xEF\xBB\xBFl_english:\n # c\n trait_brave:0 \"Brave\"\n trait_x: \"Y\"\n bad key:0 \"no\"\n event.1.t:1 \"T\"\n", lk);
+        assert(lk.size() == 3 && lk[0] == "trait_brave" && lk[1] == "trait_x" && lk[2] == "event.1.t");
+        assert(defFileKind("localization/english/a_l_english.yml").area == "localization/english" && !(defFileKind("localization/english/a_l_english.yml").flags & DF_REPLACE));
+        assert((defFileKind("localization/english/replace/a.yml").flags & DF_REPLACE) && (defFileKind("localization/replace/english/a.yml").flags & DF_REPLACE));
+        assert(defFileKind("common/traits/a.txt").area == "common/traits" && defFileKind("common/defines/a.txt").kind == DK_DEFINE && defFileKind("gfx/a.txt").kind < 0);
+        // end to end on disk: three mods
+        fs::path root = "/tmp/rc_script_test"; std::error_code ec; fs::remove_all(root, ec);
+        auto put = [&](const char* mod, const char* rel, const std::string& text) { fs::path f = root / mod / rel; fs::create_directories(f.parent_path(), ec); writeFile(f, text); };
+        put("a", "common/traits/00_a.txt", "brave = { x = 1 }\nonly_a = { }\n");
+        put("b", "common/traits/zz_b.txt", "brave = { x = 2 }\n");                     // same key, later file name AND later mod: clear winner
+        put("a", "events/a_events.txt", "namespace = e\ne.1 = { }\ne.2 = { }\n");
+        put("b", "events/b_events.txt", "namespace = e\ne.1 = { }\ne.3 = { id_override_priority = 3 }\n");   // e.1 duplicated
+        put("c", "events/c_events.txt", "namespace = e\ne.3 = { }\n");                  // e.3 has an override priority in b: intended
+        put("a", "localization/english/a_l_english.yml", "l_english:\n k1:0 \"a\"\n k2:0 \"a\"\n");
+        put("b", "localization/english/b_l_english.yml", "l_english:\n k1:0 \"b\"\n");     // k1 duplicated
+        put("c", "localization/english/replace/c_l_english.yml", "l_english:\n k2:0 \"c\"\n");   // replace folder: intended
+        put("a", "common/on_action/a.txt", "on_birth = { effect = { a = 1 } }\non_x = { events = { e.1 } }\n");
+        put("b", "common/on_action/b.txt", "on_birth = { effect = { b = 1 } }\non_x = { events = { e.2 } }\n");   // both set effect: conflict; on_x merges
+        put("c", "common/traits/00_shared.txt", "shared = { }\n");
+        put("a", "common/traits/00_shared.txt", "shared = { }\n");              // same FILE in two mods: a file conflict, not a script conflict
+        put("a", "common/traits/00_x.txt", "shadow = { }\n");
+        put("b", "common/traits/zz_y.txt", "shadow = { }\n");
+        put("c", "common/traits/00_x.txt", "shadow = { }\n");                   // replaces a's whole 00_x.txt: only b and c remain
+        put("a", "common/traits/zz_a.txt", "unclear = { }\n");                         // load order says b, file name order says "zz_a" vs "00_b" -> a... see below
+        put("b", "common/traits/00_b.txt", "unclear = { }\n");
+        std::vector<ModInfo> ms; std::vector<std::string> ids = {"a", "b", "c"};
+        for (auto& id : ids) { ModInfo m; m.id = id + ".mod"; m.name = id; m.contentDir = (root / id).u8string(); m.contentState = 1; ms.push_back(m); }
+        auto inf = infoMap(ms);
+        Playset ps; ps.name = "s"; for (auto& m : ms) ps.mods.push_back({m.id, true, ""});
+        std::map<std::string, ModDefs> idx;
+        for (auto& m : ms) { ModFiles mf = indexModFiles(m.contentDir); assert(mf.complete); idx[m.id] = indexModDefs(m.contentDir, mf.files); assert(idx[m.id].complete); }
+        auto sr = findScriptConflicts(ps, inf, idx);
+        assert(sr.valid && sr.modsRead == 3);
+        auto find = [&](int kind, const char* key) -> const ScriptConflict* { for (auto& c : sr.items) if (c.kind == kind && c.key == key) return &c; return nullptr; };
+        auto* brave = find(DK_COMMON, "brave");
+        assert(brave && brave->hits.size() == 2 && brave->winner == 1 && brave->sev == 0);      // a/00_a.txt vs b/zz_b.txt: later file name and later mod
+        assert(!find(DK_COMMON, "shared"));
+        auto* shadow = find(DK_COMMON, "shadow");
+        assert(shadow && shadow->hits.size() == 2 && shadow->hits[0].mod == 1 && shadow->hits[1].mod == 2 && shadow->winner == -1);   // file name order says b, load order says c
+        assert(find(DK_EVENT, "e.1") && find(DK_EVENT, "e.1")->sev == 1);
+        assert(!find(DK_EVENT, "e.3") && !find(DK_EVENT, "e.2"));
+        auto* k1 = find(DK_LOC, "k1"); assert(k1 && k1->hits.size() == 2);
+        assert(!find(DK_LOC, "k2"));
+        assert(find(DK_ONACTION, "on_birth") && !find(DK_ONACTION, "on_x"));
+        auto* unc = find(DK_COMMON, "unclear");
+        assert(unc && unc->winner == -1 && unc->sev == 1);                                       // file name order: zz_a (mod a); load order: mod b
+        assert(!find(DK_COMMON, "only_a"));
+        auto iss = analyzePlayset(ps, inf, ""); addScriptIssues(iss, sr, ps);
+        assert(issueSeverity(iss[0]) == 1 && issueSeverity(iss[1]) == 1 && issueSummary(iss[2]).find("event") == std::string::npos);
+        // disabled mods take no part; incomplete data is reported, not guessed
+        ps.mods[1].enabled = false;
+        auto sr2 = findScriptConflicts(ps, inf, idx);
+        assert(sr2.items.size() < sr.items.size()); for (auto& c : sr2.items) for (auto& h : c.hits) assert(h.mod != 1);
+        idx.erase("c.mod"); auto sr3 = findScriptConflicts(ps, inf, idx); assert(sr3.modsMissing == 1);
+    }
+    {   // v0.13: settings extras, playset comparison, update detection
+        setenv("RC_DATA_DIR", "/tmp/rc_extra", 1);
+        std::filesystem::remove_all("/tmp/rc_extra");
+        Settings st; st.hidden = {"x.mod", "y.mod"}; st.launch["Main"] = "-debug_mode"; st.seen["a.mod"] = "fp1";
+        st.winX = 10; st.winY = 20; st.winW = 1300; st.winH = 700; st.winMax = true; st.colW = {64, 0, 100, 110, 90, 90, 0};
+        assert(saveSettings(st));
+        Settings b; loadSettings(b);
+        assert(b.hidden == st.hidden && b.launch == st.launch && b.seen == st.seen);
+        assert(b.winX == 10 && b.winY == 20 && b.winW == 1300 && b.winH == 700 && b.winMax && b.colW == st.colW);
+        Settings e; std::filesystem::remove_all("/tmp/rc_extra"); loadSettings(e); assert(e.winW == 0 && e.hidden.empty());
+
+        std::map<std::string, ModInfo> inf;
+        for (auto n : {"a", "b", "c", "d", "e"}) { ModInfo m; m.id = std::string(n) + ".mod"; m.name = std::string("Mod ") + n; inf[m.id] = m; }
+        auto mk = [](std::initializer_list<std::pair<const char*, bool>> l, const char* name) { Playset p; p.name = name; for (auto& x : l) p.mods.push_back({std::string(x.first) + ".mod", x.second, ""}); return p; };
+        Playset A = mk({{"a", true}, {"b", true}, {"c", true}, {"d", true}, {"e", false}}, "A");
+        Playset B = mk({{"b", true}, {"c", true}, {"d", true}, {"a", true}, {"e", true}}, "B");
+        PlaysetDiff d = comparePlaysets(A, B, inf);
+        assert(d.shared == 4 && !d.sameOrder);
+        assert(d.moved.size() == 1 && d.moved[0] == "Mod a");           // only the mod that jumped, not b, c, d
+        assert(d.onlyA.empty() && d.onlyB.empty() && d.enabledDiffers.size() == 1);
+        Playset C = mk({{"a", true}, {"b", true}}, "C");
+        PlaysetDiff d2 = comparePlaysets(A, C, inf);
+        assert(d2.onlyA.size() == 2 && d2.sameOrder);
+
+        std::vector<std::vector<ModIssue>> iss(A.mods.size());
+        std::map<std::string, std::string> seen{{"a.mod", "1"}, {"b.mod", "1"}, {"e.mod", "1"}}, now{{"a.mod", "1"}, {"b.mod", "2"}, {"c.mod", "9"}, {"e.mod", "2"}};
+        addUpdateIssues(iss, A, inf, seen, now);
+        assert(iss[0].empty() && iss[1].size() == 1 && iss[1][0].sev == 1);   // b changed
+        assert(iss[2].empty());                                               // c: never played before, nothing to compare
+        assert(iss[4].empty());                                               // e: disabled
+    }
     std::cout << "ALL CORE TESTS PASSED\n";
 }
