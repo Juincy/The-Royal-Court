@@ -21,3 +21,7 @@ The EXE is not code-signed (certificates cost money), and brand-new unsigned pro
 On Linux: install g++-mingw-w64-x86-64 and binutils-mingw-w64-x86-64, then run `src/build.sh`. Tests for the core logic are in `src/tests`.
 
 Every change is logged in CHANGELOG.md.
+
+## License
+
+MIT - see [LICENSE](LICENSE).
