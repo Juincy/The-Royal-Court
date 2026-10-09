@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
         "namespace = x\nx.1 = {\n type = character_event\n trigger = { always = yes }\n}\nscripted_trigger a = { x = 1 }\n",
         "l_english:\n key:0 \"text \\\"q\\\" $X$ #bold\"\n key2: \"v\"\n",
         "\"libraryfolders\"\n{\n\t\"0\"\n\t{\n\t\t\"path\"\t\t\"C:\\\\Steam\"\n\t}\n}\n",
+        R"({"format":1,"revision":2,"mods":[{"names":["A B"],"ids":["1"],"type":"Graphics","position":"top","rank":5,"after":["x"],"before":["y"],"note":"n"}]})",
         "1.20.0.4 (Scythe)", "v0.14.1-beta", "{\"rawVersion\":\"1.20.0.4\"}",
         std::string(64, 'a') + "  TheRoyalCourt.exe\r\n",
     };
@@ -52,6 +53,10 @@ int main(int argc, char** argv) {
         std::vector<ScriptKey> keys; scanScriptKeys(s, (int)(rng() % 3), keys);
         std::vector<std::string> lk; scanLocKeys(s, lk);
         (void)sha256Hex(s);
+        { std::vector<KnownMod> kv; int added = 0; applyKnownJson(kv, s, &added); (void)checkKnownOnline(s);
+          ModInfo km; km.id = "ugc_1.mod"; km.name = s.substr(0, 40); (void)findKnown(kv, km);
+          Playset kp; kp.name = s.substr(0, 20); kp.mods.push_back({km.id, true, km.name}); std::map<std::string, ModInfo> ki; ki[km.id] = km;
+          (void)buildSortReport(kp, ki, kv, {CAT_CONTENT}, {km.id}, s.substr(0, 10), 3); }
     }
     std::cout << "fuzz ok: " << iters << " iterations\n";
 }

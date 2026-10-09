@@ -22,11 +22,11 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.14.1";
+inline const char* VERSION = "0.15.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
-inline fs::path P(const std::string& s) { return fs::u8path(s); }
+inline fs::path P(const std::string& s) { try { return fs::u8path(s); } catch (...) { return fs::path(); } }   // text that is not valid UTF-8 gives an empty path (every file operation on it just fails)
 
 inline bool readFile(const fs::path& p, std::string& out, std::uintmax_t maxBytes = 8u << 20) {
     std::error_code ec;
@@ -315,6 +315,8 @@ inline fs::path playsetsDir() {
 }
 inline fs::path settingsPath() { return P(dataDir()) / "settings.json"; }
 
+// a number from a file, safely turned into an int (NaN, infinity and huge values are possible in a damaged file)
+inline int clampInt(double d) { return !(d == d) ? 0 : d > 1e8 ? 100000000 : d < -1e8 ? -100000000 : (int)d; }
 inline void loadSettingsExtra(Settings& st, J& root) {
     if (J* h = root.get("hidden"); h && h->t == J::Arr) for (auto& e : h->a) if (e.t == J::Str) st.hidden.insert(e.s);
     if (J* l = root.get("launch"); l && l->t == J::Obj)
@@ -323,16 +325,23 @@ inline void loadSettingsExtra(Settings& st, J& root) {
         for (size_t i = 0; i < l->keys.size(); i++) if (l->vals[i].t == J::Str) st.seen[l->keys[i]] = l->vals[i].s;
     if (J* u = root.get("checkUpdates"); u && u->t == J::Bool) st.checkUpdates = u->b;
     if (J* w = root.get("window"); w && w->t == J::Obj) {
-        auto num = [&](const char* k, int& o) { if (J* v = w->get(k); v && v->t == J::Num) o = (int)v->n; };
+        auto num = [&](const char* k, int& o) { if (J* v = w->get(k); v && v->t == J::Num) o = clampInt(v->n); };
         num("x", st.winX); num("y", st.winY); num("w", st.winW); num("h", st.winH);
         if (J* v = w->get("max"); v && v->t == J::Bool) st.winMax = v->b;
-        if (J* c = w->get("cols"); c && c->t == J::Arr) for (auto& e : c->a) st.colW.push_back(e.t == J::Num ? (int)e.n : 0);
+        if (J* c = w->get("cols"); c && c->t == J::Arr) for (auto& e : c->a) st.colW.push_back(e.t == J::Num ? clampInt(e.n) : 0);
     }
 }
 inline void loadSettings(Settings& st) {
     st = Settings{};
     std::string text; J root;
-    if (!readFile(settingsPath(), text) || !parseJson(text, root) || root.t != J::Obj) return;
+    if (!readFile(settingsPath(), text)) return;
+    if (!parseJson(text, root) || root.t != J::Obj) {
+        // A damaged settings file is replaced on the next save: keep what was there so it can be recovered by hand.
+        std::error_code ec;
+        fs::path bad = settingsPath(); bad += ".bad";
+        if (!fs::exists(bad, ec)) writeFile(bad, text);
+        return;
+    }
     if (J* d = root.get("ck3Dir"); d && d->t == J::Str) st.ck3Dir = d->s;
     if (J* a = root.get("active"); a && a->t == J::Str) st.active = a->s;
     if (J* g = root.get("gameExe"); g && g->t == J::Str) st.gameExe = g->s;
@@ -530,6 +539,8 @@ inline VerMatch matchGameVersion(const std::string& supported, const std::string
         if (i >= have.size()) return VerMatch::Unknown;
         if (want[i].find('*') != std::string::npos) return VerMatch::Unknown;
         if (want[i].size() > 9 || have[i].size() > 9) return want[i] == have[i] ? VerMatch::Match : VerMatch::Mismatch;
+        auto digits = [](const std::string& x) { return !x.empty() && x.find_first_not_of("0123456789") == std::string::npos; };
+        if (!digits(want[i]) || !digits(have[i])) return VerMatch::Unknown;
         if (std::stol(want[i]) != std::stol(have[i])) return VerMatch::Mismatch;
     }
     return VerMatch::Match;
@@ -1194,6 +1205,8 @@ inline std::string normName(const std::string& in) {
 inline bool nameIs(const std::string& norm, const std::string& pat) {
     if (norm == pat) return true;
     if (norm.size() <= pat.size() + 1 || norm.compare(0, pat.size(), pat) != 0 || norm[pat.size()] != ' ') return false;
+    // Short names and acronyms ("agot", "cfp", "unofficial patch") are too common as the start of other mods' names: they must match exactly.
+    if (std::count(pat.begin(), pat.end(), ' ') < 2 || pat.size() < 10) return false;
     std::string rest = norm.substr(pat.size() + 1);
     if (std::count(rest.begin(), rest.end(), ' ') > 1) return false;
     for (const char* bad : {"patch", "patches", "compat", "compatch", "compatibility", "translation", "submod", "addon", "for", "plus", "extension", "expansion", "bridge", "of", "in", "and", "with"})
@@ -1257,17 +1270,22 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.note = "Unique Artifacts +: no load order is given, but its page warns that conflicts may occur with mods that modify adventure inspiration rewards, unique artifact generation, pilgrimage artifact rewards, legend-related artifact rewards or the same artifact creation effects; if another mod changes the same systems, a compatibility patch may be required"; v.push_back(k); }
     { KnownMod k; k.names = {"more lifestyles"}; k.ids = {"3013259695"}; k.cat = CAT_CONTENT; k.rank = 5;
       k.note = "More Lifestyles: its page says to put it lower in the load order"; v.push_back(k); }
+    // names are compared in their normalised form (trailing version numbers dropped: "elder kings 2" is "elder kings")
+    for (auto& k : v) { for (auto& n : k.names) n = normName(n); for (auto& n : k.after) n = normName(n); for (auto& n : k.before) n = normName(n); }
     return v;
 }
-// knownmods.json (in the app data folder) adds your own entries, or replaces a built-in one that has the same name:
-// {"mods":[{"names":["my mod"],"ids":["123"],"type":"Graphics","position":"first|last","rank":0,"after":["x"],"before":["y"],"note":"why"}]}
-inline std::vector<KnownMod> loadKnownMods() {
-    std::vector<KnownMod> v = builtinKnownMods();
-    std::string text; J root;
-    if (!readFile(P(dataDir()) / "knownmods.json", text) || !parseJson(text, root) || root.t != J::Obj) return v;
+// The known-mods list has three layers; a later layer replaces an earlier entry that has the same name:
+//   1. built into the program, 2. knownmods.online.json (downloaded from this project's GitHub when Updates is pressed), 3. your own knownmods.json
+// {"format":1,"revision":3,"mods":[{"names":["my mod"],"ids":["123"],"type":"Graphics","position":"top|first|last","rank":0,"after":["x"],"before":["y"],"note":"why"}]}
+inline fs::path knownOnlineFile() { return P(dataDir()) / "knownmods.online.json"; }
+// Adds the entries of one list file to v. Returns false (and leaves v alone) when the text is not a usable list.
+inline bool applyKnownJson(std::vector<KnownMod>& v, const std::string& text, int* added = nullptr) {
+    J root;
+    if (!parseJson(text, root) || root.t != J::Obj) return false;
     J* arr = root.get("mods");
-    if (!arr || arr->t != J::Arr) return v;
-    auto strs = [](J* a, bool norm) { std::vector<std::string> o; if (a && a->t == J::Arr) for (auto& e : a->a) if (e.t == J::Str && !e.s.empty()) o.push_back(norm ? normName(e.s) : e.s); return o; };
+    if (!arr || arr->t != J::Arr) return false;
+    auto strs = [](J* a, bool norm) { std::vector<std::string> o; if (a && a->t == J::Arr) for (auto& e : a->a) if (e.t == J::Str && !e.s.empty() && e.s.size() < 300) o.push_back(norm ? normName(e.s) : e.s); return o; };
+    int n = 0;
     for (auto& e : arr->a) {
         if (e.t != J::Obj) continue;
         KnownMod k;
@@ -1276,17 +1294,48 @@ inline std::vector<KnownMod> loadKnownMods() {
         if (k.names.empty() && k.ids.empty()) continue;
         if (J* t = e.get("type"); t && t->t == J::Str) k.cat = catFromName(t->s);
         if (J* p = e.get("position"); p && p->t == J::Str) k.pos = lower(p->s) == "top" ? -2 : lower(p->s) == "first" ? -1 : lower(p->s) == "last" ? 1 : 0;
-        if (J* r = e.get("rank"); r && r->t == J::Num) k.rank = (int)r->n;
-        if (J* n = e.get("note"); n && n->t == J::Str) k.note = n->s;
-        v.erase(std::remove_if(v.begin(), v.end(), [&](const KnownMod& b) { for (auto& n : k.names) for (auto& m : b.names) if (n == m) return true; return false; }), v.end());
+        if (J* r = e.get("rank"); r && r->t == J::Num) k.rank = (int)std::max(-100.0, std::min(100.0, r->n));
+        if (J* nt = e.get("note"); nt && nt->t == J::Str) k.note = nt->s.substr(0, 1000);
+        v.erase(std::remove_if(v.begin(), v.end(), [&](const KnownMod& b) {
+            for (auto& nm : k.names) for (auto& m : b.names) if (nm == m) return true;
+            for (auto& id : k.ids) for (auto& m : b.ids) if (id == m) return true;       // the same Workshop mod under another name is the same entry
+            return false; }), v.end());
         v.push_back(std::move(k));
+        n++;
     }
+    if (added) *added = n;
+    return true;
+}
+// A downloaded list is only kept if it is a list this version understands ("format":1) and is a sensible size.
+struct KnownOnlineInfo { bool ok = false; int revision = 0, count = 0; };
+inline KnownOnlineInfo checkKnownOnline(const std::string& text) {
+    KnownOnlineInfo r;
+    if (text.empty() || text.size() > (512u << 10)) return r;
+    J root;
+    if (!parseJson(text, root) || root.t != J::Obj) return r;
+    J* f = root.get("format");
+    if (!f || f->t != J::Num || (int)f->n != 1) return r;
+    if (J* rv = root.get("revision"); rv && rv->t == J::Num) r.revision = (int)rv->n;
+    std::vector<KnownMod> tmp;
+    if (!applyKnownJson(tmp, text, &r.count) || r.count > 3000) return r;
+    r.ok = true;
+    return r;
+}
+inline std::vector<KnownMod> loadKnownMods(int* onlineRevision = nullptr) {
+    std::vector<KnownMod> v = builtinKnownMods();
+    std::string text;
+    if (onlineRevision) *onlineRevision = 0;
+    if (readFile(knownOnlineFile(), text)) {
+        KnownOnlineInfo oi = checkKnownOnline(text);
+        if (oi.ok && applyKnownJson(v, text) && onlineRevision) *onlineRevision = oi.revision;
+    }
+    if (readFile(P(dataDir()) / "knownmods.json", text)) applyKnownJson(v, text);
     return v;
 }
 inline std::string steamIdOf(const std::string& id);
 inline int findKnown(const std::vector<KnownMod>& db, const ModInfo& m) {
     std::string sid = steamIdOf(m.id), nn = normName(m.name);
-    for (size_t i = 0; i < db.size(); i++) {
+    for (size_t i = db.size(); i-- > 0;) {                       // later layers (shared list, your own file) win over earlier ones
         for (auto& id : db[i].ids) if (!sid.empty() && id == sid) return (int)i;
         for (auto& n : db[i].names) if (nameIs(nn, n)) return (int)i;
     }
@@ -1480,8 +1529,21 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
     while ((int)seq.size() < freeCount) {
         int pick = -1;
         if (!ready.empty()) { pick = std::get<3>(*ready.begin()); ready.erase(ready.begin()); }
-        else {                                               // circular dependency: break it at the lowest-ranked mod left
+        else {                                               // circular dependency: break it at the lowest-ranked mod that is really in the cycle
             for (int i = 0; i < n; i++) if (!isLocked(i) && !done[(size_t)i] && (pick < 0 || keyOf(i) < keyOf(pick))) pick = i;
+            // every mod left is waiting for another one; walking back along "waits for" must end in a loop, and only mods in that loop may be freed
+            auto waitsFor = [&](int u) { for (auto& e : edges) if (e.to == u && !isLocked(e.from) && !isLocked(e.to) && !done[(size_t)e.from]) return e.from; return -1; };
+            std::vector<int> where((size_t)n, -1), path;
+            for (int u = pick; u >= 0;) {
+                if (where[(size_t)u] >= 0) {
+                    int best = -1;
+                    for (size_t q = (size_t)where[(size_t)u]; q < path.size(); q++) if (best < 0 || keyOf(path[q]) < keyOf(best)) best = path[q];
+                    if (best >= 0) pick = best;
+                    break;
+                }
+                where[(size_t)u] = (int)path.size(); path.push_back(u);
+                u = waitsFor(u);
+            }
             if (!cycleWarned) { plan.warnings.push_back("Circular dependency around \"" + nameOf(pick) + "\"; the dependency was ignored."); cycleWarned = true; }
         }
         if (pick < 0 || done[(size_t)pick]) continue;
@@ -1582,6 +1644,7 @@ inline std::string exportLauncherPlayset(const Playset& ps, const std::map<std::
         mo.set("position", J::num(pos++));
         std::string sid = steamIdOf(m.id);
         if (!sid.empty()) mo.set("steamId", J::str(sid));
+        else if (installed && validID(m.id)) mo.set("gameRegistryId", J::str("mod/" + m.id));   // local mods are tied to their file, not to a display name that can change or repeat
         ms.a.push_back(std::move(mo));
     }
     root.set("mods", std::move(ms));
@@ -1796,6 +1859,19 @@ inline bool renamePlayset(Playset& ps, const std::string& newName, const std::ma
     ps.name = newName;
     if (!savePlayset(ps, info)) { ps.name = old; return false; }
     if (!same && op != np) deletePlayset(old);
+    // the playset keeps its backups under the new name
+    {
+        fs::path ob = P(dataDir()) / "Backups" / P(sanitizeFileName(old)), nb = P(dataDir()) / "Backups" / P(sanitizeFileName(newName));
+        std::error_code bec;
+        if (ob != nb && fs::is_directory(ob, bec)) {
+            if (!fs::exists(nb, bec)) fs::rename(ob, nb, bec);
+            else {
+                fs::create_directories(nb, bec);
+                for (auto& f : fs::directory_iterator(ob, bec)) { std::error_code mec; fs::path t = nb / f.path().filename(); if (!fs::exists(t, mec)) fs::rename(f.path(), t, mec); }
+                fs::remove_all(ob, bec);
+            }
+        }
+    }
     return true;
 }
 
@@ -1810,6 +1886,12 @@ inline std::vector<Playset> loadPlaysets(const std::vector<ModInfo>& installed) 
         if (!r.ok) continue;
         Playset p = r.playset;
         p.name = e.path().stem().u8string();  // the file name is the playset name
+        if (std::string clean = sanitizeFileName(p.name); clean != p.name && !clean.empty()) {
+            // a name that would be saved under another file name (too long, stray spaces) is renamed once now, so a save never creates a second copy
+            std::error_code rec;
+            fs::path target = playsetPath(clean);
+            if (!fs::exists(target, rec)) { fs::rename(e.path(), target, rec); if (!rec) p.name = clean; }
+        }
         syncPlayset(p, installed);
         out.push_back(std::move(p));
     }
@@ -1948,7 +2030,7 @@ inline int registerPendingMods(const std::string& dir, const Playset& ps, const 
         std::string text;
         if (!readFile(P(it->second.contentDir) / "descriptor.mod", text, 1u << 20)) { if (err) *err = "Could not read the downloaded mod \"" + it->second.name + "\"."; continue; }
         std::string wid = m.id.substr(4, m.id.size() - 8);
-        if (writeFile(target, registeredDescriptorText(text, wid, it->second.contentDir))) n++;
+        if (writeFileAtomic(target, registeredDescriptorText(text, wid, it->second.contentDir))) n++;
         else if (err) *err = "Could not write " + m.id + " into your mod folder.";
     }
     return n;
@@ -2117,5 +2199,35 @@ inline std::string findSumFor(const std::string& sums, const std::string& file) 
     return "";
 }
 
+
+// ---- "Report a sort problem" ----
+// Plain text a user can paste into a GitHub issue: the current load order with each mod's type and what the known-mods list says about it.
+// Only mod names, Workshop ids and flags are included (no file paths, no user names).
+inline std::string buildSortReport(const Playset& ps, const std::map<std::string, ModInfo>& info, const std::vector<KnownMod>& db,
+                                   const std::vector<int>& cats, const std::set<std::string>& locked, const std::string& gameVer, int onlineRevision) {
+    std::ostringstream o;
+    o << "The Royal Court sort report\n";
+    o << "Program " << VERSION << ", Crusader Kings III " << (gameVer.empty() ? "unknown" : gameVer)
+      << ", known-mods list: built-in" << (onlineRevision > 0 ? " + online revision " + std::to_string(onlineRevision) : std::string()) << "\n";
+    o << "Playset: " << ps.name << " (" << ps.mods.size() << " mods)\n\n";
+    o << "Load order, first line loads first:\n";
+    size_t n = 0;
+    for (size_t i = 0; i < ps.mods.size() && n < 300; i++, n++) {
+        const ModRef& m = ps.mods[i];
+        auto it = info.find(m.id);
+        std::string name = it != info.end() && !it->second.name.empty() ? it->second.name : (m.name.empty() ? m.id : m.name);
+        o << (i + 1) << ". " << (m.enabled ? "[on] " : "[off] ") << name;
+        std::string sid = steamIdOf(m.id);
+        if (!sid.empty()) o << " (Steam " << sid << ")";
+        if (i < cats.size()) o << " | type " << catName(cats[i]);
+        if (locked.count(m.id)) o << " | locked";
+        if (it != info.end()) { int k = findKnown(db, it->second); if (k >= 0) o << " | known mod"; }
+        if (it == info.end()) o << " | not installed";
+        o << "\n";
+    }
+    if (ps.mods.size() > n) o << "... and " << (ps.mods.size() - n) << " more\n";
+    o << "\nWhat I expected (which mod should be where, and why):\n\n";
+    return o.str();
+}
 
 }  // namespace rc

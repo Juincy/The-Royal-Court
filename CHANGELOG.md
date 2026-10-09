@@ -6,6 +6,48 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.15.0] - 2026-10-08
+Auto Sort can now learn new mods without a new program version, and you can report a sort that looks wrong.
+
+### Added
+- **Shared known-mods list.** When you press **Updates**, the program also fetches `knownmods.json` from this project's GitHub (one fixed address, nothing else is contacted). The list is checked before it is kept (right format, sensible size) and a bad file is ignored. A newer list is saved as `knownmods.online.json` in `%APPDATA%\TheRoyalCourt` and used by the next Auto Sort. Layers: built into the program, then the shared list, then your own `knownmods.json`, which always wins.
+- **Report a sort problem** (Advanced menu): copies the load order to the clipboard (mod names, Steam ids, types, which mods the program recognises, locked mods, game and program version) and offers to open the GitHub issues page to paste it. No file paths or personal information are included.
+- `knownmods.json` in the repository, the file the shared list is read from, checked by the tests.
+- Tests for the three list layers, broken or too-large downloads, and for the report content (including that no paths leak).
+
+### Fixed (full audit, every item below was reproduced first)
+- **Local mods could silently lose their place.** Mods that are not from the Workshop were stored by display name only, so renaming a mod, or two mods with the same name, demoted or dropped one. They are now stored by their own file name too (`gameRegistryId`, the field the launcher's own files use).
+- **A mod folder that could not be read completely made the program rescan forever** and switched off the conflict finder for the whole playset. Such a mod is now skipped (logged), and tried again only when its folder changes.
+- **Remove and Delete only backed up the open playset**, although the mod disappears from all of them. Every playset that contains the mod is backed up first. Deleting a playset now keeps a backup, and renaming a playset keeps its backups with it.
+- **Auto Sort recognised short names too eagerly.** "AGOT Dothraki Rework" was treated as A Game of Thrones, "MIV Lite" as More Interactive Vassals and "Unofficial Patch Extras" as the Unofficial Patch. Short names and acronyms must now match exactly (or by Workshop id).
+- **Elder Kings 2** was never recognised by name (its trailing "2" is treated as a version number); built-in names are now normalised the same way and a test checks every one.
+- **Your own `knownmods.json` did not always win**: an entry that named a mod by Workshop id only was ignored in favour of the built-in one. Later layers now win, by name or by id.
+- **Circular dependencies were broken at the wrong mod.** A mod that merely waited on a cycle could load before its own dependency. The break now happens inside the cycle.
+- The Steam registration file (`ugc_<id>.mod`) is written all-or-nothing, so a crash cannot leave a half-written file that is then trusted.
+- The old program file left by an update is deleted only after the new version has run for 20 seconds, so there is a way back if the new one crashes at startup.
+- A game version with a wildcard in the installed version no longer throws.
+- The small dialogs no longer swallow a "close" request from Windows (log off, shut down).
+- A damaged `settings.json` is kept as `settings.json.bad` instead of being silently replaced, and absurd numbers in it (NaN, huge window sizes) are clamped.
+- A playset file whose name is very long or has stray spaces is renamed once on load, instead of creating a second copy when saved.
+- Deleting a mod's folder now also refuses folders that are links or junctions; text that is not valid UTF-8 in a descriptor no longer aborts the whole scan.
+- The mod type of mods guessed from their files is remembered instead of recomputed on every redraw (a 300,000-file playset spent about 40 ms per redraw on it).
+
+### Known and left for later (needs measuring on real Windows)
+- "Updated since you last pressed Play" only notices a changed root folder of a mod, so an update that only edits files inside sub-folders can be missed. A fix means recording sizes and times during the background scan, which costs speed; it will be done with the on-disk index cache.
+- Conflict finding, script conflicts and Auto Sort run on the main thread (measured at 0.2 to 0.4 seconds for 300 mods with 300,000 files).
+
+### Changed
+- **Smooth theme change**: the switch slides and its colours blend over a third of a second, while the whole window cross-fades from the old colours to the new ones instead of jumping.
+- **New theme switch**: a raised 3D panel switch (glossy knob with a cast shadow, sunken track, gradient rim). Dark mode is a blue night track with the moon at the right, light mode a sunrise track with the sun at the left; the other symbol stays faintly visible. The sun and moon symbols themselves are unchanged.
+- **Menus match the theme.** The right-click menu on mods, the Advanced menu and the playset picker of "Compare" are drawn in the program's colours (dark or parchment, gold tick marks, rounded highlight), and the menu frame follows the theme on Windows 10 (1903 and newer) and Windows 11.
+- **Current CK3 version**: only the version number is shown in gold and bold, the words around it stay muted.
+- A small "Author: Juincy" line under the title (small text, kept clear of the gold line under the banner).
+- The Updates button tooltip mentions the known-mods list.
+- `knownmods.json` entries are limited in size (note length, rank range) so a damaged file cannot cause trouble.
+
+### Checked, nothing to add
+- Steam pages of Mass Demand Conversion, Quando Sumus and Unique Artifacts + give no load-order instructions, so no new rules were added for them (only facts from a mod's own page are used).
+
 ## [0.14.1] - 2026-10-08
 Subscribed Workshop mods now show up, plus a bug sweep.
 

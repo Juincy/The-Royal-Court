@@ -477,6 +477,47 @@ int main() {
         assert(rf >= 0 && udb[(size_t)rf].pos == -1 && udb[(size_t)rf].ids.empty());                       // replaced the built-in entry
         writeFile("/tmp/rc_known/knownmods.json", "{not json");
         assert(loadKnownMods().size() == builtinKnownMods().size());                                         // a broken file is ignored
+        // downloaded list: layered between the built-in list and the user's file
+        fs::remove("/tmp/rc_known/knownmods.json");
+        std::string online = R"({"format":1,"revision":4,"mods":[{"names":["Online Mod"],"type":"Interface","position":"first","note":"from github"},{"names":["Rise and Fall"],"position":"last","note":"online"}]})";
+        assert(checkKnownOnline(online).ok && checkKnownOnline(online).revision == 4 && checkKnownOnline(online).count == 2);
+        assert(!checkKnownOnline("").ok && !checkKnownOnline("{not json").ok);
+        assert(!checkKnownOnline(R"({"format":2,"mods":[]})").ok && !checkKnownOnline(R"({"mods":[]})").ok && !checkKnownOnline(R"({"format":1})").ok);
+        assert(!checkKnownOnline(std::string(600 * 1024, ' ')).ok);
+        writeFile(knownOnlineFile(), online);
+        int rev = -1;
+        auto odb = loadKnownMods(&rev);
+        assert(rev == 4);
+        int om = -1; for (size_t i = 0; i < odb.size(); i++) for (auto& nm : odb[i].names) if (nm == "online mod") om = (int)i;
+        assert(om >= 0 && odb[(size_t)om].cat == CAT_UI && odb[(size_t)om].pos == -1);
+        // the user's file wins over the downloaded one
+        writeFile("/tmp/rc_known/knownmods.json", R"({"mods":[{"names":["Rise and Fall"],"position":"top","note":"user"}]})");
+        auto both = loadKnownMods(&rev);
+        int rf2 = -1; for (size_t i = 0; i < both.size(); i++) for (auto& nm : both[i].names) if (nm == "rise and fall") rf2 = (int)i;
+        assert(rf2 >= 0 && both[(size_t)rf2].note == "user" && both[(size_t)rf2].pos == -2);
+        // a broken downloaded file is ignored
+        fs::remove("/tmp/rc_known/knownmods.json");
+        writeFile(knownOnlineFile(), "{\"format\":1,\"mods\":\"x\"}");
+        assert(loadKnownMods(&rev).size() == builtinKnownMods().size() && rev == 0);
+        fs::remove(knownOnlineFile());
+        // the list shipped in the repository must always be one the program accepts
+        for (const char* path : {"knownmods.json", "../knownmods.json", "../../knownmods.json"}) {
+            std::string shipped;
+            if (readFile(path, shipped)) { assert(checkKnownOnline(shipped).ok && checkKnownOnline(shipped).revision >= 1); break; }
+        }
+        // sort report: names, ids, types and flags only
+        {
+            ModInfo a; a.id = "ugc_3554844335.mod"; a.name = "Rise and Fall"; a.path = "C:/secret/path";
+            ModInfo b; b.id = "mod/local.mod"; b.name = "Local Mod"; b.path = "D:/private/dir";
+            auto inf2 = infoMap({a, b});
+            Playset rp; rp.name = "Test Set"; rp.mods = {{a.id, true, a.name}, {b.id, false, b.name}, {"ugc_999.mod", true, "Gone Mod"}};
+            std::string rep = buildSortReport(rp, inf2, builtinKnownMods(), {CAT_CONTENT, CAT_GRAPHICS, CAT_CONTENT}, {b.id}, "1.20.0.4", 4);
+            assert(rep.find("Program ") != std::string::npos && rep.find("1.20.0.4") != std::string::npos && rep.find("online revision 4") != std::string::npos);
+            assert(rep.find("1. [on] Rise and Fall (Steam 3554844335) | type Content | known mod") != std::string::npos);
+            assert(rep.find("2. [off] Local Mod | type Graphics | locked") != std::string::npos);
+            assert(rep.find("3. [on] Gone Mod (Steam 999)") != std::string::npos && rep.find("not installed") != std::string::npos);
+            assert(rep.find("secret") == std::string::npos && rep.find("private") == std::string::npos);
+        }
     }
     {   // ---- backups ----
         setenv("RC_DATA_DIR", "/tmp/rc_backup_test", 1);
@@ -688,6 +729,83 @@ int main() {
         auto iss = analyzePlayset(ps2, inf, "1.20.0");
         bool hasNote = false; for (auto& i : iss[0]) if (i.text.find("Tick the box") != std::string::npos) hasNote = true;
         assert(hasNote);
+    }
+    {   // ---- audit fixes (v0.15.0) ----
+        auto mk = [](const std::string& id, const std::string& name) { ModInfo m; m.id = id; m.name = name; return m; };
+        // local mods keep their identity when a name changes or repeats
+        {
+            std::vector<ModInfo> inst = {mk("ugc_1.mod", "Same"), mk("local1.mod", "Same"), mk("local2.mod", "Old Name v1")};
+            auto info = infoMap(inst);
+            Playset ps; ps.name = "p"; for (auto& m : inst) ps.mods.push_back({m.id, true, m.name});
+            std::string js = exportLauncherPlayset(ps, info);
+            assert(js.find("\"gameRegistryId\":\"mod/local1.mod\"") != std::string::npos && js.find("\"gameRegistryId\":\"mod/ugc_1.mod\"") == std::string::npos);
+            inst[2].name = "Old Name v2";
+            ImportResult r = parsePlaysetFile(js, inst);
+            syncPlayset(r.playset, inst);
+            assert(r.playset.mods.size() == 3 && r.playset.mods[0].id == "ugc_1.mod" && r.playset.mods[1].id == "local1.mod" && r.playset.mods[2].id == "local2.mod");
+            for (auto& m : r.playset.mods) assert(m.enabled);
+        }
+        // short known names only match exactly; every built-in name is already in normalised form
+        {
+            auto db = builtinKnownMods();
+            for (auto& k : db) for (auto& n : k.names) assert(normName(n) == n);
+            for (const char* nm : {"AGOT Dothraki Rework", "MIV Lite", "Unofficial Patch Extras", "CFP Tweaks", "EPE Hairstyles"}) assert(findKnown(db, mk("x.mod", nm)) < 0);
+            assert(findKnown(db, mk("x.mod", "Elder Kings 2")) >= 0 && findKnown(db, mk("x.mod", "AGOT")) >= 0 && findKnown(db, mk("x.mod", "Rise and Fall 1.2")) >= 0);
+            assert(findKnown(db, mk("x.mod", "Rise and Fall Compatibility Patch")) < 0);
+            // a later layer wins, also when it names the mod by id only
+            std::vector<KnownMod> layered = builtinKnownMods();
+            assert(applyKnownJson(layered, R"({"mods":[{"ids":["3554844335"],"position":"top","note":"mine"}]})"));
+            int k = findKnown(layered, mk("ugc_3554844335.mod", "Rise and Fall"));
+            assert(k >= 0 && layered[(size_t)k].note == "mine" && layered[(size_t)k].pos == -2);
+        }
+        // a circular dependency is broken inside the cycle, not at an innocent mod that waits on it
+        {
+            Playset ps; ps.name = "t"; std::map<std::string, ModInfo> info;
+            auto add = [&](const std::string& id, const std::string& name, std::vector<std::string> deps) { ModInfo m = mk(id, name); m.deps = deps; info[id] = m; ps.mods.push_back({id, true, name}); };
+            add("a.mod", "Alpha Content", {"Beta Content"});
+            add("b.mod", "Beta Content", {"Alpha Content"});
+            add("c.mod", "Gamma Library Core", {"Alpha Content"});
+            SortPlan p = planSort(ps, info, {}, {}, nullptr, nullptr, nullptr);
+            int posA = -1, posC = -1;
+            for (size_t i = 0; i < p.order.size(); i++) { if (ps.mods[(size_t)p.order[i]].id == "a.mod") posA = (int)i; if (ps.mods[(size_t)p.order[i]].id == "c.mod") posC = (int)i; }
+            assert(posA >= 0 && posC > posA && !p.warnings.empty());
+        }
+        // odd version strings never throw
+        assert(matchGameVersion("1.20", "1.*") == VerMatch::Unknown);
+        // renaming a playset keeps its backups
+        {
+            setenv("RC_DATA_DIR", "/tmp/rc_rename_test", 1);
+            std::error_code ec; fs::remove_all("/tmp/rc_rename_test", ec);
+            std::vector<ModInfo> ms = {mk("m0.mod", "Mod 0"), mk("m1.mod", "Mod 1")};
+            auto inf = infoMap(ms);
+            Playset ps; ps.name = "Old Name"; for (auto& m : ms) ps.mods.push_back({m.id, true, m.name});
+            savePlayset(ps, inf);
+            assert(!backupPlayset(ps, inf, "x").empty() && listBackups("Old Name").size() == 1);
+            assert(renamePlayset(ps, "New Name", inf));
+            assert(listBackups("New Name").size() == 1 && listBackups("Old Name").empty());
+            // a playset file with a name that would be saved under another file name is renamed once, not duplicated
+            std::string longName(100, 'x');
+            writeFile(playsetsDir() / (longName + ".json"), exportLauncherPlayset(ps, inf));
+            auto loaded = loadPlaysets(ms);
+            bool found = false;
+            for (auto& pl : loaded) if (pl.name == sanitizeFileName(longName)) found = true;
+            assert(found && loaded.size() == 2);
+            for (auto& pl : loaded) savePlayset(pl, inf);
+            assert(loadPlaysets(ms).size() == 2);
+        }
+        // a damaged settings file is kept as .bad; absurd numbers do not break loading
+        {
+            setenv("RC_DATA_DIR", "/tmp/rc_settings_bad", 1);
+            std::error_code ec; fs::remove_all("/tmp/rc_settings_bad", ec); fs::create_directories("/tmp/rc_settings_bad", ec);
+            writeFile(settingsPath(), "{broken");
+            Settings st; loadSettings(st);
+            std::string kept; assert(readFile(settingsPath().string() + ".bad", kept) && kept == "{broken");
+            writeFile(settingsPath(), R"({"window":{"x":1e30,"y":-1e30,"w":1300,"h":700,"cols":[100,1e99]}})");
+            loadSettings(st);
+            assert(st.winW == 1300 && st.winX == 100000000 && st.winY == -100000000 && st.colW.size() == 2 && st.colW[1] == 100000000);
+        }
+        // the Steam descriptor is written whole or not at all
+        assert(fs::path(registeredDescriptorText("name=\"x\"\n", "1", "C:/a")).empty() == false);
     }
     std::cout << "ALL CORE TESTS PASSED\n";
 }

@@ -52,7 +52,7 @@ static std::wstring wenv(const wchar_t* name) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT,
     ID_TREE, ID_EXPAND, ID_COLLAPSE
 };
 
@@ -108,7 +108,7 @@ static const Theme LIGHT_T = {RGB(0xF4,0xEF,0xE4), RGB(0xE9,0xE1,0xCF), RGB(0xFC
 static bool g_dark = true;
 static const Theme& T() { return g_dark ? DARK_T : LIGHT_T; }
 static HBRUSH g_brBg, g_brBanner, g_brList;
-static HFONT g_fontSym, g_fontCrown, g_fontTitle, g_fontSub, g_fontBold;
+static HFONT g_fontSym, g_fontCrown, g_fontTitle, g_fontSub, g_fontBold, g_fontTiny;
 static HWND g_hot = nullptr;
 static int g_bannerH = 0;
 static RECT g_listFrame = {0, 0, 0, 0};
@@ -150,50 +150,206 @@ static void roundedPath(Gdiplus::GraphicsPath& p, float x, float y, float w, flo
     p.CloseFigure();
 }
 
-static void drawSun(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c) {
+static void drawSun(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c, int alpha = 255) {
     float r0 = size * 0.15f;
-    Gdiplus::SolidBrush br(gc(c));
+    Gdiplus::SolidBrush br(gc(c, alpha));
     g.FillEllipse(&br, cx - r0, cy - r0, r0 * 2, r0 * 2);
-    Gdiplus::Pen pen(gc(c), size * 0.075f);
+    Gdiplus::Pen pen(gc(c, alpha), size * 0.075f);
     pen.SetStartCap(Gdiplus::LineCapRound); pen.SetEndCap(Gdiplus::LineCapRound);
     for (int i = 0; i < 8; i++) {
         float a = (float)i * 3.14159265f / 4.0f;
         g.DrawLine(&pen, cx + cosf(a) * r0 * 1.9f, cy + sinf(a) * r0 * 1.9f, cx + cosf(a) * r0 * 2.6f, cy + sinf(a) * r0 * 2.6f);
     }
 }
-static void drawMoon(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c, COLORREF behind) {
+// A crescent: one disc with a second, offset disc cut out of it (so it works on any background, gradients included).
+static void drawMoon(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c, int alpha = 255) {
     float r = size * 0.30f;
-    Gdiplus::SolidBrush br(gc(c)), cut(gc(behind));
-    g.FillEllipse(&br, cx - r, cy - r, r * 2, r * 2);
+    Gdiplus::GraphicsPath disc, bite;
+    disc.AddEllipse(cx - r, cy - r, r * 2, r * 2);
     float r2 = r * 0.82f;
-    g.FillEllipse(&cut, cx - r2 + r * 0.62f, cy - r2 - r * 0.38f, r2 * 2, r2 * 2);
+    bite.AddEllipse(cx - r2 + r * 0.62f, cy - r2 - r * 0.38f, r2 * 2, r2 * 2);
+    Gdiplus::Region reg(&disc);
+    reg.Exclude(&bite);
+    Gdiplus::SolidBrush br(gc(c, alpha));
+    g.FillRegion(&br, &reg);
 }
 
+// The theme switch: a raised 3D panel switch. Dark mode = blue night track with the moon on a glossy knob at the right,
+// light mode = warm sunrise track with the sun at the left. The other symbol stays faintly visible on the track.
+// 0 = light (sun, knob left) .. 1 = dark (moon, knob right); eased between the two while the switch slides
+static float g_togT = -1.0f, g_togFrom = 0, g_togTo = 0;
+static ULONGLONG g_togStart = 0;
+static const UINT TIMER_TOGGLE = 79;
+static const DWORD TOGGLE_MS = 320;
+static float easeInOut(float p) { p = p < 0 ? 0 : p > 1 ? 1 : p; return p * p * (3.0f - 2.0f * p); }
+static COLORREF lerpC(COLORREF light, COLORREF dark, float t) { return mix(light, dark, (int)(t * 100.0f + 0.5f)); }
+
 static void drawToggle(const DRAWITEMSTRUCT* d, COLORREF around) {
-    const Theme& t = T();
+    using namespace Gdiplus;
+    if (g_togT < 0) g_togT = g_dark ? 1.0f : 0.0f;
+    const float tt = g_togT;
     HDC dc = d->hDC;
     RECT r = d->rcItem;
     HBRUSH bg = CreateSolidBrush(around); FillRect(dc, &r, bg); DeleteObject(bg);
-    float w = (float)(r.right - r.left), h = (float)(r.bottom - r.top);
+    float W = (float)(r.right - r.left), H = (float)(r.bottom - r.top);
     float x = (float)r.left, y = (float)r.top;
-    Gdiplus::Graphics g(dc);
-    g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
-    COLORREF trackC = g_dark ? RGB(0x2A,0x26,0x40) : RGB(0xDC,0xD2,0xBA);
-    Gdiplus::GraphicsPath track;
-    roundedPath(track, x + 0.5f, y + 0.5f, w - 1.0f, h - 1.0f, h / 2);
-    Gdiplus::SolidBrush tb(gc(trackC));
-    g.FillPath(&tb, &track);
-    Gdiplus::Pen bp(gc(g_hot == d->hwndItem ? t.gold : t.border), 1.0f);
-    g.DrawPath(&bp, &track);
-    float k = h - 6.0f * g_dpi / 96.0f;
-    float pad = (h - k) / 2;
-    float kx = g_dark ? x + w - pad - k : x + pad;
-    COLORREF knobC = g_dark ? t.gold : t.accent;
-    Gdiplus::SolidBrush kb(gc(knobC));
-    g.FillEllipse(&kb, kx, y + pad, k, k);
-    float sunX = x + pad + k / 2, moonX = x + w - pad - k / 2, cy = y + h / 2;
-    if (g_dark) { drawSun(g, sunX, cy, k, t.muted); drawMoon(g, moonX, cy, k, RGB(0x1A,0x14,0x00), knobC); }
-    else { drawSun(g, sunX, cy, k, RGB(0xFF,0xFF,0xFF)); drawMoon(g, moonX, cy, k, t.muted, trackC); }
+    bool hot = g_hot == d->hwndItem, down = (d->itemState & ODS_SELECTED) != 0;
+    Graphics g(dc);
+    g.SetSmoothingMode(SmoothingModeAntiAlias);
+    float u = (float)g_dpi / 96.0f;
+    // colours blend between the two looks as the switch moves
+    COLORREF trackTop = lerpC(RGB(0xF2,0xD8,0xBC), RGB(0x07,0x0B,0x22), tt), trackBot = lerpC(RGB(0xFF,0xF1,0xDE), RGB(0x16,0x24,0x55), tt);
+    COLORREF rimA = lerpC(RGB(0xFF,0x9E,0x3D), RGB(0x2F,0xB4,0xFF), tt), rimB = lerpC(RGB(0xC2,0x3B,0x66), RGB(0x5B,0x4B,0xFF), tt);
+    COLORREF knA = lerpC(RGB(0xFF,0xC1,0x4A), RGB(0x3C,0xCB,0xFF), tt), knB = lerpC(RGB(0xF2,0x45,0x2B), RGB(0x5A,0x3C,0xF0), tt);
+    if (hot) { rimA = mix(rimA, RGB(255,255,255), 22); rimB = mix(rimB, RGB(255,255,255), 22); }
+    // soft shadow under the whole switch
+    for (int i = 3; i >= 1; i--) {
+        GraphicsPath sh; roundedPath(sh, x + 1.0f * u, y + (1.0f + (float)i * 0.8f) * u, W - 2.0f * u, H - 3.0f * u, H / 2);
+        SolidBrush sb(Color((BYTE)(22 + 4 * tt), 0, 0, 0));
+        g.FillPath(&sb, &sh);
+    }
+    float tx = x + 1.0f * u, ty = y + 1.0f * u, tw = W - 2.0f * u, th = H - 4.0f * u;
+    GraphicsPath track; roundedPath(track, tx, ty, tw, th, th / 2);
+    LinearGradientBrush tg(PointF(tx, ty), PointF(tx, ty + th), gc(trackTop), gc(trackBot));   // sunken track: dark at the top, lighter below
+    g.FillPath(&tg, &track);
+    {   // inner shadow along the top edge (the track is cut into the panel)
+        GraphicsPath clipP; roundedPath(clipP, tx, ty, tw, th, th / 2);
+        Region old; g.GetClip(&old);
+        g.SetClip(&clipP, CombineModeIntersect);
+        GraphicsPath inner; roundedPath(inner, tx, ty + 2.2f * u, tw, th, th / 2);
+        Pen ip(Color((BYTE)(70 + 50 * tt), 0, 0, 0), 3.2f * u);
+        g.DrawPath(&ip, &inner);
+        g.SetClip(&old);
+    }
+    LinearGradientBrush rg(PointF(tx, ty), PointF(tx + tw, ty), gc(rimA), gc(rimB));
+    Pen rim(&rg, 1.8f * u);
+    g.DrawPath(&rim, &track);
+    {   // thin highlight just inside the rim: the raised bezel
+        GraphicsPath hl; roundedPath(hl, tx + 1.0f * u, ty + 1.0f * u, tw - 2.0f * u, th - 2.0f * u, (th - 2.0f * u) / 2);
+        Pen hp(Color((BYTE)(90 - 50 * tt), 255, 255, 255), 1.0f * u);
+        g.DrawPath(&hp, &hl);
+    }
+    float k = th - 5.0f * u;
+    float pad = (th - k) / 2;
+    float kxL = tx + pad, kxR = tx + tw - pad - k;
+    float kx = kxL + (kxR - kxL) * tt;
+    float ky = ty + pad + (down ? 0.8f * u : 0.0f);
+    float sunX = kxL + k / 2, moonX = kxR + k / 2, cyT = ty + th / 2;
+    // the symbol of the side the knob is not on stays faintly visible in the track (drawn before the knob so the knob covers it)
+    drawSun(g, sunX, cyT, k, RGB(0xFF,0xB2,0x5A), (int)(95 * tt));
+    drawMoon(g, moonX, cyT, k * 1.05f, RGB(0x5A,0x3C,0xF0), (int)(85 * (1.0f - tt)));
+    for (int i = 3; i >= 1; i--) {             // knob cast shadow
+        SolidBrush sb(Color((BYTE)(36 + 10 * tt), 0, 0, 0));
+        g.FillEllipse(&sb, kx - (float)(i - 1) * 0.3f * u, ky + (1.0f + (float)i * 0.9f) * u, k + (float)(i - 1) * 0.6f * u, k);
+    }
+    LinearGradientBrush kg(PointF(kx, ky), PointF(kx + k, ky + k), gc(knA), gc(knB));
+    g.FillEllipse(&kg, kx, ky, k, k);
+    {   // bevel: light edge top-left, dark edge bottom-right
+        LinearGradientBrush bv(PointF(kx, ky), PointF(kx + k, ky + k), Color(150, 255, 255, 255), Color(120, 0, 0, 0));
+        Pen bp(&bv, 1.4f * u);
+        g.DrawEllipse(&bp, kx + 0.7f * u, ky + 0.7f * u, k - 1.4f * u, k - 1.4f * u);
+    }
+    {   // gloss on the upper half
+        GraphicsPath cap; cap.AddEllipse(kx + k * 0.10f, ky + k * 0.05f, k * 0.80f, k * 0.52f);
+        LinearGradientBrush gl(PointF(kx, ky + k * 0.05f), PointF(kx, ky + k * 0.57f), Color(120, 255, 255, 255), Color(6, 255, 255, 255));
+        g.FillPath(&gl, &cap);
+    }
+    // the symbol on the knob changes with it: the sun fades out as the moon fades in
+    float kcx = kx + k / 2, kcy = ky + k / 2;
+    if (tt < 0.999f) drawSun(g, kcx, kcy, k, RGB(255,255,255), (int)(255 * (1.0f - tt)));
+    if (tt > 0.001f) drawMoon(g, kcx, kcy, k * 1.05f, RGB(255,255,255), (int)(255 * tt));
+}
+
+// ---------- smooth theme change ----------
+// The switch slides and the whole window cross-fades from the old colours to the new ones: a snapshot of the old look is shown
+// in a see-through window on top and fades out (the switch itself is left out so its own animation stays visible).
+static HWND g_fadeWnd = nullptr;
+static HBITMAP g_fadeBmp = nullptr;
+static ULONGLONG g_fadeStart = 0;
+static const UINT TIMER_FADE = 1;
+static const DWORD FADE_MS = 300;
+static void endFade() {
+    if (g_fadeWnd) { HWND w = g_fadeWnd; g_fadeWnd = nullptr; DestroyWindow(w); }
+    if (g_fadeBmp) { DeleteObject(g_fadeBmp); g_fadeBmp = nullptr; }
+}
+static LRESULT CALLBACK FadeProc(HWND h, UINT m, WPARAM w, LPARAM l) {
+    if (m == WM_PAINT) {
+        PAINTSTRUCT ps; HDC dc = BeginPaint(h, &ps);
+        if (g_fadeBmp) {
+            HDC mem = CreateCompatibleDC(dc);
+            HGDIOBJ old = SelectObject(mem, g_fadeBmp);
+            RECT rc; GetClientRect(h, &rc);
+            BitBlt(dc, 0, 0, rc.right, rc.bottom, mem, 0, 0, SRCCOPY);
+            SelectObject(mem, old); DeleteDC(mem);
+        }
+        EndPaint(h, &ps);
+        return 0;
+    }
+    if (m == WM_ERASEBKGND) return 1;
+    if (m == WM_NCHITTEST) return HTTRANSPARENT;
+    if (m == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
+    if (m == WM_TIMER && w == TIMER_FADE) {
+        float p = (float)(GetTickCount64() - g_fadeStart) / (float)FADE_MS;
+        if (p >= 1.0f) { KillTimer(h, TIMER_FADE); PostMessageW(hMain, WM_APP + 8, 0, 0); return 0; }
+        SetLayeredWindowAttributes(h, 0, (BYTE)(255.0f * (1.0f - easeInOut(p))), LWA_ALPHA);
+        return 0;
+    }
+    return DefWindowProcW(h, m, w, l);
+}
+// Called before the colours change: takes a picture of the window as it looks now.
+static bool captureFade() {
+    endFade();
+    if (!IsWindowVisible(hMain) || IsIconic(hMain)) return false;
+    RECT cr; GetClientRect(hMain, &cr);
+    if (cr.right < 50 || cr.bottom < 50) return false;
+    POINT o{0, 0}; ClientToScreen(hMain, &o);
+    HDC scr = GetDC(nullptr);
+    HDC mem = CreateCompatibleDC(scr);
+    g_fadeBmp = CreateCompatibleBitmap(scr, cr.right, cr.bottom);
+    bool ok = g_fadeBmp && mem;
+    if (ok) { HGDIOBJ old = SelectObject(mem, g_fadeBmp); ok = BitBlt(mem, 0, 0, cr.right, cr.bottom, scr, o.x, o.y, SRCCOPY | CAPTUREBLT) != 0; SelectObject(mem, old); }
+    if (mem) DeleteDC(mem);
+    ReleaseDC(nullptr, scr);
+    if (!ok) { if (g_fadeBmp) { DeleteObject(g_fadeBmp); g_fadeBmp = nullptr; } }
+    return ok;
+}
+// Called after the new colours are painted: puts the old picture on top and lets it fade away.
+static void startFade() {
+    if (!g_fadeBmp) return;
+    static bool reg = false;
+    if (!reg) {
+        WNDCLASSEXW wc{}; wc.cbSize = sizeof wc; wc.lpfnWndProc = FadeProc; wc.hInstance = g_inst; wc.lpszClassName = L"RoyalCourtFade"; wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        RegisterClassExW(&wc); reg = true;
+    }
+    RECT cr; GetClientRect(hMain, &cr);
+    POINT o{0, 0}; ClientToScreen(hMain, &o);
+    HWND f = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT, L"RoyalCourtFade", L"", WS_POPUP, o.x, o.y, cr.right, cr.bottom, hMain, nullptr, g_inst, nullptr);
+    if (!f) { endFade(); return; }
+    // leave the theme switch out of the picture: it animates for real underneath
+    RECT tr; GetWindowRect(hTheme, &tr);
+    HRGN whole = CreateRectRgn(0, 0, cr.right, cr.bottom), hole = CreateRectRgn(tr.left - o.x - 2, tr.top - o.y - 2, tr.right - o.x + 2, tr.bottom - o.y + 2);
+    CombineRgn(whole, whole, hole, RGN_DIFF);
+    DeleteObject(hole);
+    SetWindowRgn(f, whole, FALSE);   // the window owns the region now
+    SetLayeredWindowAttributes(f, 0, 255, LWA_ALPHA);
+    g_fadeWnd = f;
+    g_fadeStart = GetTickCount64();
+    ShowWindow(f, SW_SHOWNOACTIVATE);
+    UpdateWindow(f);
+    SetTimer(f, TIMER_FADE, 15, nullptr);
+}
+// Starts the switch sliding to the current g_dark.
+static void startToggleAnim() {
+    if (g_togT < 0) g_togT = g_dark ? 0.0f : 1.0f;   // (first use: came from the other side)
+    g_togFrom = g_togT; g_togTo = g_dark ? 1.0f : 0.0f;
+    g_togStart = GetTickCount64();
+    SetTimer(hMain, TIMER_TOGGLE, 15, nullptr);
+}
+static void stepToggleAnim() {
+    float p = (float)(GetTickCount64() - g_togStart) / (float)TOGGLE_MS;
+    if (p >= 1.0f) { g_togT = g_togTo; KillTimer(hMain, TIMER_TOGGLE); }
+    else g_togT = g_togFrom + (g_togTo - g_togFrom) * easeInOut(p);
+    InvalidateRect(hTheme, nullptr, FALSE);
 }
 
 static std::wstring ctlText(HWND h) {
@@ -215,6 +371,31 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
     bool inBanner = parent == hMain && p.y < g_bannerH;
     COLORREF around = inBanner ? t.banner : t.bg;
     if (id == ID_THEME) { drawToggle(d, around); return; }
+    if (id == ID_GAMEVER) {   // "CK3 version: " in the muted colour, only the number in colour
+        HBRUSH gb = CreateSolidBrush(t.bg); FillRect(dc, &r, gb); DeleteObject(gb);
+        std::wstring all = ctlText(d->hwndItem);
+        const std::wstring head = L"CK3 version: ";
+        std::wstring num = all.size() > head.size() && all.compare(0, head.size(), head) == 0 ? all.substr(head.size()) : L"";
+        bool known = !num.empty() && num != L"unknown";
+        SetBkMode(dc, TRANSPARENT);
+        HGDIOBJ of0 = SelectObject(dc, g_fontBold);
+        SIZE ns{0, 0}; if (known) GetTextExtentPoint32W(dc, num.c_str(), (int)num.size(), &ns);
+        SelectObject(dc, g_font);
+        std::wstring lead = known ? head : all;
+        SIZE ls0{0, 0}; GetTextExtentPoint32W(dc, lead.c_str(), (int)lead.size(), &ls0);
+        int x0 = r.right - ns.cx - ls0.cx;
+        RECT lr0 = {x0, r.top, x0 + ls0.cx + S(2), r.bottom};
+        SetTextColor(dc, t.muted);
+        DrawTextW(dc, lead.c_str(), -1, &lr0, DT_SINGLELINE | DT_VCENTER | DT_LEFT | DT_NOPREFIX);
+        if (known) {
+            SelectObject(dc, g_fontBold);
+            RECT nr0 = {x0 + ls0.cx, r.top, r.right, r.bottom};
+            SetTextColor(dc, t.gold);
+            DrawTextW(dc, num.c_str(), -1, &nr0, DT_SINGLELINE | DT_VCENTER | DT_LEFT | DT_NOPREFIX);
+        }
+        SelectObject(dc, of0);
+        return;
+    }
     HBRUSH ab = CreateSolidBrush(around); FillRect(dc, &r, ab); DeleteObject(ab);
     bool dis = (d->itemState & ODS_DISABLED) != 0, down = (d->itemState & ODS_SELECTED) != 0, hot = g_hot == d->hwndItem;
     bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2);
@@ -306,6 +487,94 @@ static bool themeCtlColor(UINT m, WPARAM w, LPARAM l, LRESULT& out) {
     return false;
 }
 
+// ---------- themed popup menus ----------
+// Menus are drawn by the program so they match the dark / light theme (the Windows default menu stays white).
+struct MenuEnt { std::wstring text; bool sep = false; };
+static std::vector<std::unique_ptr<MenuEnt>> g_menuEnts;
+static void setMenuMode() {   // lets Windows itself draw the menu frame dark or light too (Windows 10 1903+; silently skipped on older systems)
+    HMODULE ux = GetModuleHandleW(L"uxtheme.dll");
+    if (!ux) ux = LoadLibraryW(L"uxtheme.dll");
+    if (!ux) return;
+    using SetMode = int(WINAPI*)(int);
+    using Flush = void(WINAPI*)();
+    auto setMode = (SetMode)(void*)GetProcAddress(ux, MAKEINTRESOURCEA(135));
+    auto flush = (Flush)(void*)GetProcAddress(ux, MAKEINTRESOURCEA(136));
+    if (setMode) { setMode(g_dark ? 2 : 3); if (flush) flush(); }   // 2 = force dark, 3 = force light
+}
+static void themeMenu(HMENU m) {
+    int n = GetMenuItemCount(m);
+    for (int i = 0; i < n; i++) {
+        MENUITEMINFOW mi{}; mi.cbSize = sizeof mi; mi.fMask = MIIM_FTYPE | MIIM_STRING; wchar_t buf[512] = L""; mi.dwTypeData = buf; mi.cch = 511;
+        if (!GetMenuItemInfoW(m, (UINT)i, TRUE, &mi)) continue;
+        auto e = std::make_unique<MenuEnt>();
+        e->sep = (mi.fType & MFT_SEPARATOR) != 0;
+        e->text = e->sep ? L"" : buf;
+        MENUITEMINFOW up{}; up.cbSize = sizeof up; up.fMask = MIIM_FTYPE | MIIM_DATA;
+        up.fType = MFT_OWNERDRAW | (e->sep ? MFT_SEPARATOR : 0);
+        up.dwItemData = (ULONG_PTR)e.get();
+        SetMenuItemInfoW(m, (UINT)i, TRUE, &up);
+        g_menuEnts.push_back(std::move(e));
+    }
+}
+static int trackMenu(HMENU m, UINT flags, int x, int y, HWND owner) {
+    themeMenu(m);
+    int r = TrackPopupMenu(m, flags, x, y, 0, owner, nullptr);
+    g_menuEnts.clear();
+    return r;
+}
+static void measureMenuItem(MEASUREITEMSTRUCT* mi) {
+    const MenuEnt* e = (const MenuEnt*)mi->itemData;
+    if (!e) return;
+    if (e->sep) { mi->itemWidth = 10; mi->itemHeight = (UINT)S(9); return; }
+    HDC dc = GetDC(hMain);
+    HGDIOBJ of = SelectObject(dc, g_font);
+    SIZE sz{0, 0}; GetTextExtentPoint32W(dc, e->text.c_str(), (int)e->text.size(), &sz);
+    SelectObject(dc, of); ReleaseDC(hMain, dc);
+    mi->itemWidth = (UINT)(sz.cx + S(52));
+    mi->itemHeight = (UINT)S(27);
+}
+static void drawMenuItem(const DRAWITEMSTRUCT* d) {
+    const Theme& t = T();
+    const MenuEnt* e = (const MenuEnt*)d->itemData;
+    HDC dc = d->hDC;
+    RECT r = d->rcItem;
+    HBRUSH bg = CreateSolidBrush(g_dark ? t.banner : t.list); FillRect(dc, &r, bg); DeleteObject(bg);
+    if (!e) return;
+    if (e->sep) {
+        HPEN pn = CreatePen(PS_SOLID, 1, t.border); HGDIOBJ op = SelectObject(dc, pn);
+        int y = (r.top + r.bottom) / 2;
+        MoveToEx(dc, r.left + S(10), y, nullptr); LineTo(dc, r.right - S(10), y);
+        SelectObject(dc, op); DeleteObject(pn);
+        return;
+    }
+    bool dis = (d->itemState & (ODS_DISABLED | ODS_GRAYED)) != 0, sel = (d->itemState & ODS_SELECTED) != 0 && !dis, chk = (d->itemState & ODS_CHECKED) != 0;
+    {
+        Gdiplus::Graphics g(dc);
+        g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+        if (sel) {
+            Gdiplus::GraphicsPath p;
+            roundedPath(p, (float)r.left + S(3), (float)r.top + 1.0f, (float)(r.right - r.left) - S(6), (float)(r.bottom - r.top) - 2.0f, (float)S(5));
+            Gdiplus::SolidBrush sb(gc(t.btnHot));
+            g.FillPath(&sb, &p);
+            Gdiplus::Pen ep(gc(t.gold, 160), 1.0f);
+            g.DrawPath(&ep, &p);
+        }
+        if (chk) {   // gold tick
+            float cx = (float)r.left + S(16), cy = (float)(r.top + r.bottom) / 2.0f, s = (float)S(4);
+            Gdiplus::Pen tp(gc(dis ? t.muted : t.gold), 2.0f * g_dpi / 96.0f);
+            tp.SetStartCap(Gdiplus::LineCapRound); tp.SetEndCap(Gdiplus::LineCapRound); tp.SetLineJoin(Gdiplus::LineJoinRound);
+            Gdiplus::PointF pts[3] = {{cx - s, cy}, {cx - s * 0.2f, cy + s * 0.8f}, {cx + s, cy - s * 0.8f}};
+            g.DrawLines(&tp, pts, 3);
+        }
+    }
+    SetBkMode(dc, TRANSPARENT);
+    HGDIOBJ of = SelectObject(dc, g_font);
+    SetTextColor(dc, dis ? mix(t.muted, t.banner, 30) : t.text);
+    RECT tr = {r.left + S(34), r.top, r.right - S(12), r.bottom};
+    DrawTextW(dc, e->text.c_str(), -1, &tr, DT_SINGLELINE | DT_VCENTER | DT_LEFT | DT_NOPREFIX | DT_END_ELLIPSIS);
+    SelectObject(dc, of);
+}
+
 static void paintBackdrop(HDC dc, const RECT& rc, bool banner) {
     const Theme& t = T();
     FillRect(dc, &rc, g_brBg);
@@ -354,6 +623,12 @@ static void paintBackdrop(HDC dc, const RECT& rc, bool banner) {
     RECT sr = {tr.right + S(10), cy - S(6) + S(5), tr.right + S(400), cy + S(16)};
     DrawTextW(dc, sub.c_str(), -1, &sr, DT_SINGLELINE | DT_LEFT | DT_NOPREFIX);
     SetTextCharacterExtra(dc, 0);
+    {   // small author line under the subtitle
+        SelectObject(dc, g_fontTiny);
+        SetTextColor(dc, mix(t.muted, t.banner, 30));
+        RECT ar = {sr.left, sr.top + S(14), sr.left + S(300), sr.top + S(25)};   // stays well above the gold line under the banner
+        DrawTextW(dc, L"Author: Juincy", -1, &ar, DT_SINGLELINE | DT_LEFT | DT_TOP | DT_NOPREFIX);
+    }
     SelectObject(dc, of);
 }
 
@@ -408,6 +683,7 @@ static LRESULT CALLBACK ListSub(HWND h, UINT m, WPARAM w, LPARAM l, UINT_PTR, DW
 static void applyTheme() {
     const Theme& t = T();
     rebuildBrushes();
+    setMenuMode();
     themeFrame(hMain);
     const wchar_t* ctl = g_dark ? L"DarkMode_CFD" : nullptr;
     const wchar_t* exp = g_dark ? L"DarkMode_Explorer" : L"Explorer";
@@ -456,6 +732,7 @@ struct ScanJob {
     HWND notify = nullptr;
 };
 static ScanJob* g_job = nullptr;
+static std::map<std::string, std::string> g_scanFailed;   // mod id -> fingerprint of a folder that could not be read completely (not retried until it changes)
 static HANDLE g_jobThread = nullptr;
 
 static DWORD WINAPI scanThread(LPVOID p) {
@@ -490,7 +767,10 @@ static void ensureConflicts() {
         auto it = g_info.find(m.id);
         if (it == g_info.end() || it->second.contentState != 1) continue;
         auto f = g_fileIndex.find(m.id);
-        if (f == g_fileIndex.end() || !f->second.complete) { ready = false; break; }
+        if (f == g_fileIndex.end() || !f->second.complete) {
+            if (auto bad = g_scanFailed.find(m.id); bad != g_scanFailed.end() && bad->second == modFingerprint(it->second)) continue;   // unreadable folder: skipped, not waited for
+            ready = false; break;
+        }
     }
     bool defsReady = ready;
     if (ready) for (auto& m : ps->mods) {
@@ -498,7 +778,10 @@ static void ensureConflicts() {
         auto it = g_info.find(m.id);
         if (it == g_info.end() || it->second.contentState != 1) continue;
         auto d = g_defIndex.find(m.id);
-        if (d == g_defIndex.end() || !d->second.complete) { defsReady = false; break; }
+        if (d == g_defIndex.end() || !d->second.complete) {
+            if (auto bad = g_scanFailed.find(m.id); bad != g_scanFailed.end() && bad->second == modFingerprint(it->second)) continue;
+            defsReady = false; break;
+        }
     }
     g_confSig = sig;
     g_conf = ready ? findConflicts(*ps, g_info, g_fileIndex) : ConflictReport();
@@ -517,6 +800,7 @@ static void maybeScan(bool verify) {
         auto it = g_info.find(m.id);
         if (it == g_info.end() || it->second.contentState != 1) continue;
         std::string fp = modFingerprint(it->second);
+        if (auto bad = g_scanFailed.find(m.id); bad != g_scanFailed.end() && bad->second == fp) continue;   // failed before and nothing changed since
         auto f = g_fileIndex.find(m.id);
         auto d = g_defIndex.find(m.id);
         if (f != g_fileIndex.end() && f->second.complete && (!verify || f->second.fingerprint == fp) && d != g_defIndex.end() && d->second.complete) continue;
@@ -595,7 +879,8 @@ static std::wstring noteText(int i, char& sev) {
 }
 
 // ---------- auto sort state ----------
-static std::vector<KnownMod> g_known;           // built-in known mods + knownmods.json
+static std::vector<KnownMod> g_known;           // built-in known mods + downloaded list + knownmods.json
+static int g_knownRev = 0;                      // revision of the downloaded list in use (0 = none)
 static std::vector<std::string> g_undoIds;     // load order (mod ids) before the last Auto Sort
 static std::string g_undoPlayset;
 static std::vector<int> g_ctxSel;               // playset positions the context menu acts on (the clicked row alone, or the whole selection)
@@ -610,10 +895,33 @@ static int catOfMod(const std::string& id, bool* overridden = nullptr) {
     auto it = g_info.find(id);
     if (it == g_info.end()) return (int)CAT_CONTENT;
     CatGuess g = guessCategory(it->second);
-    if (g.why == "default") { auto f = g_fileIndex.find(id); if (f != g_fileIndex.end()) g = guessFromFiles(f->second); }
+    if (g.why == "default") {
+        auto f = g_fileIndex.find(id);
+        if (f != g_fileIndex.end()) {   // looking through a big mod's whole file list on every redraw is slow: remembered until its index changes
+            static std::map<std::string, std::pair<std::string, CatGuess>> cache;
+            std::string key = f->second.fingerprint + "#" + std::to_string(f->second.files.size()) + (f->second.complete ? "c" : "i");
+            auto& c = cache[id];
+            if (c.first != key) c = {key, guessFromFiles(f->second)};
+            g = c.second;
+        }
+    }
     int k = findKnown(g_known, it->second);
     if (k >= 0 && g_known[(size_t)k].cat >= 0) g.cat = g_known[(size_t)k].cat;
     return g.cat;
+}
+// Symbolic links and junctions: a mod folder that is one must never be erased through (its target could be anywhere).
+static bool isReparsePoint(const fs::path& p) {
+    DWORD a = GetFileAttributesW(p.c_str());
+    return a == INVALID_FILE_ATTRIBUTES || (a & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
+}
+// A mod that is removed or deleted disappears from every playset, so every playset that has it is backed up first.
+static void backupAffected(const std::vector<std::string>& ids, const std::string& reason) {
+    std::set<std::string> want(ids.begin(), ids.end());
+    for (auto& pl : g_playsets) {
+        bool has = false;
+        for (auto& m : pl.mods) if (want.count(m.id)) { has = true; break; }
+        if (has) backupPlayset(pl, g_info, reason);
+    }
 }
 static void updateUndoBtn() {
     Playset* ps = active();
@@ -773,7 +1081,7 @@ static void reload() {
     for (auto& m : g_mods) if (g_settings.hidden.count(m.id)) g_hiddenPresent++;
     if (!g_settings.hidden.empty()) g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [](const ModInfo& m) { return g_settings.hidden.count(m.id) > 0; }), g_mods.end());
     g_fpNow.clear();
-    g_known = loadKnownMods();
+    g_known = loadKnownMods(&g_knownRev);
     g_info = infoMap(g_mods);
     int migrated = migrateLegacyStore(g_mods, g_settings);
     g_playsets = loadPlaysets(g_mods);
@@ -1000,7 +1308,10 @@ static bool askText(const wchar_t* title, const wchar_t* prompt, std::wstring& v
     ShowWindow(d, SW_SHOW);
     SetFocus(ctx.edit);
     MSG msg;
-    while (!ctx.done && GetMessageW(&msg, nullptr, 0, 0)) {
+    while (!ctx.done) {
+        BOOL got = GetMessageW(&msg, nullptr, 0, 0);
+        if (got == 0) { PostQuitMessage((int)msg.wParam); break; }   // the program is being closed: pass it on to the main loop
+        if (got < 0) break;
         if (!IsDialogMessageW(d, &msg)) { TranslateMessage(&msg); DispatchMessageW(&msg); }
     }
     EnableWindow(hMain, TRUE);
@@ -1130,7 +1441,10 @@ static bool showSortPreview(const SortPlan& plan, const Playset& ps) {
     ShowWindow(d, SW_SHOW);
     SetFocus(ctx.ok);
     MSG msg;
-    while (!ctx.done && GetMessageW(&msg, nullptr, 0, 0)) {
+    while (!ctx.done) {
+        BOOL got = GetMessageW(&msg, nullptr, 0, 0);
+        if (got == 0) { PostQuitMessage((int)msg.wParam); break; }   // the program is being closed: pass it on to the main loop
+        if (got < 0) break;
         if (!IsDialogMessageW(d, &msg)) { TranslateMessage(&msg); DispatchMessageW(&msg); }
     }
     EnableWindow(hMain, TRUE);
@@ -1719,7 +2033,7 @@ static void layout();
 static NONCLIENTMETRICSW g_ncm;     // system font metrics, measured at the system DPI
 static int g_sysDpi = 96;
 static void createFonts() {
-    for (HFONT* f : {&g_font, &g_fontSym, &g_fontBold, &g_fontCrown, &g_fontTitle, &g_fontSub}) if (*f) { DeleteObject(*f); *f = nullptr; }
+    for (HFONT* f : {&g_font, &g_fontSym, &g_fontBold, &g_fontCrown, &g_fontTitle, &g_fontSub, &g_fontTiny}) if (*f) { DeleteObject(*f); *f = nullptr; }
     LOGFONTW base = g_ncm.lfMessageFont;
     base.lfHeight = MulDiv(base.lfHeight, g_dpi, g_sysDpi);   // the message font is measured at the system DPI
     g_font = CreateFontIndirectW(&base);
@@ -1734,6 +2048,8 @@ static void createFonts() {
     g_fontTitle = CreateFontIndirectW(&lf);
     lf = base; lf.lfHeight = -S(11); lf.lfWeight = FW_SEMIBOLD;
     g_fontSub = CreateFontIndirectW(&lf);
+    lf = base; lf.lfHeight = -S(9); lf.lfWeight = FW_NORMAL;
+    g_fontTiny = CreateFontIndirectW(&lf);
 }
 static UINT windowDpi(HWND h) {
     using Fn = UINT(WINAPI*)(HWND);
@@ -1764,7 +2080,7 @@ static void layout() {
     // banner: icon buttons and the theme switch on the right
     int by = (g_bannerH - S(2) - S(32)) / 2;
     int rx = Wd - m;
-    place(hTheme, rx - S(64), by + S(2), S(64), S(28)); rx -= S(64) + S(14);
+    place(hTheme, rx - S(78), by - S(1), S(78), S(34)); rx -= S(78) + S(14);
     place(hLog, rx - S(126), by, S(126), S(32)); rx -= S(126) + gap;
     place(hAdv, rx - S(116), by, S(116), S(32)); rx -= S(116) + gap;
     place(hUpd, rx - S(104), by, S(104), S(32)); rx -= S(104) + gap;
@@ -1860,7 +2176,7 @@ static void createControls() {
     if (g_settings.colW.size() == 7)
         for (int c : {0, 2, 3, 4, 5}) if (g_settings.colW[(size_t)c] >= 30 && g_settings.colW[(size_t)c] <= 800) ListView_SetColumnWidth(hList, c, g_settings.colW[(size_t)c]);
     hStatus = mk(L"STATIC", L"", SS_ENDELLIPSIS, ID_STATUS);
-    hGameVer = mk(L"STATIC", L"", SS_RIGHT | SS_ENDELLIPSIS, ID_GAMEVER);
+    hGameVer = mk(L"STATIC", L"", SS_OWNERDRAW, ID_GAMEVER);
     hL3 = mk(L"STATIC", L"CK3 folder", 0, ID_L3);
     hDir = mk(L"EDIT", L"", ES_AUTOHSCROLL | WS_TABSTOP, ID_DIR, WS_EX_CLIENTEDGE);
     hBrowse = mkBtn(hMain, L"\u2026", L"Browse", ID_BROWSE);
@@ -1881,7 +2197,7 @@ static void createControls() {
     tip(hPlay, L"Start Crusader Kings III with this playset (skips the launcher)");
     tip(hAdv, L"Backups, compare playsets, launch options, saves, updates and the diagnostics log");
     tip(hLog, L"What changed in each version");
-    tip(hUpd, L"Check GitHub for a newer version of The Royal Court");
+    tip(hUpd, L"Check GitHub for a newer version of The Royal Court, and for a newer known-mods list");
     tip(hAllOn, L"Enable every mod currently shown in the list");
     tip(hAllOff, L"Disable every mod currently shown in the list");
     tip(hConflicts, L"Find mods that change the same files or definitions");
@@ -2024,7 +2340,7 @@ static bool httpGet(const std::wstring& url, size_t maxBytes, std::string& body,
     return ok;
 }
 
-struct UpdJob { bool silent = false; bool ok = false; std::wstring err; ReleaseInfo rel; std::string exeData; };
+struct UpdJob { bool silent = false; bool ok = false; std::wstring err; ReleaseInfo rel; std::string exeData; std::string knownText; };
 static std::string exePath() { wchar_t b[MAX_PATH * 2]; DWORD n = GetModuleFileNameW(nullptr, b, MAX_PATH * 2); return U(std::wstring(b, n)); }
 
 static DWORD WINAPI updCheckThread(LPVOID p) {
@@ -2035,6 +2351,9 @@ static DWORD WINAPI updCheckThread(LPVOID p) {
         j->ok = j->rel.ok;
         if (!j->ok) j->err = L"GitHub's answer could not be read.";
     }
+    // The shared known-mods list comes from the same place (fixed address in this project's repo); it is validated before it is kept.
+    std::wstring kerr;
+    if (!httpGet(W(std::string("https://raw.githubusercontent.com/") + UPDATE_REPO + "/main/knownmods.json"), 512u << 10, j->knownText, kerr)) j->knownText.clear();
     if (!PostMessageW(hMain, WM_UPD_CHECKED, 0, (LPARAM)j)) delete j;
     return 0;
 }
@@ -2131,19 +2450,35 @@ static void showUpdateDialog(const ReleaseInfo& r) {
         if (t) CloseHandle(t); else { g_updBusy = false; delete j; }
     }
 }
+// Keeps a downloaded known-mods list if it is valid and newer than the one in use. Returns a sentence for the user ("" = nothing changed).
+static std::wstring takeOnlineKnown(const std::string& text) {
+    if (text.empty()) return L"";
+    KnownOnlineInfo oi = checkKnownOnline(text);
+    if (!oi.ok) { logLine("known-mods list from GitHub was not usable, ignored"); return L""; }
+    if (oi.revision <= g_knownRev) { logLine("known-mods list is up to date (revision " + std::to_string(g_knownRev) + ")"); return L""; }
+    if (!writeFileAtomic(knownOnlineFile(), text)) { logLine("could not save the known-mods list"); return L""; }
+    g_known = loadKnownMods(&g_knownRev);
+    logLine("known-mods list updated to revision " + std::to_string(g_knownRev) + " (" + std::to_string(oi.count) + " entries)");
+    return L"Known-mods list updated (revision " + std::to_wstring(g_knownRev) + L"). Press Auto Sort to use it.";
+}
 static void onUpdateChecked(UpdJob* j) {
     g_updBusy = false;
     std::unique_ptr<UpdJob> job(j);
+    std::wstring knownMsg = takeOnlineKnown(job->knownText);
     if (!job->ok) {
         logLine("update check failed: " + U(job->err));
         if (job->silent) return;
-        say(L"Update check failed.");
-        info((job->err + L"\n\nYou can always get the latest version from the GitHub page.").c_str());
+        say(knownMsg.empty() ? L"Update check failed." : knownMsg);
+        info((job->err + L"\n\nYou can always get the latest version from the GitHub page." + (knownMsg.empty() ? L"" : L"\n\n" + knownMsg)).c_str());
         return;
     }
     bool newer = compareVersions(job->rel.tag, VERSION) > 0;
     logLine("update check: latest " + job->rel.tag + (newer ? " (newer)" : " (up to date)"));
-    if (!newer) { if (!job->silent) { say(L"You have the latest version."); info((L"You have the latest version (" + W(VERSION) + L").").c_str()); } return; }
+    if (!newer) {
+        if (!job->silent) { say(knownMsg.empty() ? L"You have the latest version." : knownMsg); info((L"You have the latest version (" + W(VERSION) + L")." + (knownMsg.empty() ? L"" : L"\n\n" + knownMsg)).c_str()); }
+        else if (!knownMsg.empty()) say(knownMsg);
+        return;
+    }
     g_updRel = job->rel;
     if (job->silent) { say(L"A newer version (" + W(job->rel.tag) + L") is available - press Updates."); return; }
     say(L"A newer version is available: " + W(job->rel.tag) + L".");
@@ -2161,6 +2496,38 @@ static void onUpdateDownloaded(UpdJob* j) {
     logLine("update failed: " + U(err));
     say(L"Update failed.");
     info((err + L"\n\nYour current version was left as it is.").c_str());
+}
+
+static bool copyToClipboard(const std::string& utf8) {
+    std::wstring w = W(utf8);
+    std::wstring crlf;
+    for (wchar_t c : w) { if (c == L'\n') crlf += L'\r'; crlf += c; }   // plain Windows line breaks so it pastes cleanly anywhere
+    HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, (crlf.size() + 1) * sizeof(wchar_t));
+    if (!h) return false;
+    void* p = GlobalLock(h);
+    if (!p) { GlobalFree(h); return false; }
+    memcpy(p, crlf.c_str(), (crlf.size() + 1) * sizeof(wchar_t));
+    GlobalUnlock(h);
+    if (!OpenClipboard(hMain)) { GlobalFree(h); return false; }
+    EmptyClipboard();
+    bool ok = SetClipboardData(CF_UNICODETEXT, h) != nullptr;
+    if (!ok) GlobalFree(h);
+    CloseClipboard();
+    return ok;
+}
+// Copies the load order with types and known-mod flags to the clipboard and offers to open the GitHub issue page to paste it into.
+static void sortReport() {
+    Playset* ps = active();
+    if (!ps || ps->mods.empty()) { info(L"There is no load order to report yet."); return; }
+    std::vector<int> cats;
+    for (auto& m : ps->mods) cats.push_back(catOfMod(m.id));
+    std::string text = buildSortReport(*ps, g_info, g_known, cats, lockedIds(), g_gameVer, g_knownRev);
+    if (!copyToClipboard(text)) { info(L"Could not copy to the clipboard (another program may be holding it). Try again."); return; }
+    logLine("sort report copied (" + std::to_string(ps->mods.size()) + " mods)");
+    say(L"Sort report copied to the clipboard.");
+    std::wstring q = L"The load order of \"" + W(ps->name) + L"\" is on your clipboard: mod names, Steam ids, types and which mods the program recognises. No file paths or personal information.\n\nOpen the GitHub issues page now? Write what you expected at the bottom and paste (Ctrl+V).";
+    if (MessageBoxW(hMain, q.c_str(), L"Report a sort problem", MB_YESNO | MB_ICONINFORMATION) == IDYES)
+        ShellExecuteW(hMain, L"open", W(std::string("https://github.com/") + UPDATE_REPO + "/issues/new").c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
 static void advancedMenu() {
@@ -2181,9 +2548,10 @@ static void advancedMenu() {
     AppendMenuW(m, MF_STRING, ID_ADV_OPENLOGS, L"Open game logs folder");
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING | (g_settings.checkUpdates ? MF_CHECKED : 0), ID_ADV_AUTOUPD, L"Check for updates when the program starts");
+    AppendMenuW(m, MF_STRING, ID_ADV_SORTREPORT, L"Report a sort problem (copy details)...");
     AppendMenuW(m, MF_STRING, ID_ADV_LOG, L"Open diagnostics log (for bug reports)");
     RECT r; GetWindowRect(hAdv, &r);
-    int cmd = TrackPopupMenu(m, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_TOPALIGN, r.left, r.bottom, 0, hMain, nullptr);
+    int cmd = trackMenu(m, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_TOPALIGN, r.left, r.bottom, hMain);
     DestroyMenu(m);
     std::string dir = effectiveDir();
     if (cmd == ID_FOLDER) ShellExecuteW(hMain, L"open", playsetsDir().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
@@ -2204,6 +2572,7 @@ static void advancedMenu() {
         if (!fs::exists(logPath(), lec)) logLine("log opened by user");
         ShellExecuteW(hMain, L"open", logPath().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     }
+    else if (cmd == ID_ADV_SORTREPORT) sortReport();
     else if (cmd == ID_ADV_RESTORE) restoreBackup();
     else if (cmd == ID_ADV_UNHIDE) { g_settings.hidden.clear(); saveSettingsNow(); resync(false); }
     else if (cmd == ID_ADV_LAUNCH) {
@@ -2225,7 +2594,7 @@ static void advancedMenu() {
         std::vector<int> idxs;
         for (size_t i = 0; i < g_playsets.size(); i++) if (g_playsets[i].name != ps->name) { idxs.push_back((int)i); AppendMenuW(pm, MF_STRING, 6000 + idxs.size() - 1, W(g_playsets[i].name).c_str()); }
         if (idxs.empty()) { DestroyMenu(pm); info(L"You need a second playset to compare with."); return; }
-        int pick = TrackPopupMenu(pm, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_TOPALIGN, r.left, r.bottom, 0, hMain, nullptr);
+        int pick = trackMenu(pm, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_TOPALIGN, r.left, r.bottom, hMain);
         DestroyMenu(pm);
         if (pick < 6000) return;
         const Playset& other = g_playsets[(size_t)idxs[(size_t)(pick - 6000)]];
@@ -2352,9 +2721,10 @@ static void onCommand(int id, int code) {
         case ID_DEL: {
             if (!ps) break;
             if (g_playsets.size() < 2) { info(L"You need at least one playset."); break; }
-            std::wstring q = L"Delete playset \"" + W(ps->name) + L"\"? Its file will be removed.";
+            std::wstring q = L"Delete playset \"" + W(ps->name) + L"\"? Its file will be removed. A copy is kept in the Backups folder (Advanced > Open backups folder).";
             if (MessageBoxW(hMain, q.c_str(), L"The Royal Court", MB_YESNO | MB_ICONQUESTION) != IDYES) break;
             std::string gone = ps->name;
+            backupPlayset(*ps, g_info, "before deleting the playset");
             deletePlayset(gone);
             g_settings.locks.erase(gone);
             g_settings.launch.erase(gone);
@@ -2500,7 +2870,7 @@ static void onCommand(int id, int code) {
             int failed = 0;
             if (files) {
                 if (dir.empty()) break;
-                backupPlayset(*ps, g_info, "before deleting mods");
+                backupAffected(ids, "before deleting mods");
                 std::error_code ec;
                 fs::path modDir = fs::weakly_canonical(P(dir) / "mod", ec);
                 for (const std::string& mid : ids) {
@@ -2513,7 +2883,7 @@ static void onCommand(int id, int code) {
                         std::error_code e1;
                         fs::path content = fs::weakly_canonical(P(mit->second.contentDir), e1);
                         fs::path rel = content.lexically_relative(modDir);
-                        bool inside = !e1 && !rel.empty() && rel != "." && *rel.begin() != ".." && fs::is_directory(content, e1) && !fs::is_symlink(P(mit->second.contentDir), e1);
+                        bool inside = !e1 && !rel.empty() && rel != "." && *rel.begin() != ".." && fs::is_directory(content, e1) && !fs::is_symlink(P(mit->second.contentDir), e1) && !isReparsePoint(P(mit->second.contentDir));
                         if (inside) { fs::remove_all(content, e1); if (e1 || fs::exists(content, e1)) bad = true; }
                     }
                     std::error_code e2;
@@ -2523,7 +2893,7 @@ static void onCommand(int id, int code) {
                     else { done.push_back(mid); logLine("deleted mod " + mid); }
                 }
             } else {
-                backupPlayset(*ps, g_info, ids.size() == 1 ? "before removing a mod" : "before removing mods");
+                backupAffected(ids, ids.size() == 1 ? "before removing a mod" : "before removing mods");
                 for (const std::string& mid : ids) { g_settings.hidden.insert(mid); done.push_back(mid); logLine("removed mod from list " + mid); }
                 saveSettingsNow();
             }
@@ -2580,12 +2950,16 @@ static void onCommand(int id, int code) {
             break;
         }
 
-        case ID_THEME:
+        case ID_THEME: {
+            bool faded = captureFade();
             g_dark = !g_dark;
             g_settings.theme = g_dark ? "dark" : "light";
             saveSettingsNow();
             applyTheme();
+            startToggleAnim();
+            if (faded) { RedrawWindow(hMain, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW); startFade(); }
             break;
+        }
         case ID_BROWSE: browseFolder(); break;
         case ID_SAVEDIR: {
             g_settings.ck3Dir = U(getText(hDir));
@@ -2696,13 +3070,20 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_CREATE: hMain = h; createControls(); applyTheme(); return 0;
         case WM_ERASEBKGND: { RECT rc; GetClientRect(h, &rc); paintBackdrop((HDC)w, rc, true); return 1; }
         case WM_CTLCOLORSTATIC: case WM_CTLCOLOREDIT: case WM_CTLCOLORLISTBOX: { LRESULT r; if (themeCtlColor(m, w, l, r)) return r; break; }
-        case WM_DRAWITEM: drawButton((DRAWITEMSTRUCT*)l); return TRUE;
+        case WM_MEASUREITEM: if (((MEASUREITEMSTRUCT*)l)->CtlType == ODT_MENU) { measureMenuItem((MEASUREITEMSTRUCT*)l); return TRUE; } break;
+        case WM_DRAWITEM:
+            if (((DRAWITEMSTRUCT*)l)->CtlType == ODT_MENU) drawMenuItem((DRAWITEMSTRUCT*)l); else drawButton((DRAWITEMSTRUCT*)l);
+            return TRUE;
         case WM_APP + 2: g_scanDone = (int)w; updateCount(); confRefresh(); return 0;
         case WM_APP + 3: {   // background scan finished
             ScanJob* j = (ScanJob*)w;
             if (g_jobThread) { WaitForSingleObject(g_jobThread, 5000); CloseHandle(g_jobThread); g_jobThread = nullptr; }
             for (size_t i = 0; i < j->items.size() && i < j->out.size(); i++) {
-                if (!j->out[i].complete) continue;
+                if (!j->out[i].complete) {
+                    if (!j->cancel.load()) { g_scanFailed[j->items[i].id] = j->items[i].fp; logLine("could not read all files of mod " + j->items[i].id + ", skipped in conflict checks"); }
+                    continue;
+                }
+                g_scanFailed.erase(j->items[i].id);
                 g_fileIndex[j->items[i].id] = std::move(j->out[i]);
                 if (i < j->defs.size() && j->defs[i].complete) g_defIndex[j->items[i].id] = std::move(j->defs[i]);
             }
@@ -2727,7 +3108,15 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 try { resync(true); } catch (...) { g_resyncing = false; }
             }
             return 0;
+        case WM_APP + 8: endFade(); return 0;
         case WM_TIMER:
+            if (w == TIMER_TOGGLE) { stepToggleAnim(); return 0; }
+            if (w == 78) {
+                KillTimer(h, 78);
+                std::wstring old = W(exePath()) + L".old";
+                DeleteFileW(old.c_str());
+                return 0;
+            }
             if (w == 77) {   // messages that arrived while a dialog was open are handled once it is closed
                 if (!IsWindowEnabled(h)) return 0;
                 KillTimer(h, 77);
@@ -2763,7 +3152,7 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             AppendMenuW(menu, MF_STRING, ID_CTX_REMOVE, nsel > 1 ? (L"Remove " + mods + L" from list...").c_str() : L"Remove from list...");
             auto cit = g_info.find(mr.id);
             if (cit != g_info.end()) AppendMenuW(menu, MF_STRING, ID_CTX_DELFILES, nsel > 1 ? (L"Delete " + mods + L" permanently...").c_str() : L"Delete mod permanently...");
-            TrackPopupMenu(menu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, h, nullptr);
+            trackMenu(menu, TPM_RIGHTBUTTON, pt.x, pt.y, h);
             DestroyMenu(menu);
             return 0;
         }
@@ -2826,7 +3215,6 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
         }
         return 0;
     }
-    { std::wstring self = W(exePath()) + L".old"; DeleteFileW(self.c_str()); }   // left over from an update
     SetUnhandledExceptionFilter([](EXCEPTION_POINTERS* ep) -> LONG {
         char b[96];
         snprintf(b, sizeof b, "CRASH: exception %08lx at %p", (unsigned long)ep->ExceptionRecord->ExceptionCode, ep->ExceptionRecord->ExceptionAddress);
@@ -2885,6 +3273,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     ShowWindow(win, show);
     UpdateWindow(win);
     g_windowReady = true;
+    SetTimer(win, 78, 20000, nullptr);   // the old program file from an update is removed only once this version has run for a while (until then it is the way back)
     if (g_settings.checkUpdates) startUpdateCheck(true);
 
     MSG msg;

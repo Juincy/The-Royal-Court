@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.14.1
+# The Royal Court | CK3 Mod Manager  v0.15.0
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -32,6 +32,8 @@ Auto Sort knows a few popular mods (for example Rise and Fall must be last). To 
 ```
 `names` are matched ignoring case, version numbers and brackets; `ids` are Steam Workshop ids; `type` is Library, Overhaul, Content, Graphics, Interface, Translation or Patch; `position` is "top" (total conversions, above everything), "first" or "last" in the whole load order; `after`/`before` are mod names. An entry with the same name as a built-in one replaces it. Every field except `names` or `ids` is optional.
 
+Pressing **Updates** also fetches the project's shared `knownmods.json` (same format, plus `"format":1` and a `"revision"` number) from GitHub, so new rules reach everyone without a new program version. Your own file always wins over the shared one. If Auto Sort puts a mod somewhere wrong, use **Advanced > Report a sort problem**: it copies the load order (names, Steam ids, types only) so you can paste it into a GitHub issue.
+
 ## About the antivirus warning
 The EXE is not code-signed (certificates cost money), and brand-new unsigned programs are often flagged by heuristic scanners even when clean. You can check it yourself:
 1. Compare the file's SHA-256 with SHA256SUMS.txt (PowerShell: `Get-FileHash .\TheRoyalCourt.exe`).
@@ -40,7 +42,7 @@ The EXE is not code-signed (certificates cost money), and brand-new unsigned pro
 4. If Microsoft Defender flags it, you can report it as a false positive at https://www.microsoft.com/wdsi/filesubmission
 
 ## Rebuilding
-On Linux: install g++-mingw-w64-x86-64 and binutils-mingw-w64-x86-64, then run `src/build.sh`. Tests for the core logic are in `src/tests`. A GitHub Actions workflow (.github/workflows/build.yml) runs them and builds the exe on every push; pushing a tag like `v0.14.1` creates a draft release with the files the in-app updater needs (`TheRoyalCourt.exe` and `SHA256SUMS.txt`).
+On Linux: install g++-mingw-w64-x86-64 and binutils-mingw-w64-x86-64, then run `src/build.sh`. Tests for the core logic are in `src/tests`. A GitHub Actions workflow (.github/workflows/build.yml) runs them and builds the exe on every push; pushing a tag like `v0.15.0` creates a draft release with the files the in-app updater needs (`TheRoyalCourt.exe` and `SHA256SUMS.txt`).
 
 Every change is logged in CHANGELOG.md.
 
