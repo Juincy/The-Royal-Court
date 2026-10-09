@@ -38,8 +38,25 @@ int main(int argc, char** argv) {
     };
     std::vector<ModInfo> installed;
     for (int i = 0; i < 4; i++) { ModInfo m; m.id = "ugc_" + std::to_string(100 + i) + ".mod"; m.name = "Mod " + std::to_string(i); installed.push_back(m); }
+    // saved indexes: a valid file of each kind, damaged in random ways, must be refused or read, never crash
+    fs::path fdir = fs::temp_directory_path() / "rc_fuzz_cache";
+    fs::remove_all(fdir); fs::create_directories(fdir);
+    std::string cdir = fdir.u8string();
+    ModDefs seedDefs; seedDefs.complete = true; seedDefs.files = {"events/a.txt", "common/traits/t.txt"}; seedDefs.pool = "brave" "ee.1" "kind";
+    { DefEntry d; d.h = 1; d.file = 0; d.nameOff = 0; d.nameLen = 5; d.kind = DK_COMMON; seedDefs.defs.push_back(d); d.h = 2; d.file = 1; d.nameOff = 5; d.nameLen = 4; d.kind = DK_EVENT; seedDefs.defs.push_back(d); }
+    saveModCache(cdir, "m.mod", "deep-1", seedDefs);
+    std::string modSeed, vanSeed;
+    readFile(modCacheFile(cdir, "m.mod"), modSeed);
+    { VanillaIndex v; v.key = "k"; v.dir = "d"; v.files = {"common/a.txt", "events/b.txt", "gfx/c.dds"}; v.finish(); saveVanillaCache(cdir, v); }
+    readFile(vanillaCacheFile(cdir), vanSeed);
     for (long it = 0; it < iters; it++) {
         std::string s = mutate(seeds[rng() % seeds.size()]);
+        if (it % 4 == 0) {
+            std::string mc = mutate(modSeed); writeFile(modCacheFile(cdir, "m.mod"), mc);
+            ModDefs out; if (loadModCache(cdir, "m.mod", "deep-1", out)) for (auto& d : out.defs) (void)out.nameOf(d);
+            std::string vc = mutate(vanSeed); writeFile(vanillaCacheFile(cdir), vc);
+            if (auto v = loadVanillaCache(cdir, "k")) { (void)v->has(s); (void)v->countUnder(s); }
+        }
         J j; parseJson(s, j); std::string o; dump(j, o);
         (void)parseDescriptor(s);
         (void)parsePlaysetFile(s, installed);

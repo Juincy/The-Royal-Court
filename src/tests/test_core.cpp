@@ -1,4 +1,5 @@
 #include <cassert>
+#include <chrono>
 #include <iostream>
 #include "../core.hpp"
 using namespace rc;
@@ -806,6 +807,215 @@ int main() {
         }
         // the Steam descriptor is written whole or not at all
         assert(fs::path(registeredDescriptorText("name=\"x\"\n", "1", "C:/a")).empty() == false);
+    }
+    {   // ---- deep fingerprint, saved index, game file list, severity ----
+        fs::path root = T / "deepmod";
+        fs::remove_all(root);
+        fs::create_directories(root / "common/traits"); fs::create_directories(root / "events"); fs::create_directories(root / "localization/english");
+        writeFile(root / "descriptor.mod", "name=\"x\"");
+        writeFile(root / "common/traits/t.txt", "brave = { x = 1 }\nkind = { y = 2 }\n");
+        writeFile(root / "events/e.txt", "namespace = ee\nee.1 = { type = character_event }\n");
+        writeFile(root / "localization/english/a_l_english.yml", "l_english:\n k1:0 \"v\"\n");
+        auto a1 = indexModFiles(root.u8string()), a2 = indexModFiles(root.u8string());
+        assert(a1.complete && !a1.deep.empty() && a1.deep == a2.deep);
+        writeFile(root / "descriptor.mod", "name=\"changed\"");                      // root-level files are not part of it
+        assert(indexModFiles(root.u8string()).deep == a1.deep);
+        writeFile(root / "common/traits/t.txt", "brave = { x = 1 }\nkind = { y = 2 }\nmore = { z = 3 }\n");   // size changes
+        auto a3 = indexModFiles(root.u8string());
+        assert(a3.deep != a1.deep && a3.files.size() == a1.files.size());
+        auto t0 = fs::last_write_time(root / "events/e.txt");
+        fs::last_write_time(root / "events/e.txt", t0 + std::chrono::seconds(7));    // only the time changes
+        auto a4 = indexModFiles(root.u8string());
+        assert(a4.deep != a3.deep);
+        writeFile(root / "common/traits/new.txt", "n = { }");                       // a file is added deep inside
+        assert(indexModFiles(root.u8string()).deep != a4.deep);
+
+        // saved index: first read parses, the second one comes from the saved copy and gives the same result
+        std::string cdir = (T / "cache1").u8string();
+        fs::remove_all(P(cdir));
+        auto i1 = indexModCached(cdir, "m1.mod", root.u8string());
+        assert(i1.files.complete && i1.defs.complete && !i1.fromCache && !i1.defs.defs.empty());
+        auto i2 = indexModCached(cdir, "m1.mod", root.u8string());
+        assert(i2.fromCache && i2.defs.defs.size() == i1.defs.defs.size() && i2.defs.pool == i1.defs.pool && i2.defs.files == i1.defs.files && i2.defs.bytesRead == i1.defs.bytesRead);
+        for (size_t k = 0; k < i1.defs.defs.size(); k++) assert(i1.defs.defs[k].h == i2.defs.defs[k].h && i1.defs.defs[k].file == i2.defs.defs[k].file);
+        // a change inside the mod is noticed
+        writeFile(root / "common/traits/t.txt", "brave = { x = 1 }\nnewone = { y = 2 }\n");
+        auto i3 = indexModCached(cdir, "m1.mod", root.u8string());
+        assert(!i3.fromCache);
+        bool sawNew = false;
+        for (auto& d : i3.defs.defs) if (i3.defs.nameOf(d) == "newone") sawNew = true;
+        assert(sawNew);
+        // another mod id never reads this mod's file, and damage of any kind means "read it again"
+        assert(!indexModCached(cdir, "m2.mod", root.u8string()).fromCache);
+        fs::path cf = modCacheFile(cdir, "m1.mod");
+        std::string good; assert(readFile(cf, good));
+        ModDefs probe;
+        std::string deepNow = indexModFiles(root.u8string()).deep;
+        assert(loadModCache(cdir, "m1.mod", deepNow, probe));
+        assert(!loadModCache(cdir, "m1.mod", deepNow + "x", probe) && !loadModCache(cdir, "other.mod", deepNow, probe));
+        for (size_t cut : {size_t(0), size_t(3), good.size() / 2, good.size() - 1}) {
+            writeFile(cf, good.substr(0, cut));
+            assert(!loadModCache(cdir, "m1.mod", deepNow, probe));
+        }
+        for (size_t at : {size_t(5), size_t(40), good.size() / 2, good.size() - 12}) {
+            std::string bad = good; bad[at] = (char)(bad[at] ^ 0x5a);
+            writeFile(cf, bad);
+            assert(!loadModCache(cdir, "m1.mod", deepNow, probe));
+        }
+        writeFile(cf, good);
+        assert(loadModCache(cdir, "m1.mod", deepNow, probe));
+        // a cache file that lies about its sizes (valid checksum, impossible counts) is refused without crashing
+        {
+            CacheOut o; o.b += "RCIX"; o.u32(INDEX_CACHE_FORMAT); o.u32(DEFS_PARSER_VERSION); o.str("m1.mod"); o.str(deepNow); o.u64(0);
+            o.u32(0xFFFFFFF0u);
+            o.u64(fnv64(o.b, '\x1d', "RCIX"));
+            writeFile(cf, o.b);
+            assert(!loadModCache(cdir, "m1.mod", deepNow, probe));
+        }
+        // pruning removes only our own files of mods that are gone
+        writeFile(cf, good);
+        indexModCached(cdir, "m2.mod", root.u8string());
+        writeFile(P(cdir) / "notes.txt", "keep me"); writeFile(P(cdir) / "m_zzzzzzzzzzzzzzzz.bin", "not ours");
+        assert(pruneModCache(cdir, {"m1.mod"}) == 1);
+        assert(fs::exists(modCacheFile(cdir, "m1.mod")) && !fs::exists(modCacheFile(cdir, "m2.mod")) && fs::exists(P(cdir) / "notes.txt") && fs::exists(P(cdir) / "m_zzzzzzzzzzzzzzzz.bin"));
+        assert(pruneModCache("", {}) == 0);
+
+        // the game's own file list
+        fs::path inst = T / "ck3install";
+        fs::remove_all(inst);
+        fs::create_directories(inst / "binaries"); fs::create_directories(inst / "game/common/traits"); fs::create_directories(inst / "game/events");
+        fs::create_directories(inst / "game/gfx"); fs::create_directories(inst / "dlc/dlc001_x/common/traits"); fs::create_directories(inst / "game/.git");
+        writeFile(inst / "binaries/ck3.exe", "x");
+        writeFile(inst / "game/common/traits/00_traits.txt", "a"); writeFile(inst / "game/common/traits/01_more.txt", "a");
+        writeFile(inst / "game/events/e1.txt", "a"); writeFile(inst / "game/gfx/x.dds", "a"); writeFile(inst / "game/readme.txt", "a");
+        writeFile(inst / "game/.git/config", "a"); writeFile(inst / "game/Thumbs.db", "a");
+        writeFile(inst / "dlc/dlc001_x/common/traits/dlc_traits.txt", "a"); writeFile(inst / "dlc/dlc001_x/dlc.json", "a");
+        std::string exe = (inst / "binaries/ck3.exe").u8string();
+        std::string gdir = vanillaGameDir(exe);
+        assert(!gdir.empty() && fs::path(P(gdir)).filename() == "game" && vanillaGameDir("").empty() && vanillaGameDir((T / "nope/bin/x.exe").u8string()).empty());
+        auto v1 = indexVanilla(gdir);
+        assert(v1 && v1->has("common/traits/00_traits.txt") && v1->has("events/e1.txt") && v1->has("gfx/x.dds") && v1->has("common/traits/dlc_traits.txt"));
+        assert(!v1->has("readme.txt") && !v1->has(".git/config") && !v1->has("thumbs.db") && !v1->has("dlc.json") && !v1->has("common/traits/nothing.txt"));
+        assert(v1->countUnder("common/traits/") == 3 && v1->countUnder("events/") == 1 && v1->countUnder("common/trait/") == 0 && v1->dlcFiles == 1);
+        std::string vdir = (T / "cache2").u8string();
+        fs::remove_all(P(vdir));
+        bool fc = true;
+        auto v2 = loadOrIndexVanilla(vdir, exe, "1.20.0.4", nullptr, &fc);
+        assert(v2 && !fc && v2->files == v1->files);
+        auto v3 = loadOrIndexVanilla(vdir, exe, "1.20.0.4", nullptr, &fc);
+        assert(v3 && fc && v3->files == v1->files && v3->dlcFiles == 1 && v3->has("gfx/x.dds"));
+        loadOrIndexVanilla(vdir, exe, "1.21.0.1", nullptr, &fc); assert(!fc);                    // a game update: list is read again
+        fs::create_directories(inst / "game/newfolder"); writeFile(inst / "game/newfolder/a.txt", "a");   // a new top-level folder changes the key
+        auto v4 = loadOrIndexVanilla(vdir, exe, "1.21.0.1", nullptr, &fc);
+        assert(!fc && v4->has("newfolder/a.txt"));
+        std::string vtext; assert(readFile(vanillaCacheFile(vdir), vtext));
+        for (size_t cut : {size_t(0), size_t(5), vtext.size() / 2, vtext.size() - 1}) {          // damaged copies are never trusted
+            writeFile(vanillaCacheFile(vdir), vtext.substr(0, cut));
+            assert(!loadVanillaCache(vdir, v4->key));
+        }
+        writeFile(vanillaCacheFile(vdir), vtext + "extra/line.txt\n");
+        assert(!loadVanillaCache(vdir, v4->key));
+        writeFile(vanillaCacheFile(vdir), vtext);
+        assert(loadVanillaCache(vdir, v4->key) && !loadVanillaCache(vdir, v4->key + "x"));
+        std::atomic<bool> stopV(true);
+        assert(!indexVanilla(gdir, &stopV));
+
+        // mods against the game's files
+        auto mk2 = [](const char* id, const char* name, const char* sup, std::vector<std::string> rp = {}) { ModInfo m; m.id = id; m.name = name; m.supported = sup; m.replacePaths = rp; return m; };
+        std::vector<ModInfo> vm = {mk2("a.mod", "A", "1.1.*"), mk2("b.mod", "B", "1.20.*"), mk2("c.mod", "C", "1.20.*", {"common/traits"}), mk2("d.mod", "D", "1.20.*"), mk2("e.mod", "E", "1.20.*")};
+        auto vinfo = infoMap(vm);
+        std::map<std::string, ModFiles> vidx;
+        auto mkf = [](std::vector<std::string> f) { ModFiles m; m.files = f; m.complete = true; return m; };
+        std::vector<std::string> gf; for (int i = 0; i < 5; i++) gf.push_back("gfx/pair" + std::to_string(i) + ".dds");
+        auto dfiles = gf; dfiles.push_back("localization/english/x.yml");
+        vidx["a.mod"] = mkf({"common/traits/00_traits.txt", "gfx/x.dds", "common/mine.txt"});
+        vidx["b.mod"] = mkf({"common/traits/00_traits.txt", "events/new.txt"});
+        vidx["c.mod"] = mkf({"common/other/o.txt"});
+        vidx["d.mod"] = mkf(gf);
+        vidx["e.mod"] = mkf(gf);
+        Playset vp; vp.name = "v"; vp.mods = {{"a.mod", true, ""}, {"b.mod", true, ""}, {"c.mod", true, ""}, {"d.mod", true, ""}, {"e.mod", true, ""}};
+        auto vcr = findConflicts(vp, vinfo, vidx, v1.get());
+        assert(vcr.valid && vcr.vanillaChecked && vcr.vanilla.size() == 2);
+        assert(vcr.vanilla[0].path == "common/traits/00_traits.txt" && vcr.vanilla[0].mods == std::vector<int>({0, 1}) && vcr.vanilla[0].sev == SEV_HIGH);
+        assert(vcr.vanilla[1].path == "gfx/x.dds" && vcr.vanilla[1].mods == std::vector<int>({0}) && vcr.vanilla[1].sev == SEV_LOW);
+        assert(vcr.vanillaCount[0] == 2 && vcr.vanillaCount[1] == 1 && vcr.vanillaCount[2] == 0);
+        assert(vcr.files.size() == 1 + 5 && vcr.files[0].path == "common/traits/00_traits.txt" && vcr.files[0].vanilla && vcr.files[0].sev == SEV_HIGH && !vcr.files[1].vanilla && vcr.files[1].sev == SEV_LOW);
+        assert(vcr.pairs.size() == 2 && vcr.pairs[0].a == 0 && vcr.pairs[0].b == 1 && vcr.pairs[0].sev == SEV_HIGH && vcr.pairs[1].count == 5 && vcr.pairs[1].sev == SEV_LOW);   // serious first, even though the other pair has more files
+        assert(vcr.vanillaWipes.size() == 1 && vcr.vanillaWipes[0].mod == 2 && vcr.vanillaWipes[0].folder == "common/traits" && vcr.vanillaWipes[0].files == 3);
+        auto viss = analyzePlayset(vp, vinfo, "1.20.0.4");
+        addConflictIssues(viss, vcr, vp, vinfo, "1.20.0.4");
+        bool oldNote = false, wipeNote = false, newNote = false;
+        for (auto& is : viss[0]) if (is.text.find("older game version") != std::string::npos && is.sev == 1) oldNote = true;
+        for (auto& is : viss[2]) if (is.text.find("removes 3 file(s) of the base game") != std::string::npos) wipeNote = true;
+        for (auto& is : viss[1]) if (is.text.find("Replaces 1 file(s) of the base game") != std::string::npos && is.sev == 0) newNote = true;
+        assert(oldNote && wipeNote && newNote);
+        auto ncr = findConflicts(vp, vinfo, vidx);                         // without the game's list nothing is claimed about it
+        assert(ncr.valid && !ncr.vanillaChecked && ncr.vanilla.empty() && ncr.vanillaWipes.empty() && ncr.files.size() == 1 + 5);
+        { std::vector<std::vector<ModIssue>> ni = analyzePlayset(vp, vinfo, "1.20.0.4"); size_t before = ni[0].size(); addConflictIssues(ni, ncr, vp, vinfo, "1.20.0.4");
+          for (auto& is : ni[0]) assert(is.text.find("base game") == std::string::npos); (void)before; }
+        // a cancelled computation gives nothing
+        std::map<std::string, ModFiles> hugeIdx; std::vector<ModInfo> hm; Playset hp; hp.name = "h";
+        for (int m = 0; m < 2; m++) {
+            std::string id = "h" + std::to_string(m) + ".mod"; hm.push_back(mk2(id.c_str(), id.c_str(), ""));
+            ModFiles f; f.complete = true;
+            for (int i = 0; i < 40000; i++) f.files.push_back("common/x/f" + std::to_string(i) + ".txt");
+            hugeIdx[id] = std::move(f); hp.mods.push_back({id, true, ""});
+        }
+        std::atomic<bool> stopC(true);
+        assert(!findConflicts(hp, infoMap(hm), hugeIdx, nullptr, &stopC).valid && findConflicts(hp, infoMap(hm), hugeIdx).files.size() == 40000);
+        // severity
+        assert(areaSeverity("common/traits") == SEV_HIGH && areaSeverity("events") == SEV_HIGH && areaSeverity("history/provinces") == SEV_HIGH && areaSeverity("map_data") == SEV_HIGH);
+        assert(areaSeverity("gui") == SEV_MED && areaSeverity("localization/english") == SEV_MED && areaSeverity("something_else") == SEV_MED);
+        assert(areaSeverity("gfx/portraits") == SEV_LOW && areaSeverity("music") == SEV_LOW && areaSeverity("common/genes") == SEV_LOW && areaSeverity("common/bookmark_portraits") == SEV_LOW);
+        assert(std::string(sevName(SEV_HIGH)) == "High" && std::string(sevName(SEV_MED)) == "Medium" && std::string(sevName(SEV_LOW)) == "Low");
+    }
+    {   // ---- one key defined thousands of times across mods must not take quadratic time ----
+        std::vector<ModInfo> pm; std::map<std::string, ModDefs> pd; Playset pp; pp.name = "perf";
+        for (int m = 0; m < 6; m++) {
+            ModInfo mi; mi.id = "p" + std::to_string(m) + ".mod"; mi.name = mi.id; pm.push_back(mi);
+            ModDefs d; d.complete = true;
+            for (int i = 0; i < 6000; i++) {
+                d.files.push_back("common/big/m" + std::to_string(m) + "_" + std::to_string(i) + ".txt");
+                DefEntry e; e.h = fnv64("common/big", '\x1f', "same_key"); e.file = (uint32_t)i; e.nameOff = 0; e.nameLen = 8; e.kind = DK_COMMON;
+                d.defs.push_back(e);
+            }
+            d.pool = "same_key";
+            pd[mi.id] = std::move(d); pp.mods.push_back({mi.id, true, ""});
+        }
+        auto t0 = std::chrono::steady_clock::now();
+        auto sr = findScriptConflicts(pp, infoMap(pm), pd);
+        long long ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
+        assert(sr.valid && sr.items.size() == 1 && sr.items[0].hits.size() == 36000 && ms < 5000);
+        // shadowing still works: the same file path in an earlier and a later mod keeps only the later one
+        std::vector<ModInfo> sm; std::map<std::string, ModDefs> sd; Playset sp; sp.name = "shadow";
+        for (int m = 0; m < 3; m++) {
+            ModInfo mi; mi.id = "s" + std::to_string(m) + ".mod"; mi.name = mi.id; sm.push_back(mi);
+            ModDefs d; d.complete = true; d.pool = "k";
+            d.files.push_back(m < 2 ? "common/traits/same.txt" : "common/traits/other.txt");
+            DefEntry e; e.h = fnv64("common/traits", '\x1f', "k"); e.file = 0; e.nameOff = 0; e.nameLen = 1; e.kind = DK_COMMON;
+            d.defs.push_back(e);
+            sd[mi.id] = std::move(d); sp.mods.push_back({mi.id, true, ""});
+        }
+        auto sr2 = findScriptConflicts(sp, infoMap(sm), sd);
+        assert(sr2.items.size() == 1 && sr2.items[0].hits.size() == 2 && sr2.items[0].hits[0].mod == 1 && sr2.items[0].hits[1].mod == 2);   // mod 0's copy was replaced by mod 1's file
+    }
+    {   // ---- update check: fingerprints with and without the deep part ----
+        assert(!fingerprintChanged("C:/m|1.0|100", "C:/m|1.0|100") && fingerprintChanged("C:/m|1.0|100", "C:/m|1.0|101") && fingerprintChanged("C:/m|1.0|100", "C:/m|1.1|100"));
+        assert(!fingerprintChanged("C:/m|1.0|100#d:abc-5", "C:/m|1.0|100#d:abc-5"));
+        assert(!fingerprintChanged("C:/m|1.0|100#d:abc-5", "C:/m|1.0|999#d:abc-5"));      // only the folder's time moved: not an update
+        assert(fingerprintChanged("C:/m|1.0|100#d:abc-5", "C:/m|1.0|100#d:abd-5"));       // a file deep inside changed
+        assert(fingerprintChanged("C:/m|1.0|100#d:abc-5", "C:/m|1.1|100#d:abc-5"));       // the mod's version changed
+        assert(!fingerprintChanged("C:/m|1.0|100#d:abc-5", "C:/m|1.0|100"));              // not indexed yet: plain comparison
+        assert(!fingerprintChanged("C:/m|1.0|100", "C:/m|1.0|100#d:abc-5"));              // an older record: plain comparison
+        assert(fingerprintChanged("C:/m|1.0|100", "C:/m|1.0|101#d:abc-5"));
+        assert(!fingerprintChanged("", "") && fingerprintChanged("", "C:/m|1.0|1"));
+        std::vector<ModInfo> um; ModInfo u1; u1.id = "u.mod"; u1.name = "U"; um.push_back(u1);
+        Playset up; up.name = "u"; up.mods = {{"u.mod", true, ""}};
+        auto ui = analyzePlayset(up, infoMap(um), "");
+        addUpdateIssues(ui, up, infoMap(um), {{"u.mod", "d|1|5#d:aa-2"}}, {{"u.mod", "d|1|9#d:aa-2"}});
+        assert(ui[0].empty());
+        addUpdateIssues(ui, up, infoMap(um), {{"u.mod", "d|1|5#d:aa-2"}}, {{"u.mod", "d|1|5#d:ab-2"}});
+        assert(!ui[0].empty() && ui[0].back().text.find("Updated since") != std::string::npos);
     }
     std::cout << "ALL CORE TESTS PASSED\n";
 }

@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.15.0
+# The Royal Court | CK3 Mod Manager  v0.16.0
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -9,9 +9,9 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - Export saves a playset file anywhere; Import reads playsets exported by the launcher. Use the launcher's own Import playset to bring one of ours into the launcher.
 - Play starts Crusader Kings III directly, skipping the Paradox Launcher, using the playset selected in this app. It writes the playset's mods into the game's dlc_load.json first (your original is kept as dlc_load.json.rc-original). Steam must be running.
 - Columns for mod version, game version (checked against your installed CK3), source, type and notes; click a header to sort the view. The Notes column flags missing dependencies, wrong load order, outdated mods and file conflicts.
-- Conflicts finds mods that overwrite the same files (by mod pair or by file) and mods that define the same trait, event ID, define, on_action or localization key (By definition). The mod loaded last usually wins; where that is unclear, the app says so.
+- Conflicts finds mods that overwrite the same files (by mod pair or by file) and mods that define the same trait, event ID, define, on_action or localization key (By definition). The mod loaded last usually wins; where that is unclear, the app says so. Every conflict has a severity (High, Medium, Low), the Base game view lists game files that mods replace (and replace_path folders that remove game files), double-click shows who wins, and right-click moves one mod next to the other so the one you prefer wins (Undo order goes back).
 - Your playset is backed up automatically at startup and before Auto Sort (Advanced menu: Back up now, Restore, Open backups folder).
-- Auto Sort proposes a better load order (dependencies first, then Library, Overhaul, Content, Graphics, Interface, Translation, Patch; smaller targeted mods win file conflicts) and shows a preview before anything changes. Undo sort restores the old order. Right-click a mod to lock its position or set its type.
+- Auto Sort proposes a better load order (dependencies first, then Library, Overhaul, Content, Graphics, Interface, Translation, Patch; smaller targeted mods win file conflicts) and shows a preview before anything changes. Undo order restores the old order. Right-click a mod to lock its position or set its type.
 - Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or delete it permanently from disk (for a Workshop mod you unsubscribed from, this clears the leftover entry).
 - Mods that changed since you last pressed Play are flagged in Notes. Advanced has Compare with another playset and per-playset game launch options. The window remembers its size, position and column widths.
 - Select several mods with Ctrl/Shift-click to move, lock, retype, remove or delete them together.
@@ -42,7 +42,7 @@ The EXE is not code-signed (certificates cost money), and brand-new unsigned pro
 4. If Microsoft Defender flags it, you can report it as a false positive at https://www.microsoft.com/wdsi/filesubmission
 
 ## Rebuilding
-On Linux: install g++-mingw-w64-x86-64 and binutils-mingw-w64-x86-64, then run `src/build.sh`. Tests for the core logic are in `src/tests`. A GitHub Actions workflow (.github/workflows/build.yml) runs them and builds the exe on every push; pushing a tag like `v0.15.0` creates a draft release with the files the in-app updater needs (`TheRoyalCourt.exe` and `SHA256SUMS.txt`).
+On Linux: install g++-mingw-w64-x86-64 and binutils-mingw-w64-x86-64, then run `src/build.sh`. Tests for the core logic are in `src/tests`. A GitHub Actions workflow (.github/workflows/build.yml) runs them and builds the exe on every push; pushing a tag like `v0.16.0` creates a draft release with the files the in-app updater needs (`TheRoyalCourt.exe` and `SHA256SUMS.txt`).
 
 Every change is logged in CHANGELOG.md.
 

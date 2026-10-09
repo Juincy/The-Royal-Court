@@ -10,19 +10,23 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
 #include <tuple>
+#include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.15.0";
+inline const char* VERSION = "0.16.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -644,7 +648,27 @@ inline int issueSeverity(const std::vector<ModIssue>& v) { int s = -1; for (auto
 // A mod's "files" are the game files it ships (paths relative to its folder, lower case, '/' separators).
 // The game merges all enabled mods into one virtual folder: when two mods ship the same path, the one loaded LAST wins and the
 // other file is ignored. replace_path in a mod's descriptor additionally drops everything in that folder that was loaded before it.
-struct ModFiles { std::string fingerprint; std::vector<std::string> files; bool complete = false; };
+struct ModFiles {
+    std::string fingerprint;                 // quick fingerprint (folder time + version), used to notice changes while the program runs
+    std::vector<std::string> files;
+    bool complete = false;
+    std::string deep;                        // hash over every file's path, size and time: changes when ANY file in the mod changes
+};
+
+// One file's contribution to a deep fingerprint. The contributions are added up, so the order the folder is listed in does not matter.
+inline uint64_t deepMix(const std::string& rel, uint64_t size, int64_t mtime) {
+    uint64_t h = 1469598103934665603ULL;
+    for (unsigned char c : rel) { h ^= c; h *= 1099511628211ULL; }
+    auto put = [&](uint64_t v) { for (int i = 0; i < 8; i++) { h ^= (unsigned char)(v >> (i * 8)); h *= 1099511628211ULL; } };
+    put(size); put((uint64_t)mtime);
+    h ^= h >> 33; h *= 0xff51afd7ed558ccdULL; h ^= h >> 33; h *= 0xc4ceb9fe1a85ec53ULL; h ^= h >> 33;   // spread the bits before adding
+    return h;
+}
+inline std::string hex64(uint64_t v) {
+    char b[17];
+    std::snprintf(b, sizeof b, "%016llx", (unsigned long long)v);
+    return b;
+}
 
 inline bool skipFileName(const std::string& lowerName) {
     return lowerName == "thumbs.db" || lowerName == ".ds_store" || lowerName == ".gitignore" || lowerName == ".gitattributes" || lowerName == "desktop.ini";
@@ -653,18 +677,20 @@ inline bool skipDirName(const std::string& lowerName) {
     return lowerName == ".git" || lowerName == ".github" || lowerName == ".vscode" || lowerName == ".idea" || lowerName == ".svn" || lowerName == "__macosx";
 }
 
-// Lists a mod folder. Files directly in the root (descriptor.mod, thumbnail.png, readme) are not game files and are skipped.
-// If cancelled, the result is marked incomplete.
-inline ModFiles indexModFiles(const std::string& contentDir, const std::atomic<bool>* cancel = nullptr) {
-    ModFiles r;
-    if (contentDir.empty()) return r;
-    fs::path root = P(contentDir);
+// ---------- folder walking ----------
+// Calls f(relative path, size, time) for every file below root: lower case, '/' separators, no .git-like folders, no Thumbs.db-like files,
+// links are not followed. Two implementations give the same result: the portable one below, and a faster native one on Windows that the
+// program installs in g_fastWalk (src/fastwalk.hpp). They are compared by a test.
+enum WalkResult { WALK_OK = 0, WALK_CANCELLED = 1, WALK_FAILED = 2 };
+using WalkCallback = std::function<void(const std::string& rel, uint64_t size, int64_t mtime)>;
+inline int walkFilesPortable(const std::string& rootUtf8, const WalkCallback& f, const std::atomic<bool>* cancel) {
+    fs::path root = P(rootUtf8);
     std::string rootStr = root.u8string();
     while (!rootStr.empty() && (rootStr.back() == '/' || rootStr.back() == '\\')) rootStr.pop_back();
     std::error_code ec;
     fs::recursive_directory_iterator it(root, fs::directory_options::skip_permission_denied, ec), end;
     for (; !ec && it != end; it.increment(ec)) {
-        if (cancel && cancel->load()) return r;
+        if (cancel && cancel->load()) return WALK_CANCELLED;
         std::error_code e2;
         std::string name = lower(it->path().filename().u8string());
         if (it->is_directory(e2)) { if (skipDirName(name)) it.disable_recursion_pending(); continue; }
@@ -673,10 +699,32 @@ inline ModFiles indexModFiles(const std::string& contentDir, const std::atomic<b
         if (full.size() <= rootStr.size() + 1 || full.compare(0, rootStr.size(), rootStr) != 0) continue;
         std::string rel = full.substr(rootStr.size() + 1);
         for (auto& c : rel) { if (c == '\\') c = '/'; else if (c >= 'A' && c <= 'Z') c = (char)(c + 32); }
-        if (rel.find('/') == std::string::npos) continue;  // root-level file
-        r.files.push_back(std::move(rel));
+        std::error_code e3, e4;
+        std::uintmax_t sz = it->file_size(e3);
+        auto mt = it->last_write_time(e4);
+        f(rel, e3 ? 0 : (uint64_t)sz, e4 ? 0 : (int64_t)mt.time_since_epoch().count());
     }
-    r.complete = !ec;
+    return ec ? WALK_FAILED : WALK_OK;
+}
+inline std::function<int(const std::string&, const WalkCallback&, const std::atomic<bool>*)> g_fastWalk;   // optional native walker
+inline int walkFiles(const std::string& rootUtf8, const WalkCallback& f, const std::atomic<bool>* cancel) {
+    return g_fastWalk ? g_fastWalk(rootUtf8, f, cancel) : walkFilesPortable(rootUtf8, f, cancel);
+}
+
+// Lists a mod folder. Files directly in the root (descriptor.mod, thumbnail.png, readme) are not game files and are skipped.
+// If cancelled, the result is marked incomplete.
+inline ModFiles indexModFiles(const std::string& contentDir, const std::atomic<bool>* cancel = nullptr) {
+    ModFiles r;
+    if (contentDir.empty()) return r;
+    uint64_t sum = 0;
+    int rc = walkFiles(contentDir, [&](const std::string& rel, uint64_t size, int64_t mtime) {
+        if (rel.find('/') == std::string::npos) return;   // root-level file
+        sum += deepMix(rel, size, mtime);
+        r.files.push_back(rel);
+    }, cancel);
+    if (rc == WALK_CANCELLED) return r;
+    r.complete = rc == WALK_OK;
+    r.deep = hex64(sum) + "-" + std::to_string(r.files.size());
     return r;
 }
 
@@ -687,15 +735,177 @@ inline std::string modFingerprint(const ModInfo& m) {
     return m.contentDir + "|" + m.version + "|" + (ec ? std::string("?") : std::to_string((long long)t.time_since_epoch().count()));
 }
 
-struct FileConflict { std::string path; std::vector<int> mods; };      // mods = playset positions, ascending = load order; the last one wins
-struct PairConflict { int a = 0, b = 0, count = 0; std::vector<std::pair<std::string, int>> areas; };  // a loads before b; b wins
+// ---------- the game's own files ----------
+// A mod file with the same relative path as a file of the base game REPLACES that file (the game never merges them). That is
+// what total conversions do on purpose, but a mod that replaces a vanilla file and was made for an older game version also
+// undoes whatever the game update changed in that file. So the game's file list is read once and kept (cache/vanilla.txt).
+struct VanillaIndex {
+    std::string key;                         // which install and version the list was made for
+    std::string dir;                         // the game folder that was read
+    std::vector<std::string> files;          // sorted, lower case, '/' separators, relative to the game folder (DLC folders folded in)
+    size_t dlcFiles = 0;
+    VanillaIndex() = default;
+    VanillaIndex(const VanillaIndex&) = delete;              // set_ holds views into files
+    VanillaIndex& operator=(const VanillaIndex&) = delete;
+    void finish() {
+        std::sort(files.begin(), files.end());
+        files.erase(std::unique(files.begin(), files.end()), files.end());
+        set_.clear();
+        set_.reserve(files.size() * 2);
+        for (auto& f : files) set_.insert(std::string_view(f));
+    }
+    bool has(const std::string& rel) const { return set_.count(std::string_view(rel)) != 0; }
+    // Files below a folder ("common/traits/"; the prefix ends with '/').
+    size_t countUnder(const std::string& prefix) const {
+        auto it = std::lower_bound(files.begin(), files.end(), prefix);
+        size_t n = 0;
+        while (it != files.end() && it->compare(0, prefix.size(), prefix) == 0) { n++; ++it; }
+        return n;
+    }
+private:
+    std::unordered_set<std::string_view> set_;
+};
+
+// ...\Crusader Kings III\binaries\ck3.exe  ->  ...\Crusader Kings III\game   ("" if it is not there)
+inline std::string vanillaGameDir(const std::string& gameExe) {
+    if (gameExe.empty()) return "";
+    fs::path d = P(gameExe).parent_path().parent_path() / "game";
+    std::error_code ec;
+    return fs::is_directory(d, ec) ? d.u8string() : std::string();
+}
+
+// Where DLC content may live: next to the base files ("game/dlc/<name>/...") or beside the game folder ("<install>/dlc/<name>/...").
+// A DLC folder is laid over the base game, so its files count as vanilla files under their path inside the DLC folder.
+inline std::vector<std::string> vanillaDlcDirs(const std::string& gameDir) {
+    std::vector<std::string> v;
+    fs::path g = P(gameDir);
+    std::error_code ec;
+    for (fs::path d : {g / "dlc", g.parent_path() / "dlc"}) if (fs::is_directory(d, ec)) v.push_back(d.u8string());
+    return v;
+}
+
+// Identifies the install and version: the game folder, its version and the times of its top-level folders (they change when the game is updated).
+inline std::string vanillaKey(const std::string& gameDir, const std::string& gameVer) {
+    uint64_t sum = 0;
+    size_t n = 0;
+    auto add = [&](const fs::path& d) {
+        std::error_code ec;
+        for (fs::directory_iterator it(d, fs::directory_options::skip_permission_denied, ec), end; !ec && it != end; it.increment(ec)) {
+            std::error_code e2, e3;
+            if (!it->is_directory(e2)) continue;
+            auto t = it->last_write_time(e3);
+            sum += deepMix(lower(it->path().filename().u8string()), 0, e3 ? 0 : (int64_t)t.time_since_epoch().count());
+            n++;
+        }
+    };
+    add(P(gameDir));
+    for (auto& d : vanillaDlcDirs(gameDir)) add(P(d));
+    return gameDir + "|" + gameVer + "|" + hex64(sum) + "-" + std::to_string(n);
+}
+
+inline std::shared_ptr<VanillaIndex> indexVanilla(const std::string& gameDir, const std::atomic<bool>* cancel = nullptr) {
+    auto idx = std::make_shared<VanillaIndex>();
+    idx->dir = gameDir;
+    auto walk = [&](const std::string& rootIn, bool isDlc) -> bool {   // isDlc: the folder is one DLC's own folder, its files count as base-game paths
+        int rc = walkFiles(rootIn, [&](const std::string& rel, uint64_t, int64_t) {
+            if (rel.find('/') == std::string::npos || rel.find('\n') != std::string::npos) return;   // root-level files are not game content
+            if (isDlc) idx->dlcFiles++;
+            idx->files.push_back(rel);
+        }, cancel);
+        return rc != WALK_CANCELLED;
+    };
+    if (!walk(gameDir, false)) return nullptr;
+    // Each DLC folder (inside game/ or beside it) is laid over the base game, so its files are added under their path inside the DLC folder.
+    std::vector<std::string> dlcRoots = vanillaDlcDirs(gameDir);
+    for (auto& d : dlcRoots) {
+        std::error_code ec;
+        for (fs::directory_iterator it(P(d), fs::directory_options::skip_permission_denied, ec), end; !ec && it != end; it.increment(ec)) {
+            if (cancel && cancel->load()) return nullptr;
+            std::error_code e2;
+            if (!it->is_directory(e2)) continue;
+            if (!walk(it->path().u8string(), true)) return nullptr;
+        }
+    }
+    idx->finish();
+    return idx;
+}
+
+inline fs::path vanillaCacheFile(const std::string& cacheDir) { return P(cacheDir) / "vanilla.txt"; }
+inline bool saveVanillaCache(const std::string& cacheDir, const VanillaIndex& v) {
+    if (cacheDir.empty()) return false;
+    std::error_code ec;
+    fs::create_directories(P(cacheDir), ec);
+    std::string out = "RCVAN1\n" + v.key + "\n" + v.dir + "\n" + std::to_string(v.dlcFiles) + "\n" + std::to_string(v.files.size()) + "\n";
+    size_t total = out.size();
+    for (auto& f : v.files) total += f.size() + 1;
+    out.reserve(total);
+    for (auto& f : v.files) { out += f; out += '\n'; }
+    return writeFileAtomic(vanillaCacheFile(cacheDir), out);
+}
+// The saved list, if it was made for exactly this install and version ("key"); anything damaged or different gives nullptr.
+inline std::shared_ptr<VanillaIndex> loadVanillaCache(const std::string& cacheDir, const std::string& key) {
+    if (cacheDir.empty()) return nullptr;
+    std::string t;
+    if (!readFile(vanillaCacheFile(cacheDir), t, 256u << 20)) return nullptr;
+    size_t pos = 0;
+    auto line = [&](std::string& out) { size_t e = t.find('\n', pos); if (e == std::string::npos) return false; out = t.substr(pos, e - pos); pos = e + 1; return true; };
+    std::string magic, k, dir, dlc, cnt;
+    if (!line(magic) || magic != "RCVAN1" || !line(k) || k != key || !line(dir) || !line(dlc) || !line(cnt)) return nullptr;
+    char* e1 = nullptr; char* e2 = nullptr;
+    unsigned long long d = std::strtoull(dlc.c_str(), &e1, 10), n = std::strtoull(cnt.c_str(), &e2, 10);
+    if (dlc.empty() || cnt.empty() || *e1 || *e2 || n > 5000000ULL) return nullptr;
+    auto v = std::make_shared<VanillaIndex>();
+    v->key = k; v->dir = dir; v->dlcFiles = (size_t)d;
+    v->files.reserve((size_t)n);
+    std::string f;
+    while (v->files.size() < n && line(f)) { if (f.empty() || f.find('/') == std::string::npos) return nullptr; v->files.push_back(std::move(f)); }
+    if (v->files.size() != n || pos != t.size()) return nullptr;     // cut off or extra text
+    v->finish();
+    if (v->files.size() != n) return nullptr;                        // duplicate lines: not something we wrote
+    return v;
+}
+// The game's file list: from the saved copy when the install and version are unchanged, otherwise read from disk and saved.
+inline std::shared_ptr<VanillaIndex> loadOrIndexVanilla(const std::string& cacheDir, const std::string& gameExe, const std::string& gameVer, const std::atomic<bool>* cancel = nullptr, bool* fromCache = nullptr) {
+    if (fromCache) *fromCache = false;
+    std::string dir = vanillaGameDir(gameExe);
+    if (dir.empty()) return nullptr;
+    std::string key = vanillaKey(dir, gameVer);
+    if (auto c = loadVanillaCache(cacheDir, key)) { if (fromCache) *fromCache = true; return c; }
+    auto v = indexVanilla(dir, cancel);
+    if (!v || v->files.empty()) return nullptr;
+    v->key = key;
+    saveVanillaCache(cacheDir, *v);
+    return v;
+}
+
+// How much a replaced file matters. A whole-file replacement drops everything the losing mod put in that file, so game rules and
+// events (common/, events/, history/, map_data/) are the serious ones; interface and text are in between; art and sound just look different.
+enum Sev : int { SEV_LOW = 0, SEV_MED = 1, SEV_HIGH = 2 };
+inline const char* sevName(int s) { return s >= SEV_HIGH ? "High" : s == SEV_MED ? "Medium" : "Low"; }
+inline int areaSeverity(const std::string& area) {
+    auto starts = [&](const char* p) { return area.rfind(p, 0) == 0; };
+    if (starts("common/genes") || starts("common/ethnicities") || starts("common/bookmark_portraits") || starts("common/coat_of_arms") || starts("common/named_colors") ||
+        starts("common/accessories") || starts("common/portrait") || starts("common/ai_war_stances")) return starts("common/ai_war_stances") ? SEV_HIGH : SEV_LOW;
+    if (starts("common") || area == "events" || starts("history") || starts("map_data")) return SEV_HIGH;
+    if (starts("gfx") || starts("music") || starts("sound") || starts("sfx") || starts("fonts") || starts("licenses") || starts("dlc_metadata")) return SEV_LOW;
+    return SEV_MED;     // gui, localization, anything else
+}
+
+struct FileConflict { std::string path; std::vector<int> mods; int sev = 0; bool vanilla = false; };   // vanilla: the path is also a file of the base game
+struct PairConflict { int a = 0, b = 0, count = 0, sev = 0; std::vector<std::pair<std::string, int>> areas; };  // a loads before b; b wins
 struct WipeHit { int replacer = 0, victim = 0, files = 0; std::string folder; };
+struct VanillaFile { std::string path; std::vector<int> mods; int sev = 0; };       // enabled mods that ship this base-game file, in load order; the last one's copy is used
+struct VanillaWipe { int mod = 0, files = 0; std::string folder; };                 // replace_path that removes this many base-game files
 struct ConflictReport {
     std::vector<FileConflict> files;
     std::vector<PairConflict> pairs;
     std::vector<WipeHit> wipes;
+    std::vector<VanillaFile> vanilla;
+    std::vector<VanillaWipe> vanillaWipes;
     std::vector<int> loses, wins;     // per playset position: files this mod loses / wins against another mod
+    std::vector<int> vanillaCount;    // per playset position: base-game files this mod replaces
     int modsIndexed = 0, filesIndexed = 0, modsWithoutFiles = 0;
+    bool vanillaChecked = false;      // false: the game's file list was not available
     bool valid = false;
 };
 
@@ -707,10 +917,12 @@ inline std::string areaOf(const std::string& path) {
     return b == std::string::npos ? path.substr(0, a) : path.substr(0, b);
 }
 
-inline ConflictReport findConflicts(const Playset& ps, const std::map<std::string, ModInfo>& info, const std::map<std::string, ModFiles>& index) {
+inline ConflictReport findConflicts(const Playset& ps, const std::map<std::string, ModInfo>& info, const std::map<std::string, ModFiles>& index, const VanillaIndex* van = nullptr, const std::atomic<bool>* cancel = nullptr) {
     ConflictReport r;
     r.loses.assign(ps.mods.size(), 0);
     r.wins.assign(ps.mods.size(), 0);
+    r.vanillaCount.assign(ps.mods.size(), 0);
+    r.vanillaChecked = van != nullptr;
     std::unordered_map<std::string, std::vector<int>> byPath;
     std::vector<const ModFiles*> mf(ps.mods.size(), nullptr);
     size_t total = 0;
@@ -731,27 +943,38 @@ inline ConflictReport findConflicts(const Playset& ps, const std::map<std::strin
         }
         r.filesIndexed += (int)mf[i]->files.size();
     }
-    std::map<std::pair<int, int>, std::pair<int, std::map<std::string, int>>> pairs;
+    struct PairAcc { int count = 0, sev = 0; std::map<std::string, int> areas; };
+    std::map<std::pair<int, int>, PairAcc> pairs;
+    size_t tick = 0;
     for (auto& kv : byPath) {
+        if (cancel && (++tick & 0x3fff) == 0 && cancel->load()) return ConflictReport();
         const auto& v = kv.second;
+        bool isVan = van && van->has(kv.first);
+        if (!isVan && v.size() < 2) continue;
+        std::string area = areaOf(kv.first);
+        int sev = areaSeverity(area);
+        if (isVan) {
+            r.vanilla.push_back({kv.first, v, sev});
+            for (int m : v) r.vanillaCount[(size_t)m]++;
+        }
         if (v.size() < 2) continue;
-        r.files.push_back({kv.first, v});
+        r.files.push_back({kv.first, v, sev, isVan});
         r.wins[(size_t)v.back()]++;
         for (size_t k = 0; k + 1 < v.size(); k++) r.loses[(size_t)v[k]]++;
-        std::string area = areaOf(kv.first);
-        auto add = [&](int a, int b) { auto& p = pairs[{a, b}]; p.first++; p.second[area]++; };
+        auto add = [&](int a, int b) { auto& p = pairs[{a, b}]; p.count++; p.areas[area]++; if (sev > p.sev) p.sev = sev; };
         if (v.size() <= 12) { for (size_t x = 0; x < v.size(); x++) for (size_t y = x + 1; y < v.size(); y++) add(v[x], v[y]); }
         else for (size_t x = 0; x + 1 < v.size(); x++) add(v[x], v.back());
     }
-    std::sort(r.files.begin(), r.files.end(), [](const FileConflict& a, const FileConflict& b) { return a.path < b.path; });
+    std::sort(r.files.begin(), r.files.end(), [](const FileConflict& a, const FileConflict& b) { return a.sev != b.sev ? a.sev > b.sev : a.path < b.path; });
+    std::sort(r.vanilla.begin(), r.vanilla.end(), [](const VanillaFile& a, const VanillaFile& b) { return a.sev != b.sev ? a.sev > b.sev : a.path < b.path; });
     for (auto& kv : pairs) {
         PairConflict pc;
-        pc.a = kv.first.first; pc.b = kv.first.second; pc.count = kv.second.first;
-        for (auto& ar : kv.second.second) pc.areas.push_back(ar);
+        pc.a = kv.first.first; pc.b = kv.first.second; pc.count = kv.second.count; pc.sev = kv.second.sev;
+        for (auto& ar : kv.second.areas) pc.areas.push_back(ar);
         std::sort(pc.areas.begin(), pc.areas.end(), [](const std::pair<std::string, int>& x, const std::pair<std::string, int>& y) { return x.second != y.second ? x.second > y.second : x.first < y.first; });
         r.pairs.push_back(std::move(pc));
     }
-    std::sort(r.pairs.begin(), r.pairs.end(), [](const PairConflict& x, const PairConflict& y) { return x.count != y.count ? x.count > y.count : (x.a != y.a ? x.a < y.a : x.b < y.b); });
+    std::sort(r.pairs.begin(), r.pairs.end(), [](const PairConflict& x, const PairConflict& y) { return x.sev != y.sev ? x.sev > y.sev : x.count != y.count ? x.count > y.count : (x.a != y.a ? x.a < y.a : x.b < y.b); });
     // replace_path: everything under that folder that was loaded BEFORE the replacing mod is dropped
     for (size_t rp = 0; rp < ps.mods.size(); rp++) {
         auto it = info.find(ps.mods[rp].id);
@@ -770,17 +993,43 @@ inline ConflictReport findConflicts(const Playset& ps, const std::map<std::strin
             }
         }
     }
+    if (van) {   // replace_path also removes the base game's own files in that folder
+        for (size_t rp = 0; rp < ps.mods.size(); rp++) {
+            auto it = info.find(ps.mods[rp].id);
+            if (!ps.mods[rp].enabled || it == info.end()) continue;
+            for (auto folder : it->second.replacePaths) {
+                for (auto& c : folder) { if (c == '\\') c = '/'; else if (c >= 'A' && c <= 'Z') c = (char)(c + 32); }
+                while (!folder.empty() && folder.back() == '/') folder.pop_back();
+                while (!folder.empty() && folder.front() == '/') folder.erase(0, 1);
+                if (folder.empty()) continue;
+                size_t n = van->countUnder(folder + "/");
+                if (n > 0) r.vanillaWipes.push_back({(int)rp, (int)n, folder});
+            }
+        }
+    }
     r.valid = true;
     return r;
 }
 
 // Adds the conflict results to the per-mod checks from analyzePlayset (same indexing).
-inline void addConflictIssues(std::vector<std::vector<ModIssue>>& issues, const ConflictReport& cr, const Playset& ps, const std::map<std::string, ModInfo>& info) {
+inline void addConflictIssues(std::vector<std::vector<ModIssue>>& issues, const ConflictReport& cr, const Playset& ps, const std::map<std::string, ModInfo>& info, const std::string& gameVer = "") {
     if (!cr.valid || issues.size() != ps.mods.size()) return;
     auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? ps.mods[(size_t)i].id : it->second.name; };
     for (auto& w : cr.wipes) {
         issues[(size_t)w.replacer].push_back({1, "replace_path \"" + w.folder + "\" removes " + std::to_string(w.files) + " file(s) of \"" + nameOf(w.victim) + "\" (loaded earlier)"});
         issues[(size_t)w.victim].push_back({1, std::to_string(w.files) + " file(s) in \"" + w.folder + "\" removed by \"" + nameOf(w.replacer) + "\" (replace_path)"});
+    }
+    if (cr.vanillaChecked && cr.vanillaCount.size() == ps.mods.size()) {
+        for (auto& w : cr.vanillaWipes)
+            issues[(size_t)w.mod].push_back({1, "replace_path \"" + w.folder + "\" removes " + std::to_string(w.files) + " file(s) of the base game"});
+        for (size_t i = 0; i < ps.mods.size(); i++) {
+            if (cr.vanillaCount[i] <= 0) continue;
+            auto it = info.find(ps.mods[i].id);
+            bool old = it != info.end() && matchGameVersion(it->second.supported, gameVer) == VerMatch::Mismatch;
+            std::string t = "Replaces " + std::to_string(cr.vanillaCount[i]) + " file(s) of the base game";
+            if (old) t += " and was made for an older game version: changes the update made to those files are lost";
+            issues[i].push_back({old ? 1 : 0, t});
+        }
     }
     for (size_t i = 0; i < ps.mods.size(); i++) {
         if (cr.wins[i] > 0) issues[i].push_back({0, "Overrides " + std::to_string(cr.wins[i]) + " file(s) from earlier mods"});
@@ -968,6 +1217,121 @@ inline ModDefs indexModDefs(const std::string& contentDir, const std::vector<std
     return md;
 }
 
+// ---------- saved file index ----------
+// Reading and parsing every script file of every mod is the slow part of a scan, and it only has to be done again for a mod whose
+// files changed. What is parsed (the definitions) is saved per mod in <data>/cache/m_<hash>.bin together with the mod's deep
+// fingerprint; the folder is still listed on every start (that is cheap), and the saved copy is used when the fingerprint matches.
+// The cache is only a speed-up: deleting it, or any damage to it, just means the mod is read again.
+static const uint32_t INDEX_CACHE_FORMAT = 1;
+static const uint32_t DEFS_PARSER_VERSION = 1;      // raise when scanScriptKeys / scanLocKeys / defFileKind change what they find
+
+inline fs::path modCacheFile(const std::string& cacheDir, const std::string& id) {
+    return P(cacheDir) / ("m_" + hex64(fnv64(id, '\x1e', "RCIX")) + ".bin");
+}
+
+struct CacheOut {
+    std::string b;
+    void u8(uint8_t v) { b += (char)v; }
+    void u16(uint16_t v) { for (int i = 0; i < 2; i++) b += (char)(v >> (i * 8)); }
+    void u32(uint32_t v) { for (int i = 0; i < 4; i++) b += (char)(v >> (i * 8)); }
+    void u64(uint64_t v) { for (int i = 0; i < 8; i++) b += (char)(v >> (i * 8)); }
+    void str(const std::string& s) { u32((uint32_t)s.size()); b += s; }
+};
+struct CacheIn {
+    const std::string& b; size_t p = 0; bool ok = true;
+    explicit CacheIn(const std::string& s) : b(s) {}
+    bool need(size_t n) { if (!ok || b.size() - p < n) ok = false; return ok; }
+    uint8_t u8() { return need(1) ? (uint8_t)b[p++] : 0; }
+    uint16_t u16() { if (!need(2)) return 0; uint16_t v = 0; for (int i = 0; i < 2; i++) v |= (uint16_t)((uint8_t)b[p++]) << (i * 8); return v; }
+    uint32_t u32() { if (!need(4)) return 0; uint32_t v = 0; for (int i = 0; i < 4; i++) v |= (uint32_t)((uint8_t)b[p++]) << (i * 8); return v; }
+    uint64_t u64() { if (!need(8)) return 0; uint64_t v = 0; for (int i = 0; i < 8; i++) v |= (uint64_t)((uint8_t)b[p++]) << (i * 8); return v; }
+    std::string str() { uint32_t n = u32(); if (!need(n)) return ""; std::string s = b.substr(p, n); p += n; return s; }
+};
+
+inline bool saveModCache(const std::string& cacheDir, const std::string& id, const std::string& deep, const ModDefs& md) {
+    if (cacheDir.empty() || deep.empty() || !md.complete) return false;
+    std::error_code ec;
+    fs::create_directories(P(cacheDir), ec);
+    CacheOut o;
+    o.b += "RCIX";
+    o.u32(INDEX_CACHE_FORMAT); o.u32(DEFS_PARSER_VERSION);
+    o.str(id); o.str(deep);
+    o.u64(md.bytesRead);
+    o.u32((uint32_t)md.files.size());
+    for (auto& f : md.files) o.str(f);
+    o.u32((uint32_t)md.defs.size());
+    for (auto& d : md.defs) { o.u64(d.h); o.u32(d.file); o.u32(d.nameOff); o.u16(d.nameLen); o.u8(d.kind); o.u8(d.flags); }
+    o.str(md.pool);
+    uint64_t sum = fnv64(o.b, '\x1d', "RCIX");
+    o.u64(sum);
+    return writeFileAtomic(modCacheFile(cacheDir, id), o.b);
+}
+
+// The saved definitions of a mod, if the file is intact, belongs to this mod id and was made for the same deep fingerprint.
+inline bool loadModCache(const std::string& cacheDir, const std::string& id, const std::string& deep, ModDefs& md) {
+    if (cacheDir.empty() || deep.empty()) return false;
+    std::string t;
+    if (!readFile(modCacheFile(cacheDir, id), t, 512u << 20) || t.size() < 4 + 4 + 4 + 8) return false;
+    std::string body = t.substr(0, t.size() - 8);
+    CacheIn tail(t); tail.p = t.size() - 8;
+    if (tail.u64() != fnv64(body, '\x1d', "RCIX")) return false;           // cut off or damaged
+    CacheIn in(body);
+    if (body.compare(0, 4, "RCIX") != 0) return false;
+    in.p = 4;
+    if (in.u32() != INDEX_CACHE_FORMAT || in.u32() != DEFS_PARSER_VERSION) return false;
+    if (in.str() != id || in.str() != deep) return false;
+    ModDefs r;
+    r.bytesRead = (size_t)in.u64();
+    uint32_t nf = in.u32();
+    if (!in.ok || nf > (body.size() - in.p) / 4) return false;
+    for (uint32_t i = 0; i < nf; i++) r.files.push_back(in.str());
+    uint32_t nd = in.u32();
+    if (!in.ok || nd > (body.size() - in.p) / 20) return false;
+    r.defs.reserve(nd);
+    for (uint32_t i = 0; i < nd; i++) {
+        DefEntry d;
+        d.h = in.u64(); d.file = in.u32(); d.nameOff = in.u32(); d.nameLen = in.u16(); d.kind = in.u8(); d.flags = in.u8();
+        r.defs.push_back(d);
+    }
+    r.pool = in.str();
+    if (!in.ok || in.p != body.size()) return false;
+    for (auto& d : r.defs)                                                  // every reference must point inside what was loaded
+        if (d.file >= r.files.size() || d.kind >= DK_KINDS || (uint64_t)d.nameOff + d.nameLen > r.pool.size()) return false;
+    r.complete = true;
+    md = std::move(r);
+    return true;
+}
+
+// Removes saved indexes of mods that are no longer installed. Only files that look like ours are touched.
+inline int pruneModCache(const std::string& cacheDir, const std::set<std::string>& keepIds) {
+    if (cacheDir.empty()) return 0;
+    std::set<std::string> keep;
+    for (auto& id : keepIds) keep.insert(modCacheFile(cacheDir, id).filename().u8string());
+    int removed = 0;
+    std::error_code ec;
+    std::vector<fs::path> kill;
+    for (fs::directory_iterator it(P(cacheDir), ec), end; !ec && it != end; it.increment(ec)) {
+        std::string n = it->path().filename().u8string();
+        bool ours = n.size() == 2 + 16 + 4 && n.compare(0, 2, "m_") == 0 && n.compare(n.size() - 4, 4, ".bin") == 0;
+        for (size_t i = 2; ours && i < 18; i++) ours = std::isxdigit((unsigned char)n[i]) != 0;
+        if (ours && !keep.count(n)) kill.push_back(it->path());
+    }
+    for (auto& k : kill) { std::error_code e2; if (fs::remove(k, e2)) removed++; }
+    return removed;
+}
+
+struct IndexedMod { ModFiles files; ModDefs defs; bool fromCache = false; };
+// Lists a mod's folder and gets its definitions, from the saved copy when nothing in the mod changed.
+inline IndexedMod indexModCached(const std::string& cacheDir, const std::string& id, const std::string& contentDir, const std::atomic<bool>* cancel = nullptr) {
+    IndexedMod r;
+    r.files = indexModFiles(contentDir, cancel);
+    if (!r.files.complete) return r;
+    if (loadModCache(cacheDir, id, r.files.deep, r.defs)) { r.fromCache = true; return r; }
+    r.defs = indexModDefs(contentDir, r.files.files, cancel);
+    if (r.defs.complete) saveModCache(cacheDir, id, r.files.deep, r.defs);
+    return r;
+}
+
 struct ScriptHit { int mod = 0; std::string file; uint8_t flags = 0; };
 struct ScriptConflict {
     int kind = 0, sev = 0, winner = -1;              // winner: playset position, -1 = unclear / not applicable
@@ -1027,10 +1391,12 @@ inline ScriptReport findScriptConflicts(const Playset& ps, const std::map<std::s
                 sc.hits.push_back(std::move(h));
             }
             // A later mod's file with the same path replaces the earlier file completely: those earlier definitions do not exist in the game.
-            for (size_t x = 0; x < sc.hits.size();) {
-                bool shadowed = false;
-                for (size_t y = x + 1; y < sc.hits.size() && !shadowed; y++) if (sc.hits[y].mod > sc.hits[x].mod && sc.hits[y].file == sc.hits[x].file) shadowed = true;
-                if (shadowed) sc.hits.erase(sc.hits.begin() + (long)x); else x++;
+            {   // (one pass: a definition is shadowed when a later mod ships the same file)
+                std::unordered_map<std::string, int> lastMod;
+                for (auto& h : sc.hits) { int& m = lastMod[h.file]; if (h.mod > m) m = h.mod; }
+                size_t out = 0;
+                for (size_t x = 0; x < sc.hits.size(); x++) if (sc.hits[x].mod >= lastMod[sc.hits[x].file]) { if (out != x) sc.hits[out] = std::move(sc.hits[x]); out++; }
+                sc.hits.resize(out);
             }
             std::set<int> modsLeft;
             for (auto& h : sc.hits) modsLeft.insert(h.mod);
@@ -1132,13 +1498,30 @@ inline PlaysetDiff comparePlaysets(const Playset& a, const Playset& b, const std
 
 // Mods whose files changed since the user last pressed Play (Workshop update, or an edit of a local mod).
 // `seen` holds the fingerprint recorded at Play; mods without a record are not flagged (nothing to compare with).
+// A recorded fingerprint is "<folder>|<version>|<folder time>" and, when the mod's files had been indexed, "#d:<deep fingerprint>" after it.
+// With a deep part on both sides only the deep part (and folder and version) decides, so a harmless change of the folder's time is not
+// an update and an edit deep inside the mod is one. Without it (older records, mods not indexed yet) the plain text is compared.
+inline bool fingerprintChanged(const std::string& stored, const std::string& now) {
+    auto split = [](const std::string& f, std::string& quick, std::string& base, std::string& deep) {
+        size_t d = f.find("#d:");
+        quick = d == std::string::npos ? f : f.substr(0, d);
+        deep = d == std::string::npos ? "" : f.substr(d + 3);
+        size_t t = quick.rfind('|');
+        base = t == std::string::npos ? quick : quick.substr(0, t);
+    };
+    std::string q1, b1, d1, q2, b2, d2;
+    split(stored, q1, b1, d1); split(now, q2, b2, d2);
+    if (!d1.empty() && !d2.empty()) return b1 != b2 || d1 != d2;
+    return q1 != q2;
+}
+
 inline void addUpdateIssues(std::vector<std::vector<ModIssue>>& issues, const Playset& ps, const std::map<std::string, ModInfo>& info,
                             const std::map<std::string, std::string>& seen, const std::map<std::string, std::string>& now) {
     if (issues.size() != ps.mods.size()) return;
     for (size_t i = 0; i < ps.mods.size(); i++) {
         if (!ps.mods[i].enabled) continue;
         auto s = seen.find(ps.mods[i].id), n = now.find(ps.mods[i].id);
-        if (s == seen.end() || n == now.end() || s->second == n->second) continue;
+        if (s == seen.end() || n == now.end() || !fingerprintChanged(s->second, n->second)) continue;
         issues[i].push_back({1, "Updated since you last pressed Play (Workshop update or edited files)"});
     }
     (void)info;

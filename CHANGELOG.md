@@ -6,6 +6,34 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.16.0] - 2026-10-09
+Conflicts against the base game, a conflicts window you can act from, and much faster starts with big playsets.
+
+### Added
+- **Base-game conflicts.** The program reads the game's own file list once (including DLC folders) and shows which mods **replace** a file of the base game. The game never merges such files: the mod's copy replaces the original completely. New **Base game** view in the conflicts window; the Notes column says "Replaces N file(s) of the base game"; and when that mod was made for an older game version the note turns into a warning (changes the game update made to those files are lost). A `replace_path` that removes whole folders of the base game is listed too.
+- **Severity for every conflict** (High, Medium, Low), shown in colour and sorted most serious first. Replacing rules, events, history or map files is High; interface and text are Medium; graphics and sound are Low. Typing `high`, `medium` or `low` in the filter box shows only those.
+- **Who wins**: double-click a file (By file or Base game view) to see every mod that ships it in load order, with the winner marked.
+- **Fix a conflict from the conflicts window.** Right-click a row: "Let X win: move it below Y" or "move Y above it". The list is saved and re-checked at once, and the old button now called **Undo order** (it was "Undo sort") goes back to the order from before. "Copy file path" is there too.
+- **Saved file index.** What the program learns about each mod (its event, trait, define and localization names) is saved in `%APPDATA%\TheRoyalCourt\cache` and only read again for a mod whose files changed. It is only a speed-up: deleting the folder is always safe, and a damaged file is simply ignored. In a test with 13 mods and 160,000 files a restart went from about 30 seconds to about half a second.
+- Tests for the saved index (damaged, cut-off and mismatched files), the game file list, severity, vanilla replacement and `replace_path`, a Windows-only check that the new folder walker lists exactly what the old one does, and fuzzing of the cache files.
+- The log (`royalcourt.log`) records how long each scan took and how many mods came from the saved index.
+
+### Fixed
+- **The smooth theme change was not smooth on Windows.** It faded a screenshot over the window, which did not show. The colours of the whole window are now blended frame by frame, so the change is visible and smooth.
+- **Theme change runs at more frames per second.** Windows only fired the animation timer about every 31 ms, which capped it near 30 frames a second. The timer now runs at 1 ms resolution while the change plays, the title bar colour updates every other frame and the window frame is redrawn only at the end. The log line for a theme change now also says how long each frame took to paint.
+- **Updates deep inside a mod could be missed.** A mod only counted as changed (the "Updated since you last pressed Play" note, and the conflict data) when its top folder changed, so a Steam update that only edited files in sub-folders went unnoticed. Every file's name, size and time now go into a fingerprint. It is recorded when you press Play, compared against the files on disk once they have been read, and checked again in the background when you switch back to the program or press **Rescan files** (at most every two minutes, silently). A harmless change of a folder's date no longer counts as an update.
+- **A script conflict check could take almost a minute** when one name is defined thousands of times across mods (53 seconds in a test; now a quarter of a second).
+- Conflicts are sorted by severity first, so the serious ones are not buried under a pair that shares many unimportant files.
+
+### Changed
+- **Listing a mod's files is several times faster on Windows** (the program's own folder walker, also used for the game's files); long paths over 260 characters are now handled.
+- Large playsets (over about 150,000 files) compute their conflict report on a background thread, so the window never stops answering; small ones are still instant. Auto Sort itself still runs on the main thread.
+- The conflicts window is wider by default and has a **Base game** button; the Undo button is called **Undo order**.
+
+### Known and left for later
+- The game's file list is refreshed when the game version or the game's folders change. If you change game files by hand, press **Rescan files** in the conflicts window.
+- Where DLC files live is not confirmed on every install; the log says how many game files were found (`game files: N ...`).
+
 ## [0.15.0] - 2026-10-08
 Auto Sort can now learn new mods without a new program version, and you can report a sort that looks wrong.
 

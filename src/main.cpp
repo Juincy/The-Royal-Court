@@ -7,8 +7,10 @@
 #define _UNICODE
 #endif
 #include "core.hpp"
+#include "fastwalk.hpp"
 
 #include <windows.h>
+#include <mmsystem.h>
 #include <winhttp.h>
 #include <algorithm>
 using std::min;
@@ -52,7 +54,7 @@ static std::wstring wenv(const wchar_t* name) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN,
     ID_TREE, ID_EXPAND, ID_COLLAPSE
 };
 
@@ -95,7 +97,7 @@ static std::wstring getText(HWND h) {
 static std::wstring wlower(std::wstring s) { for (auto& c : s) c = (wchar_t)towlower(c); return s; }
 static void setFont(HWND h) { SendMessageW(h, WM_SETFONT, (WPARAM)g_font, TRUE); }
 
-static int g_cfView = 0;   // conflicts window: 0 by mod pair, 1 by file, 2 by definition (script level)
+static int g_cfView = 0;   // conflicts window: 0 by mod pair, 1 by file, 2 by definition (script level), 3 base-game files replaced by mods
 
 // ---------- theme: "Midnight Court" (dark) and "Parchment" (light) ----------
 struct Theme { COLORREF bg, banner, list, alt, border, text, muted, accent, accentText, gold, btn, btnHot, btnDown, sel, selText, ok, warn, bad; };
@@ -106,7 +108,18 @@ static const Theme LIGHT_T = {RGB(0xF4,0xEF,0xE4), RGB(0xE9,0xE1,0xCF), RGB(0xFC
                               RGB(0x4B,0x2E,0x83), RGB(0xFF,0xFF,0xFF), RGB(0xB0,0x84,0x10), RGB(0xE2,0xD9,0xC4), RGB(0xD6,0xCB,0xB0), RGB(0xCB,0xBE,0xA0), RGB(0xDD,0xD1,0xF0), RGB(0x1E,0x16,0x30),
                               RGB(0x2E,0x7D,0x4F), RGB(0xB0,0x62,0x06), RGB(0xB3,0x26,0x1E)};
 static bool g_dark = true;
-static const Theme& T() { return g_dark ? DARK_T : LIGHT_T; }
+static Theme g_curTheme = DARK_T;   // the colours on screen right now: one of the two palettes, or a blend of them while the theme changes
+static const Theme& T() { return g_curTheme; }
+static Theme lerpTheme(const Theme& a, const Theme& b, float e) {
+    Theme o;
+    const COLORREF* pa = (const COLORREF*)&a; const COLORREF* pb = (const COLORREF*)&b; COLORREF* po = (COLORREF*)&o;
+    int pct = (int)(e * 100.0f + 0.5f);
+    for (size_t i = 0; i < sizeof(Theme) / sizeof(COLORREF); i++) {
+        COLORREF x = pa[i], y = pb[i];
+        po[i] = RGB((GetRValue(x) * (100 - pct) + GetRValue(y) * pct) / 100, (GetGValue(x) * (100 - pct) + GetGValue(y) * pct) / 100, (GetBValue(x) * (100 - pct) + GetBValue(y) * pct) / 100);
+    }
+    return o;
+}
 static HBRUSH g_brBg, g_brBanner, g_brList;
 static HFONT g_fontSym, g_fontCrown, g_fontTitle, g_fontSub, g_fontBold, g_fontTiny;
 static HWND g_hot = nullptr;
@@ -128,12 +141,15 @@ static bool systemPrefersDark() {
     if (RegGetValueW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", L"AppsUseLightTheme", RRF_RT_REG_DWORD, nullptr, &v, &sz) != ERROR_SUCCESS) return true;
     return v == 0;
 }
-static void themeFrame(HWND h) {
-    BOOL dark = g_dark;
-    if (FAILED(DwmSetWindowAttribute(h, 20, &dark, sizeof dark))) DwmSetWindowAttribute(h, 19, &dark, sizeof dark);  // dark title bar
+static void themeFrameColors(HWND h) {
     COLORREF cap = T().banner, txt = T().text;
     DwmSetWindowAttribute(h, 35, &cap, sizeof cap);  // caption colour (Windows 11)
     DwmSetWindowAttribute(h, 36, &txt, sizeof txt);
+}
+static void themeFrame(HWND h) {
+    BOOL dark = g_dark;
+    if (FAILED(DwmSetWindowAttribute(h, 20, &dark, sizeof dark))) DwmSetWindowAttribute(h, 19, &dark, sizeof dark);  // dark title bar
+    themeFrameColors(h);
 }
 
 // Anti-aliased drawing (GDI+) for the rounded buttons and the theme switch, so edges and icons stay crisp.
@@ -260,98 +276,6 @@ static void drawToggle(const DRAWITEMSTRUCT* d, COLORREF around) {
     if (tt > 0.001f) drawMoon(g, kcx, kcy, k * 1.05f, RGB(255,255,255), (int)(255 * tt));
 }
 
-// ---------- smooth theme change ----------
-// The switch slides and the whole window cross-fades from the old colours to the new ones: a snapshot of the old look is shown
-// in a see-through window on top and fades out (the switch itself is left out so its own animation stays visible).
-static HWND g_fadeWnd = nullptr;
-static HBITMAP g_fadeBmp = nullptr;
-static ULONGLONG g_fadeStart = 0;
-static const UINT TIMER_FADE = 1;
-static const DWORD FADE_MS = 300;
-static void endFade() {
-    if (g_fadeWnd) { HWND w = g_fadeWnd; g_fadeWnd = nullptr; DestroyWindow(w); }
-    if (g_fadeBmp) { DeleteObject(g_fadeBmp); g_fadeBmp = nullptr; }
-}
-static LRESULT CALLBACK FadeProc(HWND h, UINT m, WPARAM w, LPARAM l) {
-    if (m == WM_PAINT) {
-        PAINTSTRUCT ps; HDC dc = BeginPaint(h, &ps);
-        if (g_fadeBmp) {
-            HDC mem = CreateCompatibleDC(dc);
-            HGDIOBJ old = SelectObject(mem, g_fadeBmp);
-            RECT rc; GetClientRect(h, &rc);
-            BitBlt(dc, 0, 0, rc.right, rc.bottom, mem, 0, 0, SRCCOPY);
-            SelectObject(mem, old); DeleteDC(mem);
-        }
-        EndPaint(h, &ps);
-        return 0;
-    }
-    if (m == WM_ERASEBKGND) return 1;
-    if (m == WM_NCHITTEST) return HTTRANSPARENT;
-    if (m == WM_MOUSEACTIVATE) return MA_NOACTIVATE;
-    if (m == WM_TIMER && w == TIMER_FADE) {
-        float p = (float)(GetTickCount64() - g_fadeStart) / (float)FADE_MS;
-        if (p >= 1.0f) { KillTimer(h, TIMER_FADE); PostMessageW(hMain, WM_APP + 8, 0, 0); return 0; }
-        SetLayeredWindowAttributes(h, 0, (BYTE)(255.0f * (1.0f - easeInOut(p))), LWA_ALPHA);
-        return 0;
-    }
-    return DefWindowProcW(h, m, w, l);
-}
-// Called before the colours change: takes a picture of the window as it looks now.
-static bool captureFade() {
-    endFade();
-    if (!IsWindowVisible(hMain) || IsIconic(hMain)) return false;
-    RECT cr; GetClientRect(hMain, &cr);
-    if (cr.right < 50 || cr.bottom < 50) return false;
-    POINT o{0, 0}; ClientToScreen(hMain, &o);
-    HDC scr = GetDC(nullptr);
-    HDC mem = CreateCompatibleDC(scr);
-    g_fadeBmp = CreateCompatibleBitmap(scr, cr.right, cr.bottom);
-    bool ok = g_fadeBmp && mem;
-    if (ok) { HGDIOBJ old = SelectObject(mem, g_fadeBmp); ok = BitBlt(mem, 0, 0, cr.right, cr.bottom, scr, o.x, o.y, SRCCOPY | CAPTUREBLT) != 0; SelectObject(mem, old); }
-    if (mem) DeleteDC(mem);
-    ReleaseDC(nullptr, scr);
-    if (!ok) { if (g_fadeBmp) { DeleteObject(g_fadeBmp); g_fadeBmp = nullptr; } }
-    return ok;
-}
-// Called after the new colours are painted: puts the old picture on top and lets it fade away.
-static void startFade() {
-    if (!g_fadeBmp) return;
-    static bool reg = false;
-    if (!reg) {
-        WNDCLASSEXW wc{}; wc.cbSize = sizeof wc; wc.lpfnWndProc = FadeProc; wc.hInstance = g_inst; wc.lpszClassName = L"RoyalCourtFade"; wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-        RegisterClassExW(&wc); reg = true;
-    }
-    RECT cr; GetClientRect(hMain, &cr);
-    POINT o{0, 0}; ClientToScreen(hMain, &o);
-    HWND f = CreateWindowExW(WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT, L"RoyalCourtFade", L"", WS_POPUP, o.x, o.y, cr.right, cr.bottom, hMain, nullptr, g_inst, nullptr);
-    if (!f) { endFade(); return; }
-    // leave the theme switch out of the picture: it animates for real underneath
-    RECT tr; GetWindowRect(hTheme, &tr);
-    HRGN whole = CreateRectRgn(0, 0, cr.right, cr.bottom), hole = CreateRectRgn(tr.left - o.x - 2, tr.top - o.y - 2, tr.right - o.x + 2, tr.bottom - o.y + 2);
-    CombineRgn(whole, whole, hole, RGN_DIFF);
-    DeleteObject(hole);
-    SetWindowRgn(f, whole, FALSE);   // the window owns the region now
-    SetLayeredWindowAttributes(f, 0, 255, LWA_ALPHA);
-    g_fadeWnd = f;
-    g_fadeStart = GetTickCount64();
-    ShowWindow(f, SW_SHOWNOACTIVATE);
-    UpdateWindow(f);
-    SetTimer(f, TIMER_FADE, 15, nullptr);
-}
-// Starts the switch sliding to the current g_dark.
-static void startToggleAnim() {
-    if (g_togT < 0) g_togT = g_dark ? 0.0f : 1.0f;   // (first use: came from the other side)
-    g_togFrom = g_togT; g_togTo = g_dark ? 1.0f : 0.0f;
-    g_togStart = GetTickCount64();
-    SetTimer(hMain, TIMER_TOGGLE, 15, nullptr);
-}
-static void stepToggleAnim() {
-    float p = (float)(GetTickCount64() - g_togStart) / (float)TOGGLE_MS;
-    if (p >= 1.0f) { g_togT = g_togTo; KillTimer(hMain, TIMER_TOGGLE); }
-    else g_togT = g_togFrom + (g_togTo - g_togFrom) * easeInOut(p);
-    InvalidateRect(hTheme, nullptr, FALSE);
-}
-
 static std::wstring ctlText(HWND h) {
     int n = GetWindowTextLengthW(h);
     std::wstring s((size_t)n + 1, L'\0');
@@ -398,7 +322,7 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
     }
     HBRUSH ab = CreateSolidBrush(around); FillRect(dc, &r, ab); DeleteObject(ab);
     bool dis = (d->itemState & ODS_DISABLED) != 0, down = (d->itemState & ODS_SELECTED) != 0, hot = g_hot == d->hwndItem;
-    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2);
+    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3);
     COLORREF fill = primary ? (down ? mix(t.accent, RGB(0,0,0), 20) : hot ? mix(t.accent, RGB(255,255,255), 18) : t.accent) : (down ? t.btnDown : hot ? t.btnHot : t.btn);
     COLORREF edge = primary ? mix(t.accent, RGB(0,0,0), 25) : (hot ? t.gold : t.border);
     {
@@ -680,23 +604,78 @@ static LRESULT CALLBACK ListSub(HWND h, UINT m, WPARAM w, LPARAM l, UINT_PTR, DW
     return DefSubclassProc(h, m, w, l);
 }
 
-static void applyTheme() {
-    const Theme& t = T();
-    rebuildBrushes();
+// Parts of the theme that switch at once (control styles, menu mode, title bar mode) and the colours, which can be blended.
+static void applyThemeControls() {
     setMenuMode();
-    themeFrame(hMain);
+    BOOL dark = g_dark;
+    if (FAILED(DwmSetWindowAttribute(hMain, 20, &dark, sizeof dark))) DwmSetWindowAttribute(hMain, 19, &dark, sizeof dark);
     const wchar_t* ctl = g_dark ? L"DarkMode_CFD" : nullptr;
     const wchar_t* exp = g_dark ? L"DarkMode_Explorer" : L"Explorer";
     for (HWND h : {hCombo, hFilter, hDir}) if (h) SetWindowTheme(h, ctl, nullptr);
+    if (hList) SetWindowTheme(hList, exp, nullptr);
+}
+// caption: also update the title bar colour (Windows 11; an expensive call for the window manager, so frames in between skip it);
+// frame: also repaint the non-client area.
+static void applyThemeColors(bool otherWindows, bool caption = true, bool frame = true) {
+    const Theme& t = T();
+    rebuildBrushes();
+    if (caption) themeFrameColors(hMain);
     if (hList) {
-        SetWindowTheme(hList, exp, nullptr);
         ListView_SetBkColor(hList, t.list);
         ListView_SetTextBkColor(hList, t.list);
         ListView_SetTextColor(hList, t.text);
     }
-    RedrawWindow(hMain, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
-    if (HWND lg = FindWindowW(L"RCLog", nullptr)) SendMessageW(lg, WM_APP + 1, 0, 0);
-    if (HWND cf = FindWindowW(L"RCConf", nullptr)) SendMessageW(cf, WM_APP + 1, 0, 0);
+    RedrawWindow(hMain, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW | (frame ? RDW_FRAME : 0));
+    if (otherWindows) {
+        if (HWND lg = FindWindowW(L"RCLog", nullptr)) SendMessageW(lg, WM_APP + 1, 0, 0);
+        if (HWND cf = FindWindowW(L"RCConf", nullptr)) SendMessageW(cf, WM_APP + 1, 0, 0);
+    }
+}
+static void applyTheme() {   // immediate (start-up)
+    g_curTheme = g_dark ? DARK_T : LIGHT_T;
+    applyThemeControls();
+    applyThemeColors(true);
+}
+
+// ---------- smooth theme change ----------
+// The colours of the whole window are blended from the old palette to the new one over a third of a second, frame by frame,
+// while the theme switch slides. Everything is drawn with the blended colours, so nothing depends on screenshots or overlay windows.
+static Theme g_themeFrom = DARK_T, g_themeTo = DARK_T;
+static int g_animFrames = 0;
+static bool g_animating = false, g_periodOn = false;
+static double g_paintSum = 0, g_paintMax = 0;           // milliseconds spent painting, for the log
+static double nowMs() { LARGE_INTEGER f, c; QueryPerformanceFrequency(&f); QueryPerformanceCounter(&c); return (double)c.QuadPart * 1000.0 / (double)f.QuadPart; }
+static void stepThemeAnim() {
+    float p = (float)(GetTickCount64() - g_togStart) / (float)TOGGLE_MS;
+    bool done = p >= 1.0f;
+    float e = done ? 1.0f : easeInOut(p);
+    g_togT = g_togFrom + (g_togTo - g_togFrom) * e;
+    g_curTheme = done ? g_themeTo : lerpTheme(g_themeFrom, g_themeTo, e);
+    g_animFrames++;
+    double t0 = nowMs();
+    applyThemeColors(done, done || (g_animFrames & 1) == 0, done);   // title bar colour every other frame; frame repaint only at the end
+    double ms = nowMs() - t0;
+    g_paintSum += ms; if (ms > g_paintMax) g_paintMax = ms;
+    if (done) {
+        KillTimer(hMain, TIMER_TOGGLE);
+        g_animating = false;
+        if (g_periodOn) { timeEndPeriod(1); g_periodOn = false; }
+        logLine("theme change: " + std::to_string(g_animFrames) + " frames in " + std::to_string((unsigned long long)(GetTickCount64() - g_togStart)) + " ms, painting " +
+                std::to_string((int)(g_paintSum / g_animFrames + 0.5)) + " ms per frame (slowest " + std::to_string((int)(g_paintMax + 0.5)) + " ms)");
+    }
+}
+static void startThemeAnim() {   // call after g_dark was flipped
+    if (g_togT < 0) g_togT = g_dark ? 0.0f : 1.0f;
+    g_themeFrom = g_curTheme;
+    g_themeTo = g_dark ? DARK_T : LIGHT_T;
+    g_togFrom = g_togT; g_togTo = g_dark ? 1.0f : 0.0f;
+    g_animFrames = 0; g_paintSum = 0; g_paintMax = 0;
+    g_animating = true;
+    if (!g_periodOn) { timeBeginPeriod(1); g_periodOn = true; }   // without this a 20 ms timer fires only every 31 ms
+    applyThemeControls();
+    g_togStart = GetTickCount64();     // the slow part above is not counted against the animation
+    stepThemeAnim();
+    if (g_animating) SetTimer(hMain, TIMER_TOGGLE, 4, nullptr);
 }
 
 
@@ -722,12 +701,25 @@ static bool g_scanning = false;
 static int g_scanDone = 0, g_scanTotal = 0;
 static HWND hConf = nullptr;                          // conflicts window, if open
 static void confRefresh();
+static bool copyToClipboard(const std::string& utf8);
+static void info(const wchar_t* text);
 
-struct ScanItem { std::string id, dir, fp; };
+static std::shared_ptr<VanillaIndex> g_vanilla;      // the base game's file list (null: not read yet, or the game folder was not found)
+static bool g_vanillaFailed = false;                  // reading it failed or there is no game folder: not tried again until the game install or version changes
+static std::string g_gameExeUsed;                     // the ck3.exe the version and file list belong to
+static ULONGLONG g_lastDeepVerify = 0;                // when every enabled mod was last compared file by file with what we know
+
+struct ScanItem { std::string id, dir, fp, knownDeep; };   // knownDeep: set when the mod is already indexed and only needs to be checked for changes
 struct ScanJob {
     std::vector<ScanItem> items;
     std::vector<ModFiles> out;
     std::vector<ModDefs> defs;
+    std::vector<char> unchanged, fromCache;
+    std::string cacheDir, gameExe, gameVer;
+    bool wantVanilla = false, quiet = false;
+    std::shared_ptr<VanillaIndex> vanilla;
+    bool vanillaFromCache = false;
+    ULONGLONG ms = 0;
     std::atomic<bool> cancel{false};
     HWND notify = nullptr;
 };
@@ -737,14 +729,32 @@ static HANDLE g_jobThread = nullptr;
 
 static DWORD WINAPI scanThread(LPVOID p) {
     ScanJob* j = (ScanJob*)p;
+    ULONGLONG t0 = GetTickCount64();
     j->out.resize(j->items.size());
     j->defs.resize(j->items.size());
-    for (size_t i = 0; i < j->items.size() && !j->cancel.load(); i++) {
-        j->out[i] = indexModFiles(j->items[i].dir, &j->cancel);
-        j->out[i].fingerprint = j->items[i].fp;
-        if (j->out[i].complete) { j->defs[i] = indexModDefs(j->items[i].dir, j->out[i].files, &j->cancel); j->defs[i].fingerprint = j->items[i].fp; }
-        PostMessageW(j->notify, WM_APP + 2, (WPARAM)(i + 1), (LPARAM)j->items.size());
+    j->unchanged.assign(j->items.size(), 0);
+    j->fromCache.assign(j->items.size(), 0);
+    try {
+        if (j->wantVanilla && !j->cancel.load()) j->vanilla = loadOrIndexVanilla(j->cacheDir, j->gameExe, j->gameVer, &j->cancel, &j->vanillaFromCache);
+        for (size_t i = 0; i < j->items.size() && !j->cancel.load(); i++) {
+            const ScanItem& it = j->items[i];
+            bool done = false;
+            if (!it.knownDeep.empty()) {   // already indexed: only look at whether anything changed (list the folder, no file is read)
+                ModFiles mf = indexModFiles(it.dir, &j->cancel);
+                if (mf.complete && mf.deep == it.knownDeep) { j->unchanged[i] = 1; done = true; }
+            }
+            if (!done) {
+                IndexedMod im = indexModCached(j->cacheDir, it.id, it.dir, &j->cancel);
+                j->out[i] = std::move(im.files);
+                j->out[i].fingerprint = it.fp;
+                if (j->out[i].complete) { j->defs[i] = std::move(im.defs); j->defs[i].fingerprint = it.fp; j->fromCache[i] = im.fromCache ? 1 : 0; }
+            }
+            PostMessageW(j->notify, WM_APP + 2, (WPARAM)(i + 1), (LPARAM)j->items.size());
+        }
+    } catch (...) {   // never let an exception end the program from a worker thread; the mods not finished simply stay unread
+        for (auto& o : j->out) if (!o.complete) o.files.clear();
     }
+    j->ms = GetTickCount64() - t0;
     PostMessageW(j->notify, WM_APP + 3, (WPARAM)j, 0);
     return 0;
 }
@@ -752,17 +762,68 @@ static DWORD WINAPI scanThread(LPVOID p) {
 static std::string playsetSignature(const Playset& ps) {
     std::string s = ps.name;
     for (auto& m : ps.mods) if (m.enabled) { s += '\n'; s += m.id; }
+    s += "\n#"; if (g_vanilla) s += g_vanilla->key;      // the report also depends on the game's file list
     return s;
 }
+
+// ---------- computing the conflict report ----------
+// Small playsets are computed on the spot. A big one (hundreds of thousands of files) is computed on a worker thread so the window
+// never stops answering; while it runs, the old report is dropped (its positions would be wrong for the new order) and the
+// rows simply have no conflict notes for a moment. The worker only READS g_fileIndex / g_defIndex, so everything that changes
+// them first calls confQuiesce().
+struct ConfJob {
+    unsigned id = 0;
+    Playset ps;
+    std::map<std::string, ModInfo> info;
+    std::shared_ptr<VanillaIndex> van;
+    std::string sig;
+    ConflictReport conf;
+    ScriptReport script;
+    std::atomic<bool> cancel{false};
+    HWND notify = nullptr;
+    ULONGLONG ms = 0;
+    std::string err;           // set when the worker failed
+};
+static ConfJob* g_confJob = nullptr;
+static HANDLE g_confThread = nullptr;
+static unsigned g_confJobSeq = 0;
+static bool g_forceAsyncConf = false;                 // test hook (RC_ASYNC_CONF=1): always use the worker thread
+static const size_t CONF_ASYNC_FILES = 150000;        // above this many files in the enabled mods the report is computed on a worker thread
+
+static DWORD WINAPI confThread(LPVOID p) {
+    ConfJob* j = (ConfJob*)p;
+    ULONGLONG t0 = GetTickCount64();
+    try {
+        j->conf = findConflicts(j->ps, j->info, g_fileIndex, j->van.get(), &j->cancel);
+        if (!j->cancel.load()) j->script = findScriptConflicts(j->ps, j->info, g_defIndex);
+    } catch (const std::exception& e) { j->conf = ConflictReport(); j->script = ScriptReport(); j->err = e.what(); }
+    catch (...) { j->conf = ConflictReport(); j->script = ScriptReport(); j->err = "unknown error"; }
+    j->ms = GetTickCount64() - t0;
+    PostMessageW(j->notify, WM_APP + 9, (WPARAM)j->id, 0);
+    return 0;
+}
+static void confQuiesce() {
+    if (!g_confJob) return;
+    g_confJob->cancel = true;
+    if (g_confThread) { WaitForSingleObject(g_confThread, INFINITE); CloseHandle(g_confThread); g_confThread = nullptr; }
+    delete g_confJob; g_confJob = nullptr;
+    g_confSig.clear(); g_conf = ConflictReport(); g_script = ScriptReport();
+}
+static bool vanillaPending() { return !g_vanilla && !g_vanillaFailed && !g_gameExeUsed.empty() && g_scanning; }
 
 // Rebuilds the conflict report from the cached file lists when the enabled mods or their order changed (no disk access).
 static void ensureConflicts() {
     Playset* ps = active();
     if (!ps) return;
     std::string sig = playsetSignature(*ps);
-    if (sig == g_confSig && (g_conf.valid || g_scanning)) return;
-    bool ready = true;
-    for (auto& m : ps->mods) {
+    if (sig == g_confSig && (g_conf.valid || g_scanning || g_confJob)) return;
+    if (g_confJob) {   // a result for an older state is useless: stop it, and ask again when it has ended
+        g_confJob->cancel = true;
+        g_confSig.clear(); g_conf = ConflictReport(); g_script = ScriptReport();
+        return;
+    }
+    bool ready = !vanillaPending();
+    if (ready) for (auto& m : ps->mods) {
         if (!m.enabled) continue;
         auto it = g_info.find(m.id);
         if (it == g_info.end() || it->second.contentState != 1) continue;
@@ -784,16 +845,31 @@ static void ensureConflicts() {
         }
     }
     g_confSig = sig;
-    g_conf = ready ? findConflicts(*ps, g_info, g_fileIndex) : ConflictReport();
+    if (!ready) { g_conf = ConflictReport(); g_script = ScriptReport(); confRefresh(); return; }
+    size_t total = 0;
+    for (auto& m : ps->mods) if (m.enabled) { auto f = g_fileIndex.find(m.id); if (f != g_fileIndex.end()) total += f->second.files.size(); }
+    if (total > CONF_ASYNC_FILES || g_forceAsyncConf) {
+        auto* j = new ConfJob();
+        j->id = ++g_confJobSeq; j->ps = *ps; j->info = g_info; j->van = g_vanilla; j->sig = sig; j->notify = hMain;
+        g_confJob = j;
+        logLine("conflicts: " + std::to_string(total) + " files, computing on a worker thread");
+        g_confThread = CreateThread(nullptr, 0, confThread, j, 0, nullptr);
+        if (g_confThread) { g_conf = ConflictReport(); g_script = ScriptReport(); confRefresh(); return; }
+        g_confJob = nullptr; delete j;      // no thread: do it here after all
+    }
+    g_conf = findConflicts(*ps, g_info, g_fileIndex, g_vanilla.get());
     g_script = defsReady ? findScriptConflicts(*ps, g_info, g_defIndex) : ScriptReport();
     confRefresh();
 }
 
-// Starts a background scan for enabled mods that have no file list yet (or whose folder changed, when verify is set).
+// Starts a background scan for enabled mods that have no file list yet, and (when verify is set) checks the others for changes.
+// A mod that is already indexed is only listed again, not read, unless something in it changed.
 static void maybeScan(bool verify) {
     if (g_job) return;
     Playset* ps = active();
     if (!ps) return;
+    ULONGLONG now = GetTickCount64();
+    bool deepDue = verify && now - g_lastDeepVerify > 120000;   // Steam can replace files deep inside a mod without the mod's folder showing it
     auto* job = new ScanJob();
     for (auto& m : ps->mods) {
         if (!m.enabled) continue;
@@ -803,13 +879,23 @@ static void maybeScan(bool verify) {
         if (auto bad = g_scanFailed.find(m.id); bad != g_scanFailed.end() && bad->second == fp) continue;   // failed before and nothing changed since
         auto f = g_fileIndex.find(m.id);
         auto d = g_defIndex.find(m.id);
-        if (f != g_fileIndex.end() && f->second.complete && (!verify || f->second.fingerprint == fp) && d != g_defIndex.end() && d->second.complete) continue;
-        job->items.push_back({m.id, it->second.contentDir, fp});
+        bool have = f != g_fileIndex.end() && f->second.complete && d != g_defIndex.end() && d->second.complete;
+        if (have) {
+            if (!verify || (f->second.fingerprint == fp && !deepDue)) continue;
+            job->items.push_back({m.id, it->second.contentDir, fp, f->second.deep});
+        } else job->items.push_back({m.id, it->second.contentDir, fp, ""});
     }
-    if (job->items.empty()) { delete job; ensureConflicts(); return; }
+    bool wantVan = !g_vanilla && !g_vanillaFailed && !g_gameExeUsed.empty();
+    if (job->items.empty() && !wantVan) { delete job; ensureConflicts(); return; }
+    bool quiet = !wantVan;
+    for (auto& it : job->items) if (it.knownDeep.empty()) quiet = false;   // pure change checks run silently
     job->notify = hMain;
+    job->cacheDir = dataDir() + "/cache";
+    job->gameExe = g_gameExeUsed; job->gameVer = g_gameVer;
+    job->wantVanilla = wantVan; job->quiet = quiet;
     g_job = job;
-    g_scanning = true; g_scanDone = 0; g_scanTotal = (int)job->items.size();
+    if (deepDue) g_lastDeepVerify = now;
+    g_scanning = !quiet; g_scanDone = 0; g_scanTotal = (int)job->items.size();
     g_jobThread = CreateThread(nullptr, 0, scanThread, job, 0, nullptr);
     if (!g_jobThread) { g_scanning = false; g_job = nullptr; delete job; }
     confRefresh();
@@ -837,7 +923,12 @@ static void updateCount() {
     std::wstring t = std::to_wstring(on) + L" of " + std::to_wstring(ps->mods.size()) + L" enabled";
     if (bad > 0) t += L"  |  " + std::to_wstring(bad) + L" with problems";
     if (g_scanning) t += L"  |  scanning mod files " + std::to_wstring(g_scanDone) + L"/" + std::to_wstring(g_scanTotal);
+    else if (g_confJob) t += L"  |  calculating conflicts";
     else if (g_conf.valid && !g_conf.files.empty()) t += L"  |  " + std::to_wstring(g_conf.files.size()) + L" file conflicts" + (g_script.valid && !g_script.items.empty() ? L", " + std::to_wstring(g_script.items.size()) + L" script overlaps" : L"");
+    if (!g_scanning && !g_confJob && g_conf.valid && g_conf.vanillaChecked) {
+        int vm = 0; for (int c : g_conf.vanillaCount) if (c > 0) vm++;
+        if (vm > 0) t += L"  |  " + std::to_wstring(vm) + L" replace base-game files";
+    }
     if (old > 0) t += L"  |  " + std::to_wstring(old) + L" may be outdated";
     SetWindowTextW(hCount, t.c_str());
 }
@@ -864,7 +955,12 @@ static void resizeCols();
 // Fingerprints of the installed mods right now (cleared when the mod folder is rescanned).
 static std::map<std::string, std::string> g_fpNow;
 static const std::map<std::string, std::string>& fpNow() {
-    if (g_fpNow.empty()) for (auto& kv : g_info) if (!kv.second.contentDir.empty()) g_fpNow[kv.first] = modFingerprint(kv.second);
+    if (g_fpNow.empty()) for (auto& kv : g_info) if (!kv.second.contentDir.empty()) {
+        std::string fp = modFingerprint(kv.second);
+        auto f = g_fileIndex.find(kv.first);
+        if (f != g_fileIndex.end() && f->second.complete && !f->second.deep.empty()) fp += "#d:" + f->second.deep;   // indexed: every file's name, size and time count
+        g_fpNow[kv.first] = fp;
+    }
     return g_fpNow;
 }
 static std::wstring noteText(int i, char& sev) {
@@ -939,7 +1035,7 @@ static void populate() {
     g_verState.clear();
     ensureConflicts();
     g_issues = analyzePlayset(*ps, g_info, g_gameVer);
-    if (g_conf.valid) addConflictIssues(g_issues, g_conf, *ps, g_info);
+    if (g_conf.valid) addConflictIssues(g_issues, g_conf, *ps, g_info, g_gameVer);
     if (g_script.valid) addScriptIssues(g_issues, g_script, *ps);
     addUpdateIssues(g_issues, *ps, g_info, g_settings.seen, fpNow());
     g_noteSev.clear();
@@ -1037,7 +1133,13 @@ static void fillCombo() {
 static std::string findGameExeInSteam();
 static std::vector<std::string> workshopDirs();
 static void refreshGameVersion(const std::string& exe) {
-    g_gameVer = readGameVersion(exe);
+    std::string ver = readGameVersion(exe);
+    if (exe != g_gameExeUsed || ver != g_gameVer) {   // another install or a game update: the base game's file list is read again
+        confQuiesce();
+        g_vanilla.reset(); g_vanillaFailed = false; g_confSig.clear();
+    }
+    g_gameExeUsed = exe;
+    g_gameVer = ver;
     SetWindowTextW(hGameVer, g_gameVer.empty() ? L"CK3 version: unknown" : (L"CK3 version: " + W(g_gameVer)).c_str());
 }
 
@@ -1113,7 +1215,7 @@ static void refreshNotes() {
     if (!ps) return;
     ensureConflicts();
     g_issues = analyzePlayset(*ps, g_info, g_gameVer);
-    if (g_conf.valid) addConflictIssues(g_issues, g_conf, *ps, g_info);
+    if (g_conf.valid) addConflictIssues(g_issues, g_conf, *ps, g_info, g_gameVer);
     if (g_script.valid) addScriptIssues(g_issues, g_script, *ps);
     addUpdateIssues(g_issues, *ps, g_info, g_settings.seen, fpNow());
     g_populating = true;
@@ -1642,9 +1744,10 @@ static void cfColumns() {
     while (ListView_DeleteColumn(hCfList, 0)) {}
     struct Col { const wchar_t* t; int w; };
     std::vector<Col> cols;
-    if (g_cfView == 0) { cols.push_back({L"Loses (loads earlier)", 280}); cols.push_back({L"Wins (loads later)", 280}); cols.push_back({L"Files", 70}); cols.push_back({L"Where", 420}); }
-    else if (g_cfView == 1) { cols.push_back({L"File", 460}); cols.push_back({L"Winner (loads last)", 280}); cols.push_back({L"Also in", 420}); }
-    else { cols.push_back({L"Type", 120}); cols.push_back({L"Area", 170}); cols.push_back({L"Name", 260}); cols.push_back({L"Defined by (load order)", 360}); cols.push_back({L"What happens", 420}); }
+    if (g_cfView == 0) { cols.push_back({L"Severity", 80}); cols.push_back({L"Loses (loads earlier)", 270}); cols.push_back({L"Wins (loads later)", 270}); cols.push_back({L"Files", 60}); cols.push_back({L"Where", 400}); }
+    else if (g_cfView == 1) { cols.push_back({L"Severity", 80}); cols.push_back({L"File", 440}); cols.push_back({L"Winner (loads last)", 270}); cols.push_back({L"Also in", 380}); cols.push_back({L"Base game", 90}); }
+    else if (g_cfView == 3) { cols.push_back({L"Severity", 80}); cols.push_back({L"Base-game file that mods replace", 470}); cols.push_back({L"Replaced by (load order, last one is used)", 520}); }
+    else { cols.push_back({L"Severity", 80}); cols.push_back({L"Type", 110}); cols.push_back({L"Area", 160}); cols.push_back({L"Name", 240}); cols.push_back({L"Defined by (load order)", 340}); cols.push_back({L"What happens", 400}); }
     for (size_t i = 0; i < cols.size(); i++) {
         LVCOLUMNW c{};
         c.mask = LVCF_TEXT | LVCF_WIDTH;
@@ -1663,12 +1766,13 @@ static void cfRebuildRows() {
     std::vector<std::string> names;   // lower-case mod names by playset position, for filtering
     if (ps && !f.empty()) for (size_t i = 0; i < ps->mods.size(); i++) { auto it = g_info.find(ps->mods[i].id); names.push_back(lower(it != g_info.end() ? it->second.name : ps->mods[i].id)); }
     auto nm = [&](int p) -> const std::string& { static const std::string none; return p >= 0 && p < (int)names.size() ? names[(size_t)p] : none; };
+    auto sevHit = [&](int sev) { return !f.empty() && lower(sevName(sev)).find(f) != std::string::npos; };
     if (g_conf.valid) {
         if (g_cfView == 0) {
             for (size_t i = 0; i < g_conf.pairs.size(); i++) {
                 const auto& p = g_conf.pairs[i];
                 if (!f.empty()) {
-                    bool hit = nm(p.a).find(f) != std::string::npos || nm(p.b).find(f) != std::string::npos;
+                    bool hit = sevHit(p.sev) || nm(p.a).find(f) != std::string::npos || nm(p.b).find(f) != std::string::npos;
                     for (auto& a : p.areas) if (!hit && a.first.find(f) != std::string::npos) hit = true;
                     if (!hit) continue;
                 }
@@ -1678,7 +1782,22 @@ static void cfRebuildRows() {
             for (size_t i = 0; i < g_conf.files.size(); i++) {
                 const auto& fc = g_conf.files[i];
                 if (g_cfPairA >= 0 && (std::find(fc.mods.begin(), fc.mods.end(), g_cfPairA) == fc.mods.end() || std::find(fc.mods.begin(), fc.mods.end(), g_cfPairB) == fc.mods.end())) continue;
-                if (!f.empty() && fc.path.find(f) == std::string::npos && nm(fc.mods.back()).find(f) == std::string::npos) continue;
+                if (!f.empty() && !sevHit(fc.sev) && fc.path.find(f) == std::string::npos && nm(fc.mods.back()).find(f) == std::string::npos) continue;
+                g_cfRows.push_back((int)i);
+            }
+        } else if (g_cfView == 3) {
+            for (size_t i = 0; i < g_conf.vanillaWipes.size(); i++) {   // replace_path folders first: they remove whole folders of the base game
+                const auto& vw = g_conf.vanillaWipes[i];
+                if (!f.empty() && !sevHit(SEV_HIGH) && vw.folder.find(f) == std::string::npos && nm(vw.mod).find(f) == std::string::npos && std::string("replace_path").find(f) == std::string::npos) continue;
+                g_cfRows.push_back((int)(g_conf.vanilla.size() + i));
+            }
+            for (size_t i = 0; i < g_conf.vanilla.size(); i++) {
+                const auto& vf = g_conf.vanilla[i];
+                if (!f.empty() && !sevHit(vf.sev) && vf.path.find(f) == std::string::npos) {
+                    bool hit = false;
+                    for (int m : vf.mods) if (nm(m).find(f) != std::string::npos) { hit = true; break; }
+                    if (!hit) continue;
+                }
                 g_cfRows.push_back((int)i);
             }
         }
@@ -1687,7 +1806,7 @@ static void cfRebuildRows() {
         for (size_t i = 0; i < g_script.items.size(); i++) {
             const auto& sc = g_script.items[i];
             if (!f.empty()) {
-                bool hit = lower(sc.key).find(f) != std::string::npos || lower(sc.area).find(f) != std::string::npos || lower(defKindName(sc.kind)).find(f) != std::string::npos;
+                bool hit = sevHit(sc.sev ? SEV_MED : SEV_LOW) || lower(sc.key).find(f) != std::string::npos || lower(sc.area).find(f) != std::string::npos || lower(defKindName(sc.kind)).find(f) != std::string::npos;
                 for (size_t x = 0; x < sc.hits.size() && !hit; x++) hit = nm(sc.hits[x].mod).find(f) != std::string::npos;
                 if (!hit) continue;
             }
@@ -1698,6 +1817,7 @@ static void cfRebuildRows() {
     InvalidateRect(hCfList, nullptr, TRUE);
     std::wstring st;
     if (g_scanning) st = L"Reading mod files... " + std::to_wstring(g_scanDone) + L"/" + std::to_wstring(g_scanTotal);
+    else if (g_confJob) st = L"Calculating conflicts...";
     else if (g_cfView == 2) {
         if (!g_script.valid) st = L"No script data yet. Enable some mods that have a files folder, then press Rescan files.";
         else {
@@ -1709,12 +1829,22 @@ static void cfRebuildRows() {
         }
     }
     else if (!g_conf.valid) st = L"No file data yet. Enable some mods that have a files folder, then press Rescan files.";
+    else if (g_cfView == 3) {
+        if (!g_conf.vanillaChecked) st = L"The game's own files could not be read (is the game installed? Play once, or set the game in Advanced), so mods cannot be compared with them.";
+        else {
+            int mods = 0; for (int c : g_conf.vanillaCount) if (c > 0) mods++;
+            st = std::to_wstring(g_conf.vanilla.size()) + L" base-game files are replaced by " + std::to_wstring(mods) + L" mods";
+            if (!g_conf.vanillaWipes.empty()) st += L"  |  " + std::to_wstring(g_conf.vanillaWipes.size()) + L" replace_path folders remove base-game files";
+            st += L".  Double-click a row for who wins, right-click to reorder.";
+        }
+    }
     else {
         st = std::to_wstring(g_conf.files.size()) + L" conflicting files  |  " + std::to_wstring(g_conf.pairs.size()) + L" mod pairs  |  " +
              std::to_wstring(g_conf.modsIndexed) + L" mods checked";
         if (g_conf.modsWithoutFiles) st += L" (" + std::to_wstring(g_conf.modsWithoutFiles) + L" skipped: no readable files folder)";
         if (g_cfView == 1 && g_cfPairA >= 0) st = L"Files shared by " + modLabel(g_cfPairA) + L"  and  " + modLabel(g_cfPairB) + L"  (press \"By file\" to see all)  |  " + std::to_wstring(g_cfRows.size()) + L" files";
-        else if (g_cfView == 0) st += L".  The later mod wins. Double-click a pair for its files.";
+        else if (g_cfView == 0) st += L".  The later mod wins. Double-click a pair for its files, right-click to reorder.";
+        else st += L".  Double-click a file for who wins.";
     }
     SetWindowTextW(hCfStatus, st.c_str());
 }
@@ -1722,10 +1852,22 @@ static void cfRebuildRows() {
 static void cfEmptyRows();
 static void confRefresh() { if (hConf) { cfEmptyRows(); cfRebuildRows(); } }
 
+// Severity of a row of the open view (-1: none).
+static int cfRowSev(int row) {
+    if (row < 0 || row >= (int)g_cfRows.size()) return -1;
+    size_t idx = (size_t)g_cfRows[(size_t)row];
+    if (g_cfView == 0) return idx < g_conf.pairs.size() ? g_conf.pairs[idx].sev : -1;
+    if (g_cfView == 1) return idx < g_conf.files.size() ? g_conf.files[idx].sev : -1;
+    if (g_cfView == 3) return idx < g_conf.vanilla.size() ? g_conf.vanilla[idx].sev : idx - g_conf.vanilla.size() < g_conf.vanillaWipes.size() ? (int)SEV_HIGH : -1;
+    return idx < g_script.items.size() ? (g_script.items[idx].sev ? (int)SEV_MED : (int)SEV_LOW) : -1;
+}
+
 static const wchar_t* cfCell(int row, int sub) {
     if (row < 0 || row >= (int)g_cfRows.size()) return L"";
     size_t idx = (size_t)g_cfRows[(size_t)row];
     g_cfText.clear();
+    if (sub == 0) { int sv = cfRowSev(row); return sv < 0 ? L"" : sv >= SEV_HIGH ? L"High" : sv == SEV_MED ? L"Medium" : L"Low"; }
+    sub--;
     if (g_cfView == 0) {
         if (idx >= g_conf.pairs.size()) return L"";
         const auto& p = g_conf.pairs[idx];
@@ -1749,15 +1891,29 @@ static const wchar_t* cfCell(int row, int sub) {
             g_cfText = W(sc.note);
             if (sc.winner >= 0) g_cfText += L"  (" + modLabel(sc.winner) + L")";
         }
+    } else if (g_cfView == 3) {
+        if (idx >= g_conf.vanilla.size()) {
+            size_t wi = idx - g_conf.vanilla.size();
+            if (wi >= g_conf.vanillaWipes.size()) return L"";
+            const auto& vw = g_conf.vanillaWipes[wi];
+            g_cfText = sub == 0 ? W(vw.folder) + L"/   (the whole folder: " + std::to_wstring(vw.files) + L" base-game files removed)" : modLabel(vw.mod) + L"   (replace_path)";
+            return g_cfText.c_str();
+        }
+        const auto& vf = g_conf.vanilla[idx];
+        if (sub == 0) g_cfText = W(vf.path);
+        else {
+            for (size_t i = 0; i < vf.mods.size() && i < 5; i++) g_cfText += (i ? L";  " : L"") + modLabel(vf.mods[i]);
+            if (vf.mods.size() > 5) g_cfText += L"  +" + std::to_wstring(vf.mods.size() - 5) + L" more";
+        }
     } else {
         if (idx >= g_conf.files.size()) return L"";
         const auto& fc = g_conf.files[idx];
         if (sub == 0) g_cfText = W(fc.path);
         else if (sub == 1) g_cfText = modLabel(fc.mods.back());
-        else {
+        else if (sub == 2) {
             for (size_t i = 0; i + 1 < fc.mods.size() && i < 4; i++) g_cfText += (i ? L";  " : L"") + modLabel(fc.mods[i]);
             if (fc.mods.size() > 5) g_cfText += L"  +" + std::to_wstring(fc.mods.size() - 5) + L" more";
-        }
+        } else g_cfText = fc.vanilla ? L"yes" : L"";
     }
     return g_cfText.c_str();
 }
@@ -1774,7 +1930,7 @@ static void cfSetView(int v) {
     g_cfPairA = g_cfPairB = -1;
     cfColumns();
     cfRebuildRows();
-    for (int id : {ID_CF_PAIR, ID_CF_FILE, ID_CF_DEF}) InvalidateRect(GetDlgItem(hConf, id), nullptr, FALSE);
+    for (int id : {ID_CF_PAIR, ID_CF_FILE, ID_CF_DEF, ID_CF_VAN}) InvalidateRect(GetDlgItem(hConf, id), nullptr, FALSE);
 }
 
 static void cfLayout() {
@@ -1783,6 +1939,7 @@ static void cfLayout() {
     MoveWindow(GetDlgItem(hConf, ID_CF_PAIR), x, y, S(140), bh, TRUE); x += S(140) + gap;
     MoveWindow(GetDlgItem(hConf, ID_CF_FILE), x, y, S(110), bh, TRUE); x += S(110) + gap;
     MoveWindow(GetDlgItem(hConf, ID_CF_DEF), x, y, S(150), bh, TRUE); x += S(150) + gap;
+    MoveWindow(GetDlgItem(hConf, ID_CF_VAN), x, y, S(130), bh, TRUE); x += S(130) + gap;
     x += gap;
     MoveWindow(GetDlgItem(hConf, ID_CF_RESCAN), r.right - m - S(150), y, S(150), bh, TRUE);
     int fw = r.right - m - S(150) - gap * 2 - x;
@@ -1806,6 +1963,113 @@ static void cfTheme() {
     RedrawWindow(hConf, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
 }
 
+// "who wins" for the row of the open view: the mods that ship it, in load order (the last one's copy is used).
+static std::vector<int> cfRowMods(int row, std::wstring* what = nullptr) {
+    std::vector<int> v;
+    if (row < 0 || row >= (int)g_cfRows.size()) return v;
+    size_t idx = (size_t)g_cfRows[(size_t)row];
+    if (g_cfView == 0 && idx < g_conf.pairs.size()) { v = {g_conf.pairs[idx].a, g_conf.pairs[idx].b}; if (what) *what = L"Files both mods ship"; }
+    else if (g_cfView == 1 && idx < g_conf.files.size()) { v = g_conf.files[idx].mods; if (what) *what = W(g_conf.files[idx].path); }
+    else if (g_cfView == 3 && idx < g_conf.vanilla.size()) { v = g_conf.vanilla[idx].mods; if (what) *what = W(g_conf.vanilla[idx].path); }
+    else if (g_cfView == 3 && idx - g_conf.vanilla.size() < g_conf.vanillaWipes.size()) { const auto& vw = g_conf.vanillaWipes[idx - g_conf.vanilla.size()]; v = {vw.mod}; if (what) *what = W(vw.folder) + L"/"; }
+    else if (g_cfView == 2 && idx < g_script.items.size()) {
+        std::set<int> seen;
+        for (auto& h : g_script.items[idx].hits) if (seen.insert(h.mod).second) v.push_back(h.mod);
+        std::sort(v.begin(), v.end());
+        if (what) *what = W(g_script.items[idx].key);
+    }
+    return v;
+}
+
+static std::wstring shortName(int pos) {
+    Playset* ps = active();
+    if (!ps || pos < 0 || pos >= (int)ps->mods.size()) return L"?";
+    auto it = g_info.find(ps->mods[(size_t)pos].id);
+    std::wstring n = W(it != g_info.end() ? it->second.name : ps->mods[(size_t)pos].id);
+    if (n.size() > 38) n = n.substr(0, 37) + L"…";
+    return n;
+}
+
+// Moves one mod right next to another so the mod that should win loads last. The old order is kept for the Undo button.
+static void cfMoveFor(int mover, int target) {
+    Playset* ps = active();
+    if (!ps || mover == target || mover < 0 || target < 0 || mover >= (int)ps->mods.size() || target >= (int)ps->mods.size()) return;
+    g_undoIds.clear();
+    for (auto& m : ps->mods) g_undoIds.push_back(m.id);
+    g_undoPlayset = ps->name;
+    std::wstring a = shortName(mover), b = shortName(target);
+    bool below = mover < target;
+    moveMod(mover, target);     // erased first, then inserted at the target's position: right after it when moving down, right before it when moving up
+    g_cfPairA = g_cfPairB = -1;
+    say(L"Moved \"" + a + L"\" " + (below ? L"below \"" : L"above \"") + b + L"\". Press Undo to go back.");
+    if (hConf) cfSetView(g_cfView == 1 ? 0 : g_cfView);
+}
+
+static void cfShowWinner(int row) {
+    std::wstring what;
+    std::vector<int> mods = cfRowMods(row, &what);
+    if (mods.size() < 2 && g_cfView != 3) return;
+    std::wstring t;
+    if (g_cfView == 3 && (size_t)g_cfRows[(size_t)row] >= g_conf.vanilla.size()) {
+        const auto& vw = g_conf.vanillaWipes[(size_t)g_cfRows[(size_t)row] - g_conf.vanilla.size()];
+        t = what + L"\n\n" + modLabel(vw.mod) + L" uses replace_path for this folder. While it is enabled, none of the " + std::to_wstring(vw.files) +
+            L" files the base game has there are loaded (and neither are files of mods that load before it). Total conversions do this on purpose; for any other mod it is worth a look.";
+        MessageBoxW(hConf, t.c_str(), L"replace_path", MB_ICONINFORMATION);
+        return;
+    }
+    if (g_cfView == 3) {
+        t = what + L"\n\nThis is a file of the base game. A mod's copy REPLACES it completely: the game does not merge them.\n\nShipped by (load order, the last one's copy is used):\n";
+    } else {
+        bool van = false;
+        size_t idx = (size_t)g_cfRows[(size_t)row];
+        if (g_cfView == 1 && idx < g_conf.files.size()) van = g_conf.files[idx].vanilla;
+        t = what + L"\n\n" + (van ? L"This file also exists in the base game, so the winner's copy replaces the game's.\n\n" : L"") + L"Load order (the last mod's copy is used):\n";
+    }
+    Playset* ps = active();
+    for (size_t k = 0; k < mods.size(); k++) {
+        t += L"  " + modLabel(mods[k]);
+        if (ps && mods[k] >= 0 && mods[k] < (int)ps->mods.size()) {
+            auto it = g_info.find(ps->mods[(size_t)mods[k]].id);
+            if (g_cfView == 3 && it != g_info.end() && matchGameVersion(it->second.supported, g_gameVer) == VerMatch::Mismatch) t += L"   (made for an older game version)";
+        }
+        t += k + 1 == mods.size() ? L"     ← wins\n" : L"     loses\n";
+    }
+    if (g_cfView == 3 && mods.size() == 1) t += L"\nThe game's own copy is not used while this mod is enabled.";
+    t += L"\nTo change who wins, right-click the row and move one of the mods.";
+    MessageBoxW(hConf, t.c_str(), g_cfView == 3 ? L"Base-game file" : L"Who wins", MB_ICONINFORMATION);
+}
+
+static const int ID_CFM_BELOW = 900, ID_CFM_ABOVE = 901, ID_CFM_FILES = 902, ID_CFM_COPY = 903;
+static void cfContextMenu(int row, POINT pt) {
+    std::wstring what;
+    std::vector<int> mods = cfRowMods(row, &what);
+    if (row < 0 || row >= (int)g_cfRows.size()) return;
+    HMENU m = CreatePopupMenu();
+    int lo = -1, hi = -1;
+    if (mods.size() >= 2) { lo = mods[mods.size() - 2]; hi = mods.back(); }   // the runner-up and the mod that wins now
+    if (lo >= 0 && hi >= 0 && lo != hi) {
+        AppendMenuW(m, MF_STRING, ID_CFM_BELOW, (L"Let \"" + shortName(lo) + L"\" win: move it below \"" + shortName(hi) + L"\"").c_str());
+        AppendMenuW(m, MF_STRING, ID_CFM_ABOVE, (L"Let \"" + shortName(lo) + L"\" win: move \"" + shortName(hi) + L"\" above it").c_str());
+    }
+    if (g_cfView == 0) AppendMenuW(m, MF_STRING, ID_CFM_FILES, L"Show the files they share");
+    if (g_cfView == 1 || g_cfView == 3) AppendMenuW(m, MF_STRING, ID_CFM_COPY, L"Copy file path");
+    if (GetMenuItemCount(m) == 0) { DestroyMenu(m); return; }
+    int cmd = trackMenu(m, TPM_RETURNCMD | TPM_RIGHTBUTTON, pt.x, pt.y, hConf);
+    DestroyMenu(m);
+    if (cmd == ID_CFM_BELOW) cfMoveFor(lo, hi);
+    else if (cmd == ID_CFM_ABOVE) cfMoveFor(hi, lo);
+    else if (cmd == ID_CFM_FILES && g_cfView == 0) {
+        size_t idx = (size_t)g_cfRows[(size_t)row];
+        if (idx < g_conf.pairs.size()) {
+            int a = g_conf.pairs[idx].a, b = g_conf.pairs[idx].b;
+            cfEmptyRows(); g_cfView = 1; g_cfPairA = a; g_cfPairB = b; cfColumns(); cfRebuildRows();
+            for (int id : {ID_CF_PAIR, ID_CF_FILE, ID_CF_DEF, ID_CF_VAN}) InvalidateRect(GetDlgItem(hConf, id), nullptr, FALSE);
+        }
+    } else if (cmd == ID_CFM_COPY) {
+        if (!copyToClipboard(U(what))) info(L"Could not copy to the clipboard (another program may be holding it). Try again.");
+    }
+}
+
 static LRESULT CALLBACK ConfProc(HWND h, UINT m, WPARAM w, LPARAM l) {
     switch (m) {
         case WM_CREATE: {
@@ -1813,6 +2077,7 @@ static LRESULT CALLBACK ConfProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             mkBtn(h, L"↔", L"By mod pair", ID_CF_PAIR);
             mkBtn(h, L"☰", L"By file", ID_CF_FILE);
             mkBtn(h, L"{ }", L"By definition", ID_CF_DEF);
+            mkBtn(h, L"\u25C6", L"Base game", ID_CF_VAN);
             mkBtn(h, L"↻", L"Rescan files", ID_CF_RESCAN);
             hCfFilter = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL, 0, 0, 10, 10, h, (HMENU)(INT_PTR)ID_CF_FILTER, g_inst, nullptr);
             setFont(hCfFilter);
@@ -1829,18 +2094,22 @@ static LRESULT CALLBACK ConfProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             return 0;
         }
         case WM_SIZE: if (hCfList) cfLayout(); return 0;
-        case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(760); mi->ptMinTrackSize.y = S(360); return 0; }
+        case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(900); mi->ptMinTrackSize.y = S(360); return 0; }
         case WM_ERASEBKGND: { RECT rc; GetClientRect(h, &rc); paintBackdrop((HDC)w, rc, false); return 1; }
         case WM_CTLCOLORSTATIC: case WM_CTLCOLOREDIT: { LRESULT r; if (themeCtlColor(m, w, l, r)) return r; break; }
-        case WM_DRAWITEM: drawButton((DRAWITEMSTRUCT*)l); return TRUE;
+        case WM_MEASUREITEM: if (((MEASUREITEMSTRUCT*)l)->CtlType == ODT_MENU) { measureMenuItem((MEASUREITEMSTRUCT*)l); return TRUE; } break;
+        case WM_DRAWITEM:
+            if (((DRAWITEMSTRUCT*)l)->CtlType == ODT_MENU) drawMenuItem((DRAWITEMSTRUCT*)l); else drawButton((DRAWITEMSTRUCT*)l);
+            return TRUE;
         case WM_APP + 1: cfTheme(); return 0;
         case WM_COMMAND:
             switch (LOWORD(w)) {
                 case ID_CF_PAIR: g_cfPairA = g_cfPairB = -1; cfSetView(0); break;
                 case ID_CF_FILE: g_cfPairA = g_cfPairB = -1; cfSetView(1); break;
                 case ID_CF_DEF: g_cfPairA = g_cfPairB = -1; cfSetView(2); break;
+                case ID_CF_VAN: g_cfPairA = g_cfPairB = -1; cfSetView(3); break;
                 case ID_CF_FILTER: if (HIWORD(w) == EN_CHANGE) cfRebuildRows(); break;
-                case ID_CF_RESCAN: g_fileIndex.clear(); g_confSig.clear(); g_conf = ConflictReport(); maybeScan(false); cfRebuildRows(); refreshNotes(); break;
+                case ID_CF_RESCAN: confQuiesce(); g_fileIndex.clear(); g_defIndex.clear(); g_vanilla.reset(); g_vanillaFailed = false; g_confSig.clear(); g_conf = ConflictReport(); g_script = ScriptReport(); maybeScan(false); cfRebuildRows(); refreshNotes(); break;
             }
             return 0;
         case WM_NOTIFY: {
@@ -1851,15 +2120,21 @@ static LRESULT CALLBACK ConfProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 if (di->item.mask & LVIF_TEXT) di->item.pszText = (LPWSTR)cfCell(di->item.iItem, di->item.iSubItem);
                 return 0;
             }
+            if (nh->code == NM_RCLICK) {
+                auto* ia = (NMITEMACTIVATE*)l;
+                if (ia->iItem >= 0) { POINT pt; GetCursorPos(&pt); ListView_SetItemState(hCfList, ia->iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED); cfContextMenu(ia->iItem, pt); }
+                return 0;
+            }
             if (nh->code == NM_DBLCLK) {
                 int row = ((NMITEMACTIVATE*)l)->iItem;
-                if (g_cfView == 0 && row >= 0 && row < (int)g_cfRows.size()) {
+                if ((g_cfView == 1 || g_cfView == 3) && row >= 0 && row < (int)g_cfRows.size()) cfShowWinner(row);
+                else if (g_cfView == 0 && row >= 0 && row < (int)g_cfRows.size()) {
                     const auto& p = g_conf.pairs[(size_t)g_cfRows[(size_t)row]];
                     int a = p.a, b = p.b;
                     cfEmptyRows();
                     g_cfView = 1; g_cfPairA = a; g_cfPairB = b;
                     cfColumns(); cfRebuildRows();
-                    for (int id : {ID_CF_PAIR, ID_CF_FILE, ID_CF_DEF}) InvalidateRect(GetDlgItem(hConf, id), nullptr, FALSE);
+                    for (int id : {ID_CF_PAIR, ID_CF_FILE, ID_CF_DEF, ID_CF_VAN}) InvalidateRect(GetDlgItem(hConf, id), nullptr, FALSE);
                 } else if (g_cfView == 2 && row >= 0 && row < (int)g_cfRows.size() && (size_t)g_cfRows[(size_t)row] < g_script.items.size()) {
                     const auto& sc = g_script.items[(size_t)g_cfRows[(size_t)row]];
                     std::wstring t = W(defKindName(sc.kind)) + L": " + W(sc.key) + L"\n" + W(sc.area) + L"\n\n" + W(sc.note) + L"\n\nDefined in (load order):\n";
@@ -1878,6 +2153,18 @@ static LRESULT CALLBACK ConfProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                     cd->nmcd.uItemState &= ~(CDIS_SELECTED | CDIS_FOCUS);
                     cd->clrTextBk = sel ? t.sel : (row & 1) ? t.alt : t.list;
                     cd->clrText = sel ? t.selText : t.text;
+                    return CDRF_NOTIFYSUBITEMDRAW;
+                }
+                if (cd->nmcd.dwDrawStage == (CDDS_ITEMPREPAINT | CDDS_SUBITEM)) {   // the severity cell is coloured, the others are plain
+                    size_t row = (size_t)cd->nmcd.dwItemSpec;
+                    bool sel = (ListView_GetItemState(hCfList, (int)row, LVIS_SELECTED) & LVIS_SELECTED) != 0;
+                    cd->clrTextBk = sel ? t.sel : (row & 1) ? t.alt : t.list;
+                    cd->clrText = sel ? t.selText : t.text;
+                    if (cd->iSubItem == 0 && !sel) {
+                        int sv = cfRowSev((int)row);
+                        cd->clrText = sv >= SEV_HIGH ? t.bad : sv == SEV_MED ? t.warn : t.muted;
+                    }
+                    return CDRF_NEWFONT;
                 }
             }
             return CDRF_DODEFAULT;
@@ -2156,7 +2443,7 @@ static void createControls() {
     hAllOff = mkBtn(hMain, L"\u2610", L"Disable shown", ID_ALLOFF);
     hConflicts = mkBtn(hMain, L"\u2694", L"Conflicts", ID_CONFLICTS);
     hSort = mkBtn(hMain, L"\u21C5", L"Auto Sort", ID_SORT);
-    hUndo = mkBtn(hMain, L"\u21B6", L"Undo sort", ID_UNDOSORT);
+    hUndo = mkBtn(hMain, L"\u21B6", L"Undo order", ID_UNDOSORT);
     EnableWindow(hUndo, FALSE);
     hCount = mk(L"STATIC", L"", SS_ENDELLIPSIS, ID_COUNT);
     hUp = mkBtn(hMain, L"\u25B2", L"Up", ID_UP);
@@ -2202,7 +2489,7 @@ static void createControls() {
     tip(hAllOff, L"Disable every mod currently shown in the list");
     tip(hConflicts, L"Find mods that change the same files or definitions");
     tip(hSort, L"Propose a better load order (you see a preview first)");
-    tip(hUndo, L"Go back to the load order from before the last Auto Sort");
+    tip(hUndo, L"Go back to the load order from before the last Auto Sort or the last move made from the conflicts window");
     tip(hBrowse, L"Pick your Crusader Kings III folder");
     tip(hSaveDir, L"Remember this folder");
     tip(hResync, L"Rescan the mod folder (use after subscribing to a mod while the app is open)");
@@ -2821,7 +3108,7 @@ static void onCommand(int id, int code) {
             if (!g_updRel.tag.empty() && compareVersions(g_updRel.tag, VERSION) > 0) { showUpdateDialog(g_updRel); break; }   // already found by the startup check
             startUpdateCheck(false);
             break;
-        case ID_RESYNC: g_fileIndex.clear(); g_defIndex.clear(); g_confSig.clear(); resync(false); break;
+        case ID_RESYNC: confQuiesce(); g_fileIndex.clear(); g_defIndex.clear(); g_confSig.clear(); resync(false); break;
         case ID_CONFLICTS: showConflicts(); break;
         case ID_CTX_LOCK: {
             if (!ps || g_ctxIdx < 0 || g_ctxIdx >= (int)ps->mods.size()) break;
@@ -2847,6 +3134,7 @@ static void onCommand(int id, int code) {
                 ids.push_back(mid);
             }
             if (ids.empty()) break;
+            confQuiesce();   // the conflict worker reads the file index, which is about to change
             auto nameOf = [&](const std::string& mid) { auto it = g_info.find(mid); return W(it != g_info.end() ? it->second.name : mid); };
             std::wstring q, firstName = nameOf(ids[0]);
             if (ids.size() == 1) {
@@ -2933,7 +3221,7 @@ static void onCommand(int id, int code) {
             for (int o : plan.order) nm.push_back(ps->mods[(size_t)o]);
             ps->mods = nm;
             saveActive(); populate();
-            say(L"Auto Sort moved " + std::to_wstring(plan.moves.size()) + L" mods. Press Undo sort to go back.");
+            say(L"Auto Sort moved " + std::to_wstring(plan.moves.size()) + L" mods. Press Undo order to go back.");
             break;
         }
         case ID_UNDOSORT: {
@@ -2946,20 +3234,16 @@ static void onCommand(int id, int code) {
             ps->mods = nm;
             g_undoIds.clear();
             saveActive(); populate();
-            say(L"Load order restored to how it was before Auto Sort.");
+            say(L"Load order restored to how it was before the last change.");
             break;
         }
 
-        case ID_THEME: {
-            bool faded = captureFade();
+        case ID_THEME:
             g_dark = !g_dark;
             g_settings.theme = g_dark ? "dark" : "light";
             saveSettingsNow();
-            applyTheme();
-            startToggleAnim();
-            if (faded) { RedrawWindow(hMain, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW); startFade(); }
+            startThemeAnim();
             break;
-        }
         case ID_BROWSE: browseFolder(); break;
         case ID_SAVEDIR: {
             g_settings.ck3Dir = U(getText(hDir));
@@ -3078,18 +3362,74 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_APP + 3: {   // background scan finished
             ScanJob* j = (ScanJob*)w;
             if (g_jobThread) { WaitForSingleObject(g_jobThread, 5000); CloseHandle(g_jobThread); g_jobThread = nullptr; }
+            confQuiesce();   // the index is about to change
+            bool cancelled = j->cancel.load();
+            int hits = 0, read = 0, same = 0;
             for (size_t i = 0; i < j->items.size() && i < j->out.size(); i++) {
+                if (i < j->unchanged.size() && j->unchanged[i]) {   // checked file by file: nothing changed
+                    auto f = g_fileIndex.find(j->items[i].id);
+                    if (f != g_fileIndex.end()) f->second.fingerprint = j->items[i].fp;
+                    auto d = g_defIndex.find(j->items[i].id);
+                    if (d != g_defIndex.end()) d->second.fingerprint = j->items[i].fp;
+                    same++;
+                    continue;
+                }
                 if (!j->out[i].complete) {
-                    if (!j->cancel.load()) { g_scanFailed[j->items[i].id] = j->items[i].fp; logLine("could not read all files of mod " + j->items[i].id + ", skipped in conflict checks"); }
+                    if (!cancelled) { g_scanFailed[j->items[i].id] = j->items[i].fp; logLine("could not read all files of mod " + j->items[i].id + ", skipped in conflict checks"); }
                     continue;
                 }
                 g_scanFailed.erase(j->items[i].id);
                 g_fileIndex[j->items[i].id] = std::move(j->out[i]);
                 if (i < j->defs.size() && j->defs[i].complete) g_defIndex[j->items[i].id] = std::move(j->defs[i]);
+                if (i < j->fromCache.size() && j->fromCache[i]) hits++; else read++;
             }
-            bool cancelled = j->cancel.load();
+            if (j->wantVanilla && !cancelled) {
+                if (j->vanilla) {
+                    g_vanilla = j->vanilla;
+                    logLine("game files: " + std::to_string(g_vanilla->files.size()) + " in " + g_vanilla->dir + (g_vanilla->dlcFiles ? " (" + std::to_string(g_vanilla->dlcFiles) + " from DLC folders)" : "") + (j->vanillaFromCache ? ", from the saved list" : ", read from disk"));
+                } else { g_vanillaFailed = true; logLine("game files: could not read the game folder, base-game checks are off"); }
+            }
+            if (!j->items.empty() && (read + hits > 0 || !j->quiet))
+                logLine("scan: " + std::to_string(j->items.size()) + " mods in " + std::to_string((unsigned long long)j->ms) + " ms (" + std::to_string(hits) + " from the saved index, " + std::to_string(read) + " read" + (same ? ", " + std::to_string(same) + " unchanged" : std::string()) + ")");
+            g_lastDeepVerify = GetTickCount64();
+            g_fpNow.clear();   // the update check now knows each indexed mod's deep fingerprint
+            {   // saved indexes of mods that are no longer installed
+                static bool pruned = false;
+                if (!pruned && !cancelled && !g_info.empty()) {
+                    pruned = true;
+                    std::set<std::string> keep;
+                    for (auto& kv : g_info) keep.insert(kv.first);
+                    pruneModCache(dataDir() + "/cache", keep);
+                }
+            }
             delete j; g_job = nullptr; g_scanning = false;
             if (!cancelled) { g_confSig.clear(); refreshNotes(); maybeScan(false); }
+            return 0;
+        }
+        case WM_APP + 9: {   // conflict report computed on the worker thread
+            if (!g_confJob || g_confJob->id != (unsigned)w) return 0;
+            if (g_confThread) { WaitForSingleObject(g_confThread, INFINITE); CloseHandle(g_confThread); g_confThread = nullptr; }
+            ConfJob* j = g_confJob; g_confJob = nullptr;
+            bool use = !j->cancel.load() && j->conf.valid;
+            if (!j->err.empty()) {   // the worker failed: compute here instead (and say so), never start another worker for this state
+                logLine("conflict worker failed (" + j->err + "), computing on the main thread");
+                Playset* ps = active();
+                if (ps && j->sig == playsetSignature(*ps)) {
+                    g_conf = findConflicts(*ps, g_info, g_fileIndex, g_vanilla.get());
+                    g_script = findScriptConflicts(*ps, g_info, g_defIndex);
+                    g_confSig = j->sig;
+                } else g_confSig.clear();
+                delete j;
+                refreshNotes(); confRefresh();
+                return 0;
+            }
+            if (use) {
+                g_conf = std::move(j->conf); g_script = std::move(j->script); g_confSig = j->sig;
+                logLine("conflicts: " + std::to_string(g_conf.files.size()) + " files, " + std::to_string(g_script.items.size()) + " script overlaps, computed in " + std::to_string((unsigned long long)j->ms) + " ms on the worker thread");
+            } else { g_confSig.clear(); logLine(std::string("conflicts: worker result dropped (") + (j->cancel.load() ? "cancelled" : "invalid") + ")"); }
+            delete j;
+            refreshNotes();      // asks again when the result was thrown away
+            confRefresh();
             return 0;
         }
         case WM_UPD_CHECKED:
@@ -3106,11 +3446,12 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_APP + 7:
             if (IsWindowEnabled(h) && g_modStamp && modDirStamp() != g_modStamp) {
                 try { resync(true); } catch (...) { g_resyncing = false; }
+            } else if (IsWindowEnabled(h) && !g_job) {
+                try { maybeScan(true); } catch (...) {}   // also looks inside the mods for changes (at most every two minutes), silently
             }
             return 0;
-        case WM_APP + 8: endFade(); return 0;
         case WM_TIMER:
-            if (w == TIMER_TOGGLE) { stepToggleAnim(); return 0; }
+            if (w == TIMER_TOGGLE) { stepThemeAnim(); return 0; }
             if (w == 78) {
                 KillTimer(h, 78);
                 std::wstring old = W(exePath()) + L".old";
@@ -3189,13 +3530,17 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             return 0;
         case WM_LBUTTONUP: endDrag(true); return 0;
         case WM_CAPTURECHANGED: if (g_drag) endDrag(false); return 0;
-        case WM_DESTROY: g_windowReady = false; stopScan(); PostQuitMessage(0); return 0;
+        case WM_DESTROY: g_windowReady = false; stopScan(); confQuiesce(); PostQuitMessage(0); return 0;
     }
     return DefWindowProcW(h, m, w, l);
 }
 
 int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     g_inst = inst;
+    installFastWalker();   // folder listings for the file index use the native Windows walker
+#ifdef RC_TEST_HOOKS
+    if (const char* e = getenv("RC_ASYNC_CONF"); e && *e == '1') g_forceAsyncConf = true;   // test builds only: compute every conflict report on the worker thread
+#endif
     // Started by an update: wait for the old copy to finish closing, so the one-copy rule below does not turn the new one away.
     {
         int argc = 0;
