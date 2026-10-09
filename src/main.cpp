@@ -8,6 +8,9 @@
 #endif
 #include "core.hpp"
 #include "fastwalk.hpp"
+#include "gamelog.hpp"
+#include "share.hpp"
+#include "changes.hpp"
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -54,7 +57,7 @@ static std::wstring wenv(const wchar_t* name) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
     ID_TREE, ID_EXPAND, ID_COLLAPSE
 };
 
@@ -98,6 +101,7 @@ static std::wstring wlower(std::wstring s) { for (auto& c : s) c = (wchar_t)towl
 static void setFont(HWND h) { SendMessageW(h, WM_SETFONT, (WPARAM)g_font, TRUE); }
 
 static int g_cfView = 0;   // conflicts window: 0 by mod pair, 1 by file, 2 by definition (script level), 3 base-game files replaced by mods
+static int g_repViewForBtn = 0;   // which view of the game log window is open (for the button highlight)
 
 // ---------- theme: "Midnight Court" (dark) and "Parchment" (light) ----------
 struct Theme { COLORREF bg, banner, list, alt, border, text, muted, accent, accentText, gold, btn, btnHot, btnDown, sel, selText, ok, warn, bad; };
@@ -322,7 +326,7 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
     }
     HBRUSH ab = CreateSolidBrush(around); FillRect(dc, &r, ab); DeleteObject(ab);
     bool dis = (d->itemState & ODS_DISABLED) != 0, down = (d->itemState & ODS_SELECTED) != 0, hot = g_hot == d->hwndItem;
-    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3);
+    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3) || (id == ID_RP_A && g_repViewForBtn == 0) || (id == ID_RP_B && g_repViewForBtn == 1);
     COLORREF fill = primary ? (down ? mix(t.accent, RGB(0,0,0), 20) : hot ? mix(t.accent, RGB(255,255,255), 18) : t.accent) : (down ? t.btnDown : hot ? t.btnHot : t.btn);
     COLORREF edge = primary ? mix(t.accent, RGB(0,0,0), 25) : (hot ? t.gold : t.border);
     {
@@ -616,19 +620,54 @@ static void applyThemeControls() {
 }
 // caption: also update the title bar colour (Windows 11; an expensive call for the window manager, so frames in between skip it);
 // frame: also repaint the non-client area.
-static void applyThemeColors(bool otherWindows, bool caption = true, bool frame = true) {
+#ifdef RC_PROF
+static double g_pf[6]; static std::string g_pfChild;
+static double pfNow(){LARGE_INTEGER f,c;QueryPerformanceFrequency(&f);QueryPerformanceCounter(&c);return (double)c.QuadPart*1000.0/(double)f.QuadPart;}
+#endif
+static void applyThemeColors(bool otherWindows, bool caption = true, bool frame = true, bool full = true, bool listNow = true) {
     const Theme& t = T();
+#ifdef RC_PROF
+    double a = pfNow();
+#endif
     rebuildBrushes();
+#ifdef RC_PROF
+    double b = pfNow(); g_pf[0] += b - a;
+#endif
     if (caption) themeFrameColors(hMain);
+#ifdef RC_PROF
+    double c = pfNow(); g_pf[1] += c - b;
+#endif
     if (hList) {
         ListView_SetBkColor(hList, t.list);
         ListView_SetTextBkColor(hList, t.list);
         ListView_SetTextColor(hList, t.text);
     }
-    RedrawWindow(hMain, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW | (frame ? RDW_FRAME : 0));
+#ifdef RC_PROF
+    double d = pfNow(); g_pf[2] += d - c;
+    // redraw every child on its own to see which one is slow
+    for (HWND ch = GetWindow(hMain, GW_CHILD); ch; ch = GetWindow(ch, GW_HWNDNEXT)) {
+        double x = pfNow();
+        RedrawWindow(ch, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW);
+        double y = pfNow() - x;
+        if (y > 1.5) { wchar_t cn[64] = L""; GetClassNameW(ch, cn, 64); char u[64]; WideCharToMultiByte(CP_UTF8, 0, cn, -1, u, 64, nullptr, nullptr); g_pfChild += std::string(u) + "=" + std::to_string((int)(y + 0.5)) + " "; }
+    }
+    double e = pfNow(); g_pf[3] += e - d;
+#endif
+    // Paint the window's own background once, then every control without a second erase.
+    if (full) {
+        RedrawWindow(hMain, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_UPDATENOW | (frame ? RDW_FRAME : 0));
+    } else {
+        RedrawWindow(hMain, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_NOCHILDREN | RDW_UPDATENOW);
+        for (HWND ch = GetWindow(hMain, GW_CHILD); ch; ch = GetWindow(ch, GW_HWNDNEXT))
+            if (ch != hList || listNow) RedrawWindow(ch, nullptr, nullptr, RDW_INVALIDATE | RDW_NOERASE | RDW_ALLCHILDREN | RDW_UPDATENOW);
+    }
+#ifdef RC_PROF
+    g_pf[4] += pfNow() - e;
+#endif
     if (otherWindows) {
         if (HWND lg = FindWindowW(L"RCLog", nullptr)) SendMessageW(lg, WM_APP + 1, 0, 0);
         if (HWND cf = FindWindowW(L"RCConf", nullptr)) SendMessageW(cf, WM_APP + 1, 0, 0);
+        if (HWND rp = FindWindowW(L"RCRep", nullptr)) SendMessageW(rp, WM_APP + 1, 0, 0);
     }
 }
 static void applyTheme() {   // immediate (start-up)
@@ -653,13 +692,17 @@ static void stepThemeAnim() {
     g_curTheme = done ? g_themeTo : lerpTheme(g_themeFrom, g_themeTo, e);
     g_animFrames++;
     double t0 = nowMs();
-    applyThemeColors(done, done || (g_animFrames & 1) == 0, done);   // title bar colour every other frame; frame repaint only at the end
+    applyThemeColors(done, done || (g_animFrames & 1) == 0, done, done, true);   // title bar colour every other frame; frame repaint only at the end
     double ms = nowMs() - t0;
     g_paintSum += ms; if (ms > g_paintMax) g_paintMax = ms;
     if (done) {
         KillTimer(hMain, TIMER_TOGGLE);
         g_animating = false;
         if (g_periodOn) { timeEndPeriod(1); g_periodOn = false; }
+#ifdef RC_PROF
+        logLine("prof totals ms: brushes " + std::to_string((int)g_pf[0]) + ", caption " + std::to_string((int)g_pf[1]) + ", listview setters " + std::to_string((int)g_pf[2]) + ", per-child redraw " + std::to_string((int)g_pf[3]) + ", whole-window redraw after " + std::to_string((int)g_pf[4]) + " | slow children: " + g_pfChild);
+        for (double& v : g_pf) v = 0; g_pfChild.clear();
+#endif
         logLine("theme change: " + std::to_string(g_animFrames) + " frames in " + std::to_string((unsigned long long)(GetTickCount64() - g_togStart)) + " ms, painting " +
                 std::to_string((int)(g_paintSum / g_animFrames + 0.5)) + " ms per frame (slowest " + std::to_string((int)(g_paintMax + 0.5)) + " ms)");
     }
@@ -2192,6 +2235,392 @@ static void showConflicts() {
     confRefresh();
 }
 
+// ---------- report window: the game log helper and "since you last pressed Play" ----------
+// One window, two contents. The game log helper reads the game's own log and shows which mod each message points at.
+// "Since last Play" lists the mods that were updated, are now older than the game, or were turned on or off.
+struct RepRow { std::vector<std::wstring> cells; std::wstring hay, key; int sev = 0; int mod = -1; std::string copy; };
+static HWND hRep = nullptr, hRepList = nullptr, hRepFilter = nullptr, hRepStatus = nullptr;
+static int g_repKind = 0;            // 0 game log, 1 since last Play
+static std::vector<RepRow> g_repRows;
+static std::vector<int> g_repShown;
+static std::unique_ptr<LogReport> g_logRep;
+static std::wstring g_repStatusText;
+static std::string g_repReport;      // what "Copy report" puts on the clipboard
+static bool g_repWaitIndex = false;  // the game log was read before the mods' files were listed
+
+static std::string readHeadOrTail(const fs::path& p, size_t maxBytes, bool tail) {
+    std::ifstream f(p, std::ios::binary);
+    if (!f) return "";
+    f.seekg(0, std::ios::end);
+    std::streamoff sz = f.tellg();
+    if (sz <= 0) return "";
+    std::streamoff start = (tail && sz > (std::streamoff)maxBytes) ? sz - (std::streamoff)maxBytes : 0;
+    size_t len = (size_t)std::min<std::streamoff>(sz - start, (std::streamoff)maxBytes);
+    f.seekg(start);
+    std::string s(len, '\0');
+    f.read(&s[0], (std::streamsize)len);
+    s.resize((size_t)f.gcount());
+    if (tail && start) { size_t nl = s.find('\n'); if (nl != std::string::npos) s.erase(0, nl + 1); }
+    s.erase(std::remove(s.begin(), s.end(), '\0'), s.end());
+    return s;
+}
+static std::wstring repWhen(long long t) {
+    std::time_t tt = (std::time_t)t;
+    wchar_t b[64] = L"";
+    if (const std::tm* tm = std::localtime(&tt)) wcsftime(b, 64, L"%d %b %Y %H:%M", tm);
+    return b;
+}
+static std::wstring repMessage(const LogEntry& e) {
+    std::string d = e.detail;
+    if (d.compare(0, 7, "Error: ") == 0) d.erase(0, 7);
+    auto cut = [](std::string& t, const char* tok) { size_t k = t.find(tok); if (k != std::string::npos && k > 0) t.erase(k); };
+    cut(d, " | Script location:"); cut(d, "Script location:");
+    std::string m = e.msg;
+    for (const char* tok : {" at file: ", ", at file: ", " in 'file: ", " at location 'file: ", " in file: "}) cut(m, tok);   // the file has its own column
+    m = (e.msg == "Script system error!" && !d.empty()) ? d : (d.empty() ? m : m + " | " + d);
+    return W(m);
+}
+static std::wstring repWhere(const LogEntry& e) { return e.file.empty() ? L"" : W(e.file + (e.line ? ":" + std::to_string(e.line) : "")); }
+static void repAddRow(RepRow r) {
+    std::wstring h;
+    for (auto& c : r.cells) { h += c; h += L' '; }
+    for (auto& ch : h) ch = (wchar_t)towlower(ch);
+    r.hay = std::move(h);
+    g_repRows.push_back(std::move(r));
+}
+
+static void repBuildLog() {
+    g_repRows.clear(); g_logRep.reset(); g_repReport.clear(); g_repWaitIndex = false;
+    Playset* ps = active();
+    std::string dir = effectiveDir();
+    if (!ps || dir.empty()) { g_repStatusText = L"The CK3 folder is not set. Enter it in the main window first."; return; }
+    fs::path logs = P(dir) / "logs";
+    std::error_code ec;
+    std::string text = readHeadOrTail(logs / "game.log", 32u << 20, true);
+    std::string old = readHeadOrTail(logs / "error.log", 8u << 20, true);
+    if (text.empty() && old.empty()) { g_repStatusText = L"There is no game log yet (" + W(logs.u8string()) + L"). Start the game once, then open this again."; return; }
+    text += "\n"; text += old;
+    int enabled = 0, ready = 0;
+    for (auto& m : ps->mods) if (m.enabled) {
+        enabled++;
+        auto f = g_fileIndex.find(m.id);
+        if (f != g_fileIndex.end() && f->second.complete) ready++;
+    }
+    if (ready < enabled) { g_repWaitIndex = true; if (!g_scanning) maybeScan(true); }
+    g_logRep = std::make_unique<LogReport>(attributeLog(parseGameLog(text, true), *ps, g_fileIndex, g_defIndex, g_vanilla.get()));
+    const LogReport& lr = *g_logRep;
+    // Which playset did the game load? debug.log lists the mods it started with.
+    std::wstring same;
+    std::vector<LoadedMod> loaded = parseLoadedMods(readHeadOrTail(logs / "debug.log", 6u << 20, false));
+    if (!loaded.empty()) {
+        std::set<std::string> was, is;
+        for (auto& m : loaded) if (m.enabled) was.insert(m.id);
+        for (auto& m : ps->mods) if (m.enabled) is.insert(m.id);
+        int onlyNow = 0, onlyThen = 0;
+        for (auto& id : is) if (!was.count(id)) onlyNow++;
+        for (auto& id : was) if (!is.count(id)) onlyThen++;
+        if (!onlyNow && !onlyThen) same = L" · the game ran with the mods you have enabled now";
+        else same = L" · NOT the playset you have now (" + std::to_wstring(onlyNow) + L" turned on, " + std::to_wstring(onlyThen) + L" turned off since); messages may point at the wrong mods";
+    }
+    auto ft = fs::last_write_time(logs / "game.log", ec);
+    long long when = 0;
+    if (!ec) when = (long long)std::time(nullptr) - (long long)std::chrono::duration_cast<std::chrono::seconds>(fs::file_time_type::clock::now() - ft).count();
+    size_t byFile = 0, byName = 0;
+    for (size_t k = 0; k < lr.how.size(); k++) { if (lr.modOf[k] >= 0) (lr.how[k] == LH_FILE ? byFile : byName)++; }
+    g_repStatusText = L"Log from " + (when ? repWhen(when) : L"?") + L" · " + std::to_wstring(lr.parse.errors) + L" errors, " + std::to_wstring(lr.parse.warnings) + L" warnings (" + std::to_wstring(lr.parse.entries.size()) + L" different)" + same
+        + (g_repWaitIndex ? L" · still reading your mods' files, this updates by itself" : L"")
+        + (!g_vanilla ? L" · base-game file list not loaded" : L"");
+    g_repReport = "Game log summary (" + std::to_string(lr.parse.errors) + " errors, " + std::to_string(lr.parse.warnings) + " warnings)\n";
+    // rows
+    auto modName = [&](int pos) { auto it = g_info.find(ps->mods[(size_t)pos].id); return it != g_info.end() ? it->second.name : ps->mods[(size_t)pos].id; };
+    auto topMsg = [&](int mod) {
+        const LogEntry* best = nullptr;
+        for (size_t k = 0; k < lr.parse.entries.size(); k++) {
+            if (lr.modOf[k] != mod) continue;
+            const LogEntry& e = lr.parse.entries[k];
+            if (!best || (e.level == 'E' && best->level != 'E') || (e.level == best->level && e.count > best->count)) best = &e;
+        }
+        return best ? repMessage(*best) : std::wstring();
+    };
+    auto groupRows = [&](int mod, const std::wstring& label, const LogReport::PerMod& pmv, int sevBase) {
+        (void)pmv; (void)sevBase;
+        std::vector<size_t> ks;
+        for (size_t k = 0; k < lr.parse.entries.size(); k++) {
+            bool in = mod >= 0 ? lr.modOf[k] == mod : mod == -2 ? (lr.modOf[k] < 0 && lr.how[k] == LH_BASE) : (lr.modOf[k] < 0 && lr.how[k] != LH_BASE);
+            if (in) ks.push_back(k);
+        }
+        std::stable_sort(ks.begin(), ks.end(), [&](size_t a, size_t b) {
+            const LogEntry& x = lr.parse.entries[a]; const LogEntry& y = lr.parse.entries[b];
+            if ((x.level == 'E') != (y.level == 'E')) return x.level == 'E';
+            return x.count > y.count; });
+        for (size_t k : ks) {
+            const LogEntry& e = lr.parse.entries[k];
+            RepRow r; r.mod = mod; r.sev = e.level == 'E' ? 2 : 1;
+            r.cells = {label + (lr.how[k] == LH_NAME ? L"  (matched by name)" : L""), e.level == 'E' ? L"Error" : L"Warning", std::to_wstring(e.count), repMessage(e), repWhere(e)};
+            r.key = label;
+            r.copy = U(std::wstring(e.level == 'E' ? L"[error] " : L"[warning] ") + repMessage(e) + (e.file.empty() ? L"" : L"  (" + repWhere(e) + L")") + (e.count > 1 ? L"  x" + std::to_wstring(e.count) : L""));
+            repAddRow(std::move(r));
+        }
+    };
+    if (g_repViewForBtn == 0) {
+        for (auto& pm : lr.perMod) {
+            RepRow r; r.mod = pm.mod; r.sev = pm.errors ? 2 : 1;
+            std::wstring lab = modLabel(pm.mod);
+            r.cells = {lab, std::to_wstring(pm.errors), std::to_wstring(pm.warnings), std::to_wstring(pm.entries), topMsg(pm.mod)};
+            r.key = W(modName(pm.mod));
+            r.copy = U(lab + L": " + std::to_wstring(pm.errors) + L" errors, " + std::to_wstring(pm.warnings) + L" warnings");
+            g_repReport += U(lab) + ": " + std::to_string(pm.errors) + " errors, " + std::to_string(pm.warnings) + " warnings\n";
+            repAddRow(std::move(r));
+        }
+        if (lr.base.entries) {
+            RepRow r; r.mod = -2; r.sev = 0; r.key = L"Base game";
+            r.cells = {L"Base game files (no mod replaces them)", std::to_wstring(lr.base.errors), std::to_wstring(lr.base.warnings), std::to_wstring(lr.base.entries), L"Problems in the game's own files, or caused by a mod referring to something that is missing"};
+            repAddRow(std::move(r));
+            g_repReport += "Base game files: " + std::to_string(lr.base.errors) + " errors, " + std::to_string(lr.base.warnings) + " warnings\n";
+        }
+        if (lr.unplaced.entries) {
+            RepRow r; r.mod = -3; r.sev = 0; r.key = L"Unplaced";
+            r.cells = {L"Could not be tied to a mod", std::to_wstring(lr.unplaced.errors), std::to_wstring(lr.unplaced.warnings), std::to_wstring(lr.unplaced.entries), L"No file or name in the message matches a mod you have enabled"};
+            repAddRow(std::move(r));
+            g_repReport += "Could not be tied to a mod: " + std::to_string(lr.unplaced.errors) + " errors, " + std::to_string(lr.unplaced.warnings) + " warnings\n";
+        }
+    } else {
+        for (auto& pm : lr.perMod) groupRows(pm.mod, modLabel(pm.mod), pm, 0);
+        groupRows(-2, L"Base game", lr.base, 0);
+        groupRows(-3, L"Not tied to a mod", lr.unplaced, 0);
+        g_repReport += "(all messages: use the By mod view for a summary)\n";
+    }
+}
+
+static void repBuildSince() {
+    g_repRows.clear(); g_repReport.clear();
+    Playset* ps = active();
+    if (!ps) { g_repStatusText = L"No playset."; return; }
+    PlayReport pr = buildPlayReport(g_settings, *ps, g_info, fpNow(), g_fileIndex, g_gameVer);
+    g_repStatusText = pr.hasPrev ? L"Since you last pressed Play: " + repWhen(pr.time) + (pr.prevGame.empty() ? L"" : L", game " + W(pr.prevGame)) + (pr.samePlayset ? L"" : L" (a different playset, so turned-on and turned-off mods are not compared)")
+                                 : L"Play has not been pressed with this version yet. After you press Play, this window shows what changed since.";
+    auto add = [&](const wchar_t* what, const std::string& name, const std::string& text, int sev) {
+        RepRow r; r.sev = sev; r.cells = {what, W(name), W(text)}; r.copy = U(std::wstring(what) + L": " + W(name) + L" - " + W(text));
+        g_repReport += r.copy + "\n";
+        repAddRow(std::move(r));
+    };
+    if (pr.gameChanged) add(L"Game updated", "Crusader Kings III", pr.prevGame + " -> " + pr.nowGame, 1);
+    for (auto& i : pr.outdated) add(L"Made for an older game", i.name, i.text, 1);
+    for (auto& i : pr.updated) add(L"Updated", i.name, i.text, 0);
+    for (auto& i : pr.added) add(L"Turned on", i.name, i.text, 0);
+    for (auto& i : pr.removed) add(L"Gone", i.name, i.text, i.sev);
+    if (g_repRows.empty()) { RepRow r; r.cells = {pr.hasPrev ? L"Nothing has changed since you last pressed Play." : L"Nothing to compare yet.", L"", L""}; repAddRow(std::move(r)); }
+}
+
+static void repColumns() {
+    while (ListView_DeleteColumn(hRepList, 0)) {}
+    struct Col { const wchar_t* t; int w; };
+    std::vector<Col> cols;
+    if (g_repKind == 1) { cols.push_back({L"What", 190}); cols.push_back({L"Mod", 320}); cols.push_back({L"Details", 620}); }
+    else if (g_repViewForBtn == 0) { cols.push_back({L"Mod", 320}); cols.push_back({L"Errors", 70}); cols.push_back({L"Warnings", 80}); cols.push_back({L"Different", 80}); cols.push_back({L"Most common message", 620}); }
+    else { cols.push_back({L"Mod", 260}); cols.push_back({L"Level", 70}); cols.push_back({L"Times", 60}); cols.push_back({L"Message", 560}); cols.push_back({L"File", 360}); }
+    for (size_t i = 0; i < cols.size(); i++) {
+        LVCOLUMNW c{}; c.mask = LVCF_TEXT | LVCF_WIDTH; c.pszText = (LPWSTR)cols[i].t; c.cx = S(cols[i].w);
+        ListView_InsertColumn(hRepList, (int)i, &c);
+    }
+    ListView_SetColumnWidth(hRepList, (int)cols.size() - 1, LVSCW_AUTOSIZE_USEHEADER);
+}
+static void repFill() {
+    g_repShown.clear();
+    wchar_t buf[200] = L"";
+    if (hRepFilter) GetWindowTextW(hRepFilter, buf, 199);
+    std::wstring q = buf;
+    for (auto& c : q) c = (wchar_t)towlower(c);
+    for (size_t i = 0; i < g_repRows.size(); i++) if (q.empty() || g_repRows[i].hay.find(q) != std::wstring::npos) g_repShown.push_back((int)i);
+    ListView_SetItemCountEx(hRepList, (int)g_repShown.size(), LVSICF_NOINVALIDATEALL);
+    InvalidateRect(hRepList, nullptr, TRUE);
+    std::wstring st = g_repStatusText;
+    if (!q.empty()) st += L"   ·   showing " + std::to_wstring(g_repShown.size()) + L" of " + std::to_wstring(g_repRows.size());
+    SetWindowTextW(hRepStatus, st.c_str());
+}
+static void repRefresh() {
+    if (!hRep) return;
+    if (g_repKind == 0) repBuildLog(); else repBuildSince();
+    repColumns();
+    repFill();
+    for (int id : {ID_RP_A, ID_RP_B}) if (HWND b = GetDlgItem(hRep, id)) InvalidateRect(b, nullptr, FALSE);
+}
+static void repLayout() {
+    RECT r; GetClientRect(hRep, &r);
+    int m = S(12), y = m, x = m, bh = S(30), gap = S(6);
+    if (g_repKind == 0) {
+        MoveWindow(GetDlgItem(hRep, ID_RP_A), x, y, S(110), bh, TRUE); x += S(110) + gap;
+        MoveWindow(GetDlgItem(hRep, ID_RP_B), x, y, S(150), bh, TRUE); x += S(150) + gap;
+    }
+    int right = r.right - m;
+    MoveWindow(GetDlgItem(hRep, ID_RP_RELOAD), right - S(110), y, S(110), bh, TRUE); right -= S(110) + gap;
+    MoveWindow(GetDlgItem(hRep, ID_RP_COPY), right - S(150), y, S(150), bh, TRUE); right -= S(150) + gap;
+    int fw = right - x - gap;
+    MoveWindow(hRepFilter, x + gap, y + S(3), fw < S(100) ? S(100) : fw, bh - S(6), TRUE);
+    y += bh + gap;
+    MoveWindow(hRepStatus, m, y + S(2), r.right - 2 * m, S(20), TRUE);
+    y += S(26);
+    MoveWindow(hRepList, m, y, r.right - 2 * m, r.bottom - y - m, TRUE);
+    int nc = Header_GetItemCount(ListView_GetHeader(hRepList));
+    if (nc > 0) ListView_SetColumnWidth(hRepList, nc - 1, LVSCW_AUTOSIZE_USEHEADER);
+}
+static void repTheme() {
+    const Theme& t = T();
+    themeFrame(hRep);
+    SetWindowTheme(hRepList, g_dark ? L"DarkMode_Explorer" : L"Explorer", nullptr);
+    SetWindowTheme(hRepFilter, g_dark ? L"DarkMode_CFD" : nullptr, nullptr);
+    ListView_SetBkColor(hRepList, t.list); ListView_SetTextBkColor(hRepList, t.list); ListView_SetTextColor(hRepList, t.text);
+    RedrawWindow(hRep, nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN | RDW_FRAME);
+}
+
+static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
+    switch (m) {
+        case WM_CREATE: {
+            hRep = h;
+            if (g_repKind == 0) { mkBtn(h, L"☰", L"By mod", ID_RP_A); mkBtn(h, L"≡", L"All messages", ID_RP_B); }
+            mkBtn(h, L"⎘", L"Copy report", ID_RP_COPY);
+            mkBtn(h, L"↻", L"Reload", ID_RP_RELOAD);
+            hRepFilter = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL, 0, 0, 10, 10, h, (HMENU)(INT_PTR)ID_RP_FILTER, g_inst, nullptr);
+            setFont(hRepFilter);
+            hRepStatus = CreateWindowExW(0, L"STATIC", L"", WS_CHILD | WS_VISIBLE | SS_ENDELLIPSIS, 0, 0, 10, 10, h, (HMENU)(INT_PTR)ID_STATUS, g_inst, nullptr);
+            setFont(hRepStatus);
+            hRepList = CreateWindowExW(0, WC_LISTVIEWW, L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_OWNERDATA, 0, 0, 10, 10, h, (HMENU)(INT_PTR)ID_RP_LIST, g_inst, nullptr);
+            setFont(hRepList);
+            ListView_SetExtendedListViewStyle(hRepList, LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
+            SetWindowSubclass(hRepList, ListSub, 3, 0);
+            repTheme();
+            repRefresh();
+            repLayout();
+            return 0;
+        }
+        case WM_SIZE: if (hRepList) repLayout(); return 0;
+        case WM_GETMINMAXINFO: { auto* mi = (MINMAXINFO*)l; mi->ptMinTrackSize.x = S(760); mi->ptMinTrackSize.y = S(320); return 0; }
+        case WM_ERASEBKGND: { RECT rc; GetClientRect(h, &rc); paintBackdrop((HDC)w, rc, false); return 1; }
+        case WM_CTLCOLORSTATIC: case WM_CTLCOLOREDIT: { LRESULT r; if (themeCtlColor(m, w, l, r)) return r; break; }
+        case WM_MEASUREITEM: if (((MEASUREITEMSTRUCT*)l)->CtlType == ODT_MENU) { measureMenuItem((MEASUREITEMSTRUCT*)l); return TRUE; } break;
+        case WM_DRAWITEM:
+            if (((DRAWITEMSTRUCT*)l)->CtlType == ODT_MENU) drawMenuItem((DRAWITEMSTRUCT*)l); else drawButton((DRAWITEMSTRUCT*)l);
+            return TRUE;
+        case WM_APP + 1: repTheme(); return 0;
+        case WM_COMMAND:
+            switch (LOWORD(w)) {
+                case ID_RP_A: case ID_RP_B: g_repViewForBtn = LOWORD(w) == ID_RP_A ? 0 : 1; repRefresh(); break;
+                case ID_RP_FILTER: if (HIWORD(w) == EN_CHANGE) repFill(); break;
+                case ID_RP_RELOAD: repRefresh(); break;
+                case ID_RP_COPY:
+                    if (!copyToClipboard(g_repReport.empty() ? "(nothing to copy)" : g_repReport)) info(L"Could not copy to the clipboard (another program may be holding it). Try again.");
+                    else SetWindowTextW(hRepStatus, L"Report copied to the clipboard.");
+                    break;
+                case ID_RPM_COPY: case ID_RPM_REPORT: break;
+            }
+            return 0;
+        case WM_NOTIFY: {
+            NMHDR* nh = (NMHDR*)l;
+            if (nh->hwndFrom != hRepList) return 0;
+            if (nh->code == LVN_GETDISPINFOW) {
+                auto* di = (NMLVDISPINFOW*)l;
+                if ((di->item.mask & LVIF_TEXT) && di->item.iItem >= 0 && di->item.iItem < (int)g_repShown.size()) {
+                    const auto& row = g_repRows[(size_t)g_repShown[(size_t)di->item.iItem]];
+                    di->item.pszText = (LPWSTR)(di->item.iSubItem >= 0 && di->item.iSubItem < (int)row.cells.size() ? row.cells[(size_t)di->item.iSubItem].c_str() : L"");
+                }
+                return 0;
+            }
+            if (nh->code == NM_DBLCLK && g_repKind == 0 && g_repViewForBtn == 0) {   // a mod: show its messages
+                int it = ((NMITEMACTIVATE*)l)->iItem;
+                if (it >= 0 && it < (int)g_repShown.size()) {
+                    std::wstring key = g_repRows[(size_t)g_repShown[(size_t)it]].key;
+                    g_repViewForBtn = 1; SetWindowTextW(hRepFilter, key.c_str()); repRefresh();
+                }
+                return 0;
+            }
+            if (nh->code == NM_RCLICK) {
+                int it = ((NMITEMACTIVATE*)l)->iItem;
+                if (it < 0 || it >= (int)g_repShown.size()) return 0;
+                ListView_SetItemState(hRepList, it, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+                const auto& row = g_repRows[(size_t)g_repShown[(size_t)it]];
+                HMENU mn = CreatePopupMenu();
+                AppendMenuW(mn, MF_STRING, ID_RPM_COPY, L"Copy this line");
+                if (g_repKind == 0 && row.mod >= 0) AppendMenuW(mn, MF_STRING, ID_RPM_REPORT, L"Copy all messages for this mod (to send to its author)");
+                POINT pt; GetCursorPos(&pt);
+                int cmd = trackMenu(mn, TPM_RETURNCMD | TPM_RIGHTBUTTON, pt.x, pt.y, h);
+                DestroyMenu(mn);
+                if (cmd == ID_RPM_COPY) copyToClipboard(row.copy.empty() ? U(row.cells.empty() ? L"" : row.cells[0]) : row.copy);
+                else if (cmd == ID_RPM_REPORT && g_logRep) {
+                    Playset* ps = active();
+                    if (ps && row.mod >= 0 && row.mod < (int)ps->mods.size()) {
+                        auto mi = g_info.find(ps->mods[(size_t)row.mod].id);
+                        copyToClipboard(logModReport(*g_logRep, row.mod, mi != g_info.end() ? mi->second.name : ps->mods[(size_t)row.mod].id));
+                    }
+                }
+                return 0;
+            }
+            if (nh->code == NM_CUSTOMDRAW) {
+                auto* cd = (NMLVCUSTOMDRAW*)l;
+                const Theme& t = T();
+                if (cd->nmcd.dwDrawStage == CDDS_PREPAINT) return CDRF_NOTIFYITEMDRAW;
+                if (cd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT) {
+                    size_t row = (size_t)cd->nmcd.dwItemSpec;
+                    bool sel = (ListView_GetItemState(hRepList, (int)row, LVIS_SELECTED) & LVIS_SELECTED) != 0;
+                    cd->nmcd.uItemState &= ~(CDIS_SELECTED | CDIS_FOCUS);
+                    cd->clrTextBk = sel ? t.sel : (row & 1) ? t.alt : t.list;
+                    cd->clrText = sel ? t.selText : t.text;
+                    return CDRF_NOTIFYSUBITEMDRAW;
+                }
+                if (cd->nmcd.dwDrawStage == (CDDS_ITEMPREPAINT | CDDS_SUBITEM)) {
+                    size_t row = (size_t)cd->nmcd.dwItemSpec;
+                    bool sel = (ListView_GetItemState(hRepList, (int)row, LVIS_SELECTED) & LVIS_SELECTED) != 0;
+                    cd->clrTextBk = sel ? t.sel : (row & 1) ? t.alt : t.list;
+                    cd->clrText = sel ? t.selText : t.text;
+                    if (!sel && row < g_repShown.size()) {
+                        int sv = g_repRows[(size_t)g_repShown[row]].sev;
+                        bool levelCell = (g_repKind == 1 && cd->iSubItem == 0) || (g_repKind == 0 && g_repViewForBtn == 1 && cd->iSubItem == 1) || (g_repKind == 0 && g_repViewForBtn == 0 && cd->iSubItem <= 2);
+                        if (levelCell) cd->clrText = sv >= 2 ? t.bad : sv == 1 ? t.warn : t.text;
+                    }
+                    return CDRF_NEWFONT;
+                }
+            }
+            return CDRF_DODEFAULT;
+        }
+        case WM_CLOSE: DestroyWindow(h); return 0;
+        case WM_DESTROY: hRep = hRepList = hRepFilter = hRepStatus = nullptr; g_logRep.reset(); g_repRows.clear(); g_repShown.clear(); return 0;
+    }
+    return DefWindowProcW(h, m, w, l);
+}
+
+static void showReport(int kind) {
+    if (hRep) {
+        if (g_repKind == kind) { if (IsIconic(hRep)) ShowWindow(hRep, SW_RESTORE); SetForegroundWindow(hRep); repRefresh(); return; }
+        DestroyWindow(hRep);   // the other kind is open: replace it
+    }
+    static bool reg = false;
+    if (!reg) {
+        WNDCLASSW wc{};
+        wc.lpfnWndProc = RepProc; wc.hInstance = g_inst; wc.lpszClassName = L"RCRep";
+        wc.hbrBackground = nullptr; wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+        wc.hIcon = LoadIconW(g_inst, MAKEINTRESOURCEW(1));
+        RegisterClassW(&wc); reg = true;
+    }
+    g_repKind = kind; g_repViewForBtn = 0;
+    CreateWindowExW(0, L"RCRep", kind == 0 ? L"Game log - The Royal Court" : L"Since you last pressed Play - The Royal Court", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, S(1120), S(600), hMain, nullptr, g_inst, nullptr);
+}
+
+static bool g_sinceShown = false;
+// Once per start, after the mods have been read: say in the status line when something changed since Play was last pressed.
+static void sinceHint() {
+    Playset* ps = active();
+    if (!ps || g_settings.playTime <= 0) return;
+    PlayReport pr = buildPlayReport(g_settings, *ps, g_info, fpNow(), g_fileIndex, g_gameVer);
+    if (pr.empty()) return;
+    std::wstring t = L"Since you last played:";
+    bool any = false;
+    auto part = [&](size_t n, const wchar_t* w) { if (!n) return; t += (any ? L", " : L" ") + std::to_wstring(n) + L" " + w; any = true; };
+    if (pr.gameChanged) { t += L" the game updated to " + W(pr.nowGame); any = true; }
+    part(pr.updated.size(), L"mod(s) updated");
+    part(pr.outdated.size(), L"made for an older game");
+    part(pr.added.size() + pr.removed.size(), L"turned on or off");
+    say(t + L". Details: Advanced > What changed since I last pressed Play.");
+}
+
 // ---------- Play: start the game directly, without the Paradox Launcher ----------
 static std::string regString(HKEY root, const wchar_t* sub, const wchar_t* name) {
     wchar_t buf[MAX_PATH * 2];
@@ -2817,8 +3246,65 @@ static void sortReport() {
         ShellExecuteW(hMain, L"open", W(std::string("https://github.com/") + UPDATE_REPO + "/issues/new").c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 }
 
+static std::string pasteFromClipboard() {
+    std::string out;
+    if (!OpenClipboard(hMain)) return out;
+    if (HANDLE h = GetClipboardData(CF_UNICODETEXT)) {
+        if (const wchar_t* p = (const wchar_t*)GlobalLock(h)) {
+            size_t n = 0; while (n < 2000000 && p[n]) n++;
+            out = U(std::wstring(p, n));
+            GlobalUnlock(h);
+        }
+    }
+    CloseClipboard();
+    return out;
+}
+
+// Share code from the clipboard -> a new playset. Mods you do not have are kept in the list (shown as not installed).
+static void importShareCode() {
+    std::string text = pasteFromClipboard();
+    if (findShareCode(text).empty()) { info(L"There is no share code on the clipboard. Copy one (it starts with RC1:) and try again."); return; }
+    ShareDecode d = decodeShareCode(text);
+    if (!d.ok) { info(W(d.error).c_str()); return; }
+    Playset p = playsetFromShare(d, g_mods);
+    p.name = uniqueName(g_playsets, p.name.empty() ? std::string("Shared playset") : sanitizeFileName(p.name));
+    syncPlayset(p, g_mods);
+    std::vector<std::pair<std::string, std::string>> missing;   // Workshop id, name
+    int missingLocal = 0;
+    for (auto& m : p.mods) {
+        if (!m.enabled || g_info.count(m.id)) continue;
+        std::string sid = steamIdOf(m.id);
+        if (!sid.empty()) missing.push_back({sid, m.name});
+        else missingLocal++;
+    }
+    if (!savePlayset(p, g_info)) { info(L"Could not save the imported playset."); return; }
+    g_playsets.push_back(p); sortPlaysets();
+    g_settings.active = p.name; saveSettingsNow(); fillCombo(); populate();
+    logLine("imported a share code: " + std::to_string(p.mods.size()) + " mods, " + std::to_string(missing.size()) + " Workshop mods not installed");
+    std::wstring msg = L"Imported \"" + W(p.name) + L"\" from the share code (" + std::to_wstring(p.mods.size()) + L" mods)";
+    if (!missing.empty() || missingLocal) msg += L"; " + std::to_wstring(missing.size() + (size_t)missingLocal) + L" not installed";
+    say(msg + L".");
+    if (missing.empty() && !missingLocal) return;
+    std::wstring t = L"The playset was imported, but " + std::to_wstring(missing.size() + (size_t)missingLocal) + L" enabled mod(s) are not installed on this computer:\n\n";
+    size_t shown = 0;
+    for (auto& mm : missing) { if (shown++ >= 14) break; t += L"  \u2022 " + (mm.second.empty() ? L"Workshop mod " + W(mm.first) : W(mm.second)) + L"\n"; }
+    if (missing.size() > 14) t += L"  ... and " + std::to_wstring(missing.size() - 14) + L" more\n";
+    if (missingLocal) t += L"  \u2022 " + std::to_wstring(missingLocal) + L" local mod(s) that are not Workshop mods (ask the sender for them)\n";
+    if (!missing.empty()) t += L"\nSubscribe to them on the Steam Workshop, wait for Steam to download them, then press Rescan.\n\nCopy the Workshop links of the missing mods to the clipboard?";
+    if (missing.empty()) { MessageBoxW(hMain, t.c_str(), L"Share code imported", MB_ICONINFORMATION); return; }
+    if (MessageBoxW(hMain, t.c_str(), L"Share code imported", MB_YESNO | MB_ICONINFORMATION) == IDYES) {
+        std::string links;
+        for (auto& mm : missing) links += "https://steamcommunity.com/sharedfiles/filedetails/?id=" + mm.first + (mm.second.empty() ? "" : "   " + mm.second) + "\n";
+        if (!copyToClipboard(links)) info(L"Could not copy to the clipboard (another program may be holding it). Try again.");
+        else say(L"Workshop links copied to the clipboard.");
+    }
+}
+
 static void advancedMenu() {
     HMENU m = CreatePopupMenu();
+    AppendMenuW(m, MF_STRING, ID_ADV_GAMELOG, L"Game log: which mod causes the errors...");
+    AppendMenuW(m, MF_STRING, ID_ADV_SINCE, L"What changed since I last pressed Play...");
+    AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING, ID_FOLDER, L"Open playsets folder");
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING, ID_ADV_BACKUP, L"Back up this playset now");
@@ -2843,6 +3329,8 @@ static void advancedMenu() {
     std::string dir = effectiveDir();
     if (cmd == ID_FOLDER) ShellExecuteW(hMain, L"open", playsetsDir().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     else if (cmd == ID_ADV_DELSAVES) deleteAllSaves();
+    else if (cmd == ID_ADV_GAMELOG) showReport(0);
+    else if (cmd == ID_ADV_SINCE) showReport(1);
     else if (cmd == ID_ADV_BACKUP) {
         Playset* ps = active();
         if (!ps) return;
@@ -3021,6 +3509,22 @@ static void onCommand(int id, int code) {
         }
         case ID_EXPORT: {
             if (!ps) break;
+            HMENU mn = CreatePopupMenu();
+            AppendMenuW(mn, MF_STRING, ID_EXP_FILE, L"Save as a playset file (.json, also opens in the Paradox launcher)...");
+            AppendMenuW(mn, MF_STRING, ID_EXP_CODE, L"Copy a share code (short, fits in a chat message)");
+            AppendMenuW(mn, MF_STRING, ID_EXP_CODEN, L"Copy a share code with mod names (longer, shows what is missing)");
+            RECT br; GetWindowRect(hExport, &br);
+            int xc = trackMenu(mn, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_TOPALIGN, br.left, br.bottom, hMain);
+            DestroyMenu(mn);
+            if (xc == ID_EXP_CODE || xc == ID_EXP_CODEN) {
+                int n = 0;
+                for (auto& m : ps->mods) if (m.enabled) n++;
+                std::string code = makeShareCode(*ps, g_info, xc == ID_EXP_CODEN);
+                if (!copyToClipboard(code)) { info(L"Could not copy to the clipboard (another program may be holding it). Try again."); break; }
+                say(L"Share code for \"" + W(ps->name) + L"\" copied (" + std::to_wstring(n) + L" enabled mods, " + std::to_wstring(code.size()) + L" characters). Paste it in a chat; the other person uses Import > Paste a share code.");
+                break;
+            }
+            if (xc != ID_EXP_FILE) break;
             std::wstring path;
             if (!pickFile(true, W(sanitizeFileName(ps->name)) + L".json", path)) break;
             // The name written inside the file is the file name you chose, so both always match.
@@ -3034,6 +3538,14 @@ static void onCommand(int id, int code) {
             break;
         }
         case ID_IMPORT: {
+            HMENU mn = CreatePopupMenu();
+            AppendMenuW(mn, MF_STRING, ID_IMP_FILE, L"Open a playset file (.json)...");
+            AppendMenuW(mn, MF_STRING, ID_IMP_CODE, L"Paste a share code from the clipboard");
+            RECT br; GetWindowRect(hImport, &br);
+            int ic = trackMenu(mn, TPM_RETURNCMD | TPM_LEFTALIGN | TPM_TOPALIGN, br.left, br.bottom, hMain);
+            DestroyMenu(mn);
+            if (ic == ID_IMP_CODE) { importShareCode(); break; }
+            if (ic != ID_IMP_FILE) break;
             std::wstring path;
             if (!pickFile(false, L"", path)) break;
             std::string text;
@@ -3096,6 +3608,7 @@ static void onCommand(int id, int code) {
             if (!startProgram(exe, err, args)) { info((L"Could not start the game (" + err + L").").c_str()); break; }
             for (auto it = g_settings.seen.begin(); it != g_settings.seen.end();) it = g_info.count(it->first) ? std::next(it) : g_settings.seen.erase(it);   // forget mods that are gone
             for (auto& m : ps->mods) if (m.enabled) if (auto f = fpNow().find(m.id); f != fpNow().end()) g_settings.seen[m.id] = f->second;
+            recordPlay(g_settings, *ps, g_fileIndex, g_gameVer, (long long)std::time(nullptr));   // what "since you last pressed Play" compares against
             saveSettingsNow(); refreshNotes();
             say(W(r.message) + L". Starting Crusader Kings III directly (launcher skipped)." + (registered ? L" Registered " + std::to_wstring(registered) + L" new Steam mod(s) for you." : L"") + (notAdded ? L" WARNING: " + std::to_wstring(notAdded) + L" Steam mod(s) could not be added to your mod folder and were left out." : L""));
             break;
@@ -3403,7 +3916,11 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 }
             }
             delete j; g_job = nullptr; g_scanning = false;
-            if (!cancelled) { g_confSig.clear(); refreshNotes(); maybeScan(false); }
+            if (!cancelled) {
+                g_confSig.clear(); refreshNotes(); maybeScan(false);
+                if (hRep && (g_repWaitIndex || g_repKind == 1)) repRefresh();
+                if (!g_sinceShown && !g_scanning) { g_sinceShown = true; sinceHint(); }
+            }
             return 0;
         }
         case WM_APP + 9: {   // conflict report computed on the worker thread

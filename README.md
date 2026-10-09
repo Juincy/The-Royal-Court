@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.16.0
+# The Royal Court | CK3 Mod Manager  v0.17.0
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -6,13 +6,15 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - Finds your Crusader Kings III folder and lists installed mods.
 - Playsets are Paradox Launcher playset files (one .json per playset in %APPDATA%\TheRoyalCourt\Playsets). The file name is the playset name.
 - Tick mods on/off, filter by name, drag rows (or Move up/down) to set load order. Every change is saved to the file immediately.
-- Export saves a playset file anywhere; Import reads playsets exported by the launcher. Use the launcher's own Import playset to bring one of ours into the launcher.
+- Export saves a playset file anywhere, or copies a **share code**: the whole playset as one line of text (starts with `RC1:`) to paste into a chat. Import reads playset files exported by the launcher, or pastes a share code. Mods you do not have stay in the list as not installed. Use the launcher's own Import playset to bring one of ours into the launcher.
 - Play starts Crusader Kings III directly, skipping the Paradox Launcher, using the playset selected in this app. It writes the playset's mods into the game's dlc_load.json first (your original is kept as dlc_load.json.rc-original). Steam must be running.
 - Columns for mod version, game version (checked against your installed CK3), source, type and notes; click a header to sort the view. The Notes column flags missing dependencies, wrong load order, outdated mods and file conflicts.
 - Conflicts finds mods that overwrite the same files (by mod pair or by file) and mods that define the same trait, event ID, define, on_action or localization key (By definition). The mod loaded last usually wins; where that is unclear, the app says so. Every conflict has a severity (High, Medium, Low), the Base game view lists game files that mods replace (and replace_path folders that remove game files), double-click shows who wins, and right-click moves one mod next to the other so the one you prefer wins (Undo order goes back).
 - Your playset is backed up automatically at startup and before Auto Sort (Advanced menu: Back up now, Restore, Open backups folder).
 - Auto Sort proposes a better load order (dependencies first, then Library, Overhaul, Content, Graphics, Interface, Translation, Patch; smaller targeted mods win file conflicts) and shows a preview before anything changes. Undo order restores the old order. Right-click a mod to lock its position or set its type.
 - Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or delete it permanently from disk (for a Workshop mod you unsubscribed from, this clears the leftover entry).
+- **Game log** (Advanced menu) reads the game's own log and shows which mod each error and warning comes from, by mod or as a full list, with a filter and a copy button for sending a mod's messages to its author.
+- **What changed since I last pressed Play** (Advanced menu) lists updated mods and what changed in them, mods now older than the game, mods turned on or off, and a game update. Pressing Play saves a small record (file hashes, no file names) in %APPDATA%\TheRoyalCourt\seen to compare against.
 - Mods that changed since you last pressed Play are flagged in Notes. Advanced has Compare with another playset and per-playset game launch options. The window remembers its size, position and column widths.
 - Select several mods with Ctrl/Shift-click to move, lock, retype, remove or delete them together.
 - Mods you just subscribed to on Steam appear greyed out right away (before the Paradox launcher has set them up); tick the box to add one.

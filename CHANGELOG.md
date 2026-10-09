@@ -6,6 +6,18 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.17.0] - 2026-10-09
+Find out which mod causes the errors, share a playset as one line of text, and see what changed since you last played.
+
+### Added
+- **Game log helper** (Advanced > "Game log: which mod causes the errors..."). Reads the game's own log (`logs/game.log`, and `error.log` on older builds) and shows which of your mods each error and warning comes from. The game names a file in its messages, not a mod, so the program looks the file up in your mods: the mod that loads last and has that file is the one the game used. When a message names no file, the names it mentions (an event, a trait, a script) are looked up among what your mods define; those rows say "matched by name". Two views: **By mod** (errors and warnings per mod, the most common message) and **All messages**, with a filter box. Double-click a mod to see only its messages. Right-click copies a line, or all of a mod's messages as a short text you can send to its author. The window also says when the log came from a different set of mods than you have enabled now (it reads the mod list the game printed into `debug.log`), because then the blame can land on the wrong mod.
+- **Share codes.** Export > "Copy a share code" puts the whole playset on the clipboard as one line starting with `RC1:`. A short code is about 700 characters for 100 Workshop mods, so it fits in a chat message; the longer code also carries each mod's name so the other person can see what they are missing. Import > "Paste a share code" turns it into a new playset. Mods the other person does not have stay in the list as not installed, and you can copy their Workshop links. Local mods travel by name. A code that was cut or changed on the way is refused (it has a checksum). The playset file export and import are unchanged.
+- **What changed since you last pressed Play** (Advanced menu). Lists the mods that were updated (and how: for example "3 files changed, 2 added (mostly common/traits)"), mods that are now older than your game version, mods turned on or off, mods that are gone, and whether the game itself updated. When something changed, the status line says so when the program starts. Pressing Play saves a small record of each enabled mod's files (16 bytes a file, in `%APPDATA%\TheRoyalCourt\seen`) so the next comparison can say what changed; delete the folder any time.
+- Tests for the log reader (real message shapes, grouping, attribution, damaged and huge input), the share code (round trip, damage, cut-off, absurd sizes), the file records and the report, and fuzzing of all three readers.
+
+### Fixed
+- **The theme change paints faster.** The window background is painted once per frame and the controls are no longer erased a second time. Measured on Windows before this change: 10 frames in 360 ms, 33 ms to paint each. The log line for a theme change reports how long each frame took, and the source holds a measuring build (`RC_PROF`) that splits that time up.
+
 ## [0.16.0] - 2026-10-09
 Conflicts against the base game, a conflicts window you can act from, and much faster starts with big playsets.
 

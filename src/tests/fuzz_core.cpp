@@ -2,6 +2,9 @@
 //   g++ -std=c++17 -O1 -g -fsanitize=address,undefined -o /tmp/fz src/tests/fuzz_core.cpp && /tmp/fz [iterations]
 // Any crash, hang or sanitizer report is a bug.
 #include "../core.hpp"
+#include "../gamelog.hpp"
+#include "../share.hpp"
+#include "../changes.hpp"
 #include <iostream>
 #include <random>
 using namespace rc;
@@ -17,6 +20,9 @@ int main(int argc, char** argv) {
         "l_english:\n key:0 \"text \\\"q\\\" $X$ #bold\"\n key2: \"v\"\n",
         "\"libraryfolders\"\n{\n\t\"0\"\n\t{\n\t\t\"path\"\t\t\"C:\\\\Steam\"\n\t}\n}\n",
         R"({"format":1,"revision":2,"mods":[{"names":["A B"],"ids":["1"],"type":"Graphics","position":"top","rank":5,"after":["x"],"before":["y"],"note":"n"}]})",
+        "[08:41:13][E][jomini_script_system.cpp:304]: Script system error!\n  Error: x [ y ]\n  Script location: file: events/a.txt line: 41 (ev.1:option)\n\n[08:41:14][W][a.cpp:1]: 'q' at file: common/x.txt line: 2 (n)\n",
+        "Name|mod/ugc_1.mod|Enabled\nOther|mod/b.mod|Disabled\n",
+        "RC1:AQAAAQ",
         "1.20.0.4 (Scythe)", "v0.14.1-beta", "{\"rawVersion\":\"1.20.0.4\"}",
         std::string(64, 'a') + "  TheRoyalCourt.exe\r\n",
     };
@@ -49,6 +55,9 @@ int main(int argc, char** argv) {
     readFile(modCacheFile(cdir, "m.mod"), modSeed);
     { VanillaIndex v; v.key = "k"; v.dir = "d"; v.files = {"common/a.txt", "events/b.txt", "gfx/c.dds"}; v.finish(); saveVanillaCache(cdir, v); }
     readFile(vanillaCacheFile(cdir), vanSeed);
+    std::string shareSeed;
+    { Playset sp; sp.name = "S"; sp.mods = {{"ugc_100.mod", true, ""}, {"loc.mod", true, "Local"}}; std::map<std::string, ModInfo> si; ModInfo lm; lm.id = "loc.mod"; lm.name = "Local"; si[lm.id] = lm;
+      std::string c = makeShareCode(sp, si, true); b64urlDecode(c.substr(4), shareSeed); }
     for (long it = 0; it < iters; it++) {
         std::string s = mutate(seeds[rng() % seeds.size()]);
         if (it % 4 == 0) {
@@ -57,6 +66,12 @@ int main(int argc, char** argv) {
             std::string vc = mutate(vanSeed); writeFile(vanillaCacheFile(cdir), vc);
             if (auto v = loadVanillaCache(cdir, "k")) { (void)v->has(s); (void)v->countUnder(s); }
         }
+        { auto lp = parseGameLog(s); Playset gp; gp.name = "g"; gp.mods = {{"ugc_100.mod", true, ""}};
+          std::map<std::string, ModFiles> gf; gf["ugc_100.mod"].files = {s.substr(0, 20), "events/a.txt"}; gf["ugc_100.mod"].complete = true;
+          std::map<std::string, ModDefs> gd; auto rep = attributeLog(std::move(lp), gp, gf, gd, nullptr); for (size_t k = 0; k < rep.parse.entries.size(); k++) (void)rep.how[k];
+          (void)logModReport(rep, 0, s.substr(0, 10)); (void)parseLoadedMods(s); }
+        { auto d = decodeShareCode(s); if (d.ok) (void)playsetFromShare(d, installed); (void)findShareCode(s); std::string bb; (void)b64urlDecode(s, bb); }
+        { std::string code = std::string("RC1:") + b64urlEncode(mutate(shareSeed)); auto d = decodeShareCode(code); if (d.ok) (void)playsetFromShare(d, installed); }
         J j; parseJson(s, j); std::string o; dump(j, o);
         (void)parseDescriptor(s);
         (void)parsePlaysetFile(s, installed);

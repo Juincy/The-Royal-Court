@@ -26,7 +26,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.16.0";
+inline const char* VERSION = "0.17.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -270,6 +270,9 @@ struct Settings {
     int winX = 0, winY = 0, winW = 0, winH = 0; bool winMax = false;  // remembered window position and size (winW == 0: none)
     std::vector<int> colW;                                            // remembered widths of the list columns (0 = automatic)
     bool checkUpdates = false;                                        // look for a newer release when the program starts (off by default)
+    std::string playGameVer, playName;                                // game version and playset name when Play was last pressed
+    long long playTime = 0;                                           // when (seconds since 1970; 0 = never)
+    std::vector<std::string> playMods;                                // mods that were enabled then
 };
 
 // A playset IS a Paradox Launcher playset file: <Playsets folder>/<name>.json. The file name is the playset name.
@@ -328,6 +331,12 @@ inline void loadSettingsExtra(Settings& st, J& root) {
     if (J* l = root.get("seen"); l && l->t == J::Obj)
         for (size_t i = 0; i < l->keys.size(); i++) if (l->vals[i].t == J::Str) st.seen[l->keys[i]] = l->vals[i].s;
     if (J* u = root.get("checkUpdates"); u && u->t == J::Bool) st.checkUpdates = u->b;
+    if (J* lp = root.get("lastPlay"); lp && lp->t == J::Obj) {
+        if (J* v = lp->get("game"); v && v->t == J::Str) st.playGameVer = v->s.substr(0, 40);
+        if (J* v = lp->get("playset"); v && v->t == J::Str) st.playName = v->s.substr(0, 100);
+        if (J* v = lp->get("time"); v && v->t == J::Num && v->n >= 0 && v->n < 4e10) st.playTime = (long long)v->n;
+        if (J* v = lp->get("mods"); v && v->t == J::Arr) for (auto& e : v->a) if (e.t == J::Str && st.playMods.size() < 5000) st.playMods.push_back(e.s);
+    }
     if (J* w = root.get("window"); w && w->t == J::Obj) {
         auto num = [&](const char* k, int& o) { if (J* v = w->get(k); v && v->t == J::Num) o = clampInt(v->n); };
         num("x", st.winX); num("y", st.winY); num("w", st.winW); num("h", st.winH);
@@ -379,6 +388,12 @@ inline bool saveSettings(const Settings& st) {
     if (!st.launch.empty()) { J o = J::obj(); for (auto& kv : st.launch) o.set(kv.first, J::str(kv.second)); root.set("launch", o); }
     if (!st.seen.empty()) { J o = J::obj(); for (auto& kv : st.seen) o.set(kv.first, J::str(kv.second)); root.set("seen", o); }
     if (st.checkUpdates) root.set("checkUpdates", J::boolean(true));
+    if (st.playTime > 0) {
+        J lp = J::obj();
+        lp.set("game", J::str(st.playGameVer)); lp.set("playset", J::str(st.playName)); lp.set("time", J::num((double)st.playTime));
+        J a = J::arr(); for (auto& id : st.playMods) a.a.push_back(J::str(id)); lp.set("mods", a);
+        root.set("lastPlay", lp);
+    }
     if (st.winW > 0) {
         J w = J::obj();
         w.set("x", J::num(st.winX)); w.set("y", J::num(st.winY)); w.set("w", J::num(st.winW)); w.set("h", J::num(st.winH));
@@ -653,6 +668,7 @@ struct ModFiles {
     std::vector<std::string> files;
     bool complete = false;
     std::string deep;                        // hash over every file's path, size and time: changes when ANY file in the mod changes
+    std::vector<uint64_t> mix;               // deepMix of each file, in the same order as files (lets a later comparison tell which files changed)
 };
 
 // One file's contribution to a deep fingerprint. The contributions are added up, so the order the folder is listed in does not matter.
@@ -719,8 +735,10 @@ inline ModFiles indexModFiles(const std::string& contentDir, const std::atomic<b
     uint64_t sum = 0;
     int rc = walkFiles(contentDir, [&](const std::string& rel, uint64_t size, int64_t mtime) {
         if (rel.find('/') == std::string::npos) return;   // root-level file
-        sum += deepMix(rel, size, mtime);
+        uint64_t mx = deepMix(rel, size, mtime);
+        sum += mx;
         r.files.push_back(rel);
+        r.mix.push_back(mx);
     }, cancel);
     if (rc == WALK_CANCELLED) return r;
     r.complete = rc == WALK_OK;

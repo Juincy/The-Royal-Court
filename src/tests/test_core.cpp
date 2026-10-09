@@ -2,6 +2,9 @@
 #include <chrono>
 #include <iostream>
 #include "../core.hpp"
+#include "../gamelog.hpp"
+#include "../share.hpp"
+#include "../changes.hpp"
 using namespace rc;
 
 static std::string fx(const char* name) {
@@ -1016,6 +1019,152 @@ int main() {
         assert(ui[0].empty());
         addUpdateIssues(ui, up, infoMap(um), {{"u.mod", "d|1|5#d:aa-2"}}, {{"u.mod", "d|1|5#d:ab-2"}});
         assert(!ui[0].empty() && ui[0].back().text.find("Updated since") != std::string::npos);
+    }
+
+    {   // ---- game log: real message shapes, attribution to mods ----
+        std::string log =
+            "[08:40:44][W][game_database.h:272]: Overriding entry 'house_armagnac' for database 'common/dynasty_houses' in 'file: common/dynasty_houses/00_unop_dynasty_houses.txt line: 1'\r\n"
+            "[08:41:13][E][jomini_script_system.cpp:304]: Script system error!\r\n"
+            "  Error: stress_impact effect [ Cannot find scholar in trait database ]\r\n"
+            "  Script location: file: events/VIET_events_travel.txt line: 4129 (VIETmisc.7039:option)\r\n"
+            "\r\n"
+            "[08:41:13][E][jomini_script_system.cpp:304]: Script system error!\r\n"
+            "  Error: stress_impact effect [ Cannot find scholar in trait database ]\r\n"
+            "  Script location: file: events/VIET_events_travel.txt line: 4129 (VIETmisc.7039:option)\r\n"
+            "\r\n"
+            "[08:41:13][E][modifier_instance.cpp:390]: Unknown modifier type 'faith_creation_piety_cost_mult' at file: common/traits/zz_gptev_traits.txt line: 776 (gpt_crow)\r\n"
+            "[08:41:13][E][event.cpp:451]: fullscreen_event 'VIETmisc.1084' requires queue_icon\r\n"
+            "[08:41:13][E][weird.cpp:1]: something nobody can place\r\n"
+            "[08:41:13][E][base.cpp:1]: bad thing at file: common/traits/00_traits.txt line: 3 (x)\r\n"
+            "[08:41:14][I][info.cpp:1]: just information\r\n"
+            "[08:41:14][D][dbg.cpp:1]: debug chatter\r\n"
+            "not a log line at all\r\n";
+        auto lp = parseGameLog(log);
+        assert(lp.errors == 6 && lp.warnings == 1);                 // the duplicated script error counts twice, information and debug are skipped
+        assert(lp.entries.size() == 6);                             // ...but is listed once
+        const LogEntry* se = nullptr; for (auto& e : lp.entries) if (e.src == "jomini_script_system.cpp:304") se = &e;
+        assert(se && se->count == 2 && se->file == "events/viet_events_travel.txt" && se->line == 4129 && se->detail.find("Cannot find scholar") != std::string::npos);
+        bool names = false; for (auto& n : se->names) if (n == "VIETmisc.7039") names = true;
+        assert(names);
+        auto lw = parseGameLog(log, false);
+        assert(lw.warnings == 0 && lw.errors == 6);
+        // attribution: mod 0 ships the events file, mod 1 the trait file and defines event VIETmisc.1084, the base game has 00_traits.txt
+        Playset ps; ps.name = "t"; ps.mods = {{"a.mod", true, "A"}, {"b.mod", true, "B"}, {"c.mod", false, "C"}};
+        std::map<std::string, ModFiles> mf; mf["a.mod"].files = {"events/viet_events_travel.txt", "common/traits/zz_gptev_traits.txt"}; mf["a.mod"].complete = true;
+        mf["b.mod"].files = {"common/traits/zz_gptev_traits.txt"}; mf["b.mod"].complete = true;
+        mf["c.mod"].files = {"events/viet_events_travel.txt"}; mf["c.mod"].complete = true;   // disabled: never blamed
+        std::map<std::string, ModDefs> md; ModDefs bd; bd.complete = true; bd.pool = "VIETmisc.1084"; DefEntry de; de.nameOff = 0; de.nameLen = 13; de.kind = DK_EVENT; bd.defs.push_back(de); md["b.mod"] = bd;
+        VanillaIndex van; van.files = {"common/traits/00_traits.txt"}; van.finish();
+        auto rep = attributeLog(parseGameLog(log), ps, mf, md, &van);
+        for (size_t k = 0; k < rep.parse.entries.size(); k++) {
+            auto& e = rep.parse.entries[k];
+            if (e.src == "jomini_script_system.cpp:304") assert(rep.modOf[k] == 0 && rep.how[k] == LH_FILE);
+            if (e.src == "modifier_instance.cpp:390") assert(rep.modOf[k] == 1 && rep.how[k] == LH_FILE);   // both ship it; the later mod's copy is the one the game used
+            if (e.src == "event.cpp:451") assert(rep.modOf[k] == 1 && rep.how[k] == LH_NAME);
+            if (e.src == "weird.cpp:1") assert(rep.modOf[k] == -1 && rep.how[k] == LH_NONE);
+            if (e.src == "base.cpp:1") assert(rep.modOf[k] == -1 && rep.how[k] == LH_BASE);
+            if (e.src == "game_database.h:272") assert(rep.how[k] == LH_NONE);   // no mod ships that file here
+        }
+        assert(rep.perMod.size() == 2 && rep.perMod[0].mod == 0 && rep.perMod[0].errors == 2);
+        assert(rep.base.errors == 1 && rep.unplaced.errors == 1 && rep.unplaced.warnings == 1);
+        assert(logModReport(rep, 0, "A").find("Cannot find scholar") != std::string::npos);
+        // loaded mods from debug.log
+        auto lm = parseLoadedMods("junk\nBetter Population Control|mod/ugc_3425828418.mod|Enabled\nUnofficial Patch|mod/ugc_2871648329.mod|Enabled\nBetter Population Control|mod/ugc_3425828418.mod|Enabled\nbad|mod/../x.mod|Enabled\nX|mod/y.mod|Maybe\n");
+        assert(lm.size() == 2 && lm[0].id == "ugc_3425828418.mod" && lm[1].name == "Unofficial Patch");
+        // robustness: nothing in, nothing out; huge and odd input does not crash
+        assert(parseGameLog("").entries.empty());
+        assert(parseGameLog("[", true).entries.empty() && parseGameLog("[08:00:00][E][", true).entries.empty());
+        std::string big; for (int i = 0; i < 30000; i++) big += "[08:00:00][E][a.cpp:1]: msg " + std::to_string(i) + " file: x/" + std::to_string(i) + ".txt line: 1\n";
+        auto bp = parseGameLog(big); assert(bp.entries.size() == 20000 && bp.dropped == 10000 && bp.errors == 30000);
+    }
+    {   // ---- share codes ----
+        std::vector<ModInfo> inst; ModInfo i1; i1.id = "ugc_2871648329.mod"; i1.name = "Unofficial Patch"; inst.push_back(i1);
+        ModInfo i2; i2.id = "my_local.mod"; i2.name = "My Local"; inst.push_back(i2);
+        ModInfo i3; i3.id = "ugc_5.mod"; i3.name = "Off"; inst.push_back(i3);
+        Playset ps; ps.name = "Vanilla+ V1.0"; ps.mods = {{"ugc_2871648329.mod", true, ""}, {"my_local.mod", true, ""}, {"ugc_5.mod", false, ""}, {"ugc_3425828418.mod", true, "Gone Mod"}, {"ugc_77.mod", false, "Off Missing"}, {"local:Ghost", true, "Ghost"}};
+        auto im = infoMap(inst);
+        for (bool names : {false, true}) {
+            std::string code = makeShareCode(ps, im, names);
+            assert(code.rfind("RC1:", 0) == 0 && code.find_first_of(" \n+/=") == std::string::npos);
+            auto d = decodeShareCode("here you go: " + code + " enjoy");
+            assert(d.ok && d.name == "Vanilla+ V1.0" && d.withNames == names);
+            assert(d.mods.size() == 5);                                   // the disabled installed mod is left out; the disabled missing one is kept
+            assert(d.mods[0].workshopId == "2871648329" && d.mods[0].enabled && (names ? d.mods[0].name == "Unofficial Patch" : d.mods[0].name.empty()));
+            assert(d.mods[1].local && d.mods[1].name == "My Local");
+            assert(d.mods[2].workshopId == "3425828418" && d.mods[2].enabled);
+            assert(d.mods[3].workshopId == "77" && !d.mods[3].enabled);
+            assert(d.mods[4].local && d.mods[4].name == "Ghost");
+            Playset back = playsetFromShare(d, inst);
+            assert(back.mods.size() == 5 && back.mods[0].id == "ugc_2871648329.mod" && back.mods[1].id == "my_local.mod" && back.mods[2].id == "ugc_3425828418.mod");
+            assert(back.mods[3].id == "ugc_77.mod" && !back.mods[3].enabled && back.mods[4].id == "local:Ghost");
+        }
+        std::string code = makeShareCode(ps, im, false);
+        assert(!decodeShareCode("").ok && !decodeShareCode("RC1:").ok && !decodeShareCode("hello").ok);
+        std::string cut = code.substr(0, code.size() - 5); assert(!decodeShareCode(cut).ok);
+        std::string bad = code; bad[10] = bad[10] == 'A' ? 'B' : 'A'; assert(!decodeShareCode(bad).ok);   // one wrong character is caught
+        Playset big; big.name = "big"; std::map<std::string, ModInfo> bi;
+        for (int i = 0; i < 100; i++) big.mods.push_back({"ugc_" + std::to_string(2000000000u + (unsigned)i * 7919u) + ".mod", true, ""});
+        assert(makeShareCode(big, bi, false).size() < 800);               // 100 Workshop mods fit in one chat message
+        // a code with an absurd count or a cut-off name cannot read past its end
+        std::string evil; evil += (char)1; evil += (char)0; evil += (char)0; putVar(evil, 4999); uint32_t cc = crc32Of(evil); for (int i = 0; i < 4; i++) evil += (char)((cc >> (i * 8)) & 0xFF);
+        assert(!decodeShareCode(std::string("RC1:") + b64urlEncode(evil)).ok);
+        for (size_t n = 0; n < 40; n++) { std::string junk; for (size_t k = 0; k < n; k++) junk += (char)(k * 37 + n); assert(!decodeShareCode("RC1:" + b64urlEncode(junk)).ok); }
+    }
+    {   // ---- since last Play: file records and the report ----
+        setenv("RC_DATA_DIR", "/tmp/rc_seen_test", 1);
+        fs::remove_all("/tmp/rc_seen_test");
+        ModFiles a; a.complete = true;
+        for (int i = 0; i < 50; i++) { a.files.push_back("common/traits/t" + std::to_string(i) + ".txt"); a.mix.push_back(deepMix(a.files.back(), 100 + i, 5)); }
+        Manifest m0 = manifestOf(a);
+        assert(m0.v.size() == 50 && saveManifest("a.mod", m0));
+        Manifest back; assert(loadManifest("a.mod", back) && back.v == m0.v);
+        auto same = compareManifest(back, a);
+        assert(same.known && same.same == 50 && !same.added && !same.changed && !same.removed && describeChanges(same) == "no file changes");
+        ModFiles b = a;   // one file changed, one removed, two added
+        b.mix[3] ^= 1; b.files.erase(b.files.begin() + 10); b.mix.erase(b.mix.begin() + 10);
+        b.files.push_back("events/new_a.txt"); b.mix.push_back(1); b.files.push_back("events/new_b.txt"); b.mix.push_back(2);
+        auto ch = compareManifest(back, b);
+        assert(ch.known && ch.changed == 1 && ch.added == 2 && ch.removed == 1 && ch.same == 48);
+        assert(ch.changedNames.size() == 1 && ch.changedNames[0] == "common/traits/t3.txt" && ch.addedNames.size() == 2);
+        assert(describeChanges(ch).find("1 file changed, 2 added, 1 removed") == 0);
+        assert(!compareManifest(Manifest(), a).known);
+        ModFiles incomplete = a; incomplete.complete = false; assert(manifestOf(incomplete).v.empty() && !compareManifest(back, incomplete).known);
+        ModFiles nomix = a; nomix.mix.clear(); assert(manifestOf(nomix).v.empty());
+        // a damaged record is ignored
+        std::string raw; readFile(manifestPath("a.mod"), raw); raw[20] ^= 1; writeFile(manifestPath("a.mod"), raw);
+        Manifest bad2; assert(!loadManifest("a.mod", bad2));
+        writeFile(manifestPath("a.mod"), raw.substr(0, raw.size() / 2)); assert(!loadManifest("a.mod", bad2));
+        assert(!loadManifest("nothing.mod", bad2));
+        // the report
+        saveManifest("a.mod", m0);
+        Settings st; Playset ps; ps.name = "P"; ps.mods = {{"a.mod", true, "A"}, {"o.mod", true, "Old"}, {"n.mod", true, "New"}, {"off.mod", false, "Off"}};
+        std::vector<ModInfo> inst; ModInfo ia; ia.id = "a.mod"; ia.name = "A"; ia.supported = "1.21.*"; inst.push_back(ia);
+        ModInfo io; io.id = "o.mod"; io.name = "Old"; io.supported = "1.18.*"; inst.push_back(io);
+        ModInfo in; in.id = "n.mod"; in.name = "New"; in.supported = "1.21.*"; inst.push_back(in);
+        ModInfo iof; iof.id = "off.mod"; iof.name = "Off"; inst.push_back(iof);
+        auto im = infoMap(inst);
+        std::map<std::string, ModFiles> files; files["a.mod"] = b;
+        std::map<std::string, std::string> now{{"a.mod", "d|1|1#d:bb-5"}};
+        auto none = buildPlayReport(st, ps, im, now, files, "1.21.0.1");
+        assert(!none.hasPrev && !none.gameChanged && none.updated.empty() && none.outdated.size() == 1 && none.outdated[0].name == "Old");   // Play was never pressed: only the version warning
+        st.playTime = 1000; st.playGameVer = "1.20.0.4"; st.playName = "P"; st.playMods = {"a.mod", "gone.mod", "off.mod"};
+        st.seen["a.mod"] = "d|1|1#d:aa-5";
+        auto rp = buildPlayReport(st, ps, im, now, files, "1.21.0.1");
+        assert(rp.hasPrev && rp.gameChanged && rp.prevGame == "1.20.0.4");
+        assert(rp.updated.size() == 1 && rp.updated[0].text.find("1 file changed") == 0);
+        assert(rp.outdated.size() == 1 && rp.outdated[0].modId == "o.mod");
+        assert(rp.added.size() == 2);                                      // o.mod and n.mod were not enabled at the last Play
+        assert(rp.removed.size() == 2 && rp.removed[0].text == "no longer installed" && rp.removed[1].text == "turned off since then");
+        Playset other = ps; other.name = "Other";
+        assert(buildPlayReport(st, other, im, now, files, "1.21.0.1").added.empty());   // a different playset: no added/removed comparison
+        // recordPlay writes the records and the settings round-trip
+        recordPlay(st, ps, files, "1.21.0.1", 2000);
+        assert(st.playTime == 2000 && st.playGameVer == "1.21.0.1" && st.playMods.size() == 3);
+        Manifest rec; assert(loadManifest("a.mod", rec) && rec.v.size() == b.files.size());
+        setenv("RC_DATA_DIR", "/tmp/rc_seen_test", 1);
+        saveSettings(st);
+        Settings st2; loadSettings(st2);
+        assert(st2.playTime == 2000 && st2.playGameVer == "1.21.0.1" && st2.playName == "P" && st2.playMods == st.playMods);
     }
     std::cout << "ALL CORE TESTS PASSED\n";
 }
