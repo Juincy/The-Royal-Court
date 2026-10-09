@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.17.0
+# The Royal Court | CK3 Mod Manager  v0.18.0
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -14,12 +14,15 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - Auto Sort proposes a better load order (dependencies first, then Library, Overhaul, Content, Graphics, Interface, Translation, Patch; smaller targeted mods win file conflicts) and shows a preview before anything changes. Undo order restores the old order. Right-click a mod to lock its position or set its type.
 - Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or delete it permanently from disk (for a Workshop mod you unsubscribed from, this clears the leftover entry).
 - **Game log** (Advanced menu) reads the game's own log and shows which mod each error and warning comes from, by mod or as a full list, with a filter and a copy button for sending a mod's messages to its author.
+- **Crash helper** (Advanced menu) reads the folder the game writes when it crashes and says what kind of crash it was, which of your mods the last log messages point at, whether the playset changed since, and what to try. It only reads.
+- A **quick tour** opens the first time the program starts (and from Advanced) and explains the main features.
 - **What changed since I last pressed Play** (Advanced menu) lists updated mods and what changed in them, mods now older than the game, mods turned on or off, and a game update. Pressing Play saves a small record (file hashes, no file names) in %APPDATA%\TheRoyalCourt\seen to compare against.
 - Mods that changed since you last pressed Play are flagged in Notes. Advanced has Compare with another playset and per-playset game launch options. The window remembers its size, position and column widths.
 - Select several mods with Ctrl/Shift-click to move, lock, retype, remove or delete them together.
 - Mods you just subscribed to on Steam appear greyed out right away (before the Paradox launcher has set them up); tick the box to add one.
 - The Updates button checks GitHub for a newer version and can update the program in place (the new exe is verified against the release's SHA-256 checksum first). It only runs when you press it, unless you switch on checking at startup in Advanced.
 - Advanced > Open diagnostics log opens royalcourt.log, a small file useful for bug reports.
+- **Languages**: Russian, Chinese (Simplified), German, Spanish, French, Polish, Portuguese (Brazil), Turkish, Korean and Japanese, built into the exe. It follows the Windows language by default; the language button in the top bar switches it at once. The changelog, share codes and reports meant to be sent to others stay in English.
 - Dark and light themes, and an Advanced menu (for example, delete all saves).
 - The Changelog window lists every version as an expandable branch.
 

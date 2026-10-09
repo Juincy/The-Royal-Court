@@ -112,17 +112,17 @@ inline ChangeSummary compareManifest(const Manifest& old, const ModFiles& now, s
 // One line for a list or a log: "3 files changed, 2 added, 1 removed (mostly common/traits)"
 inline std::string describeChanges(const ChangeSummary& s) {
     if (!s.known) return "";
-    if (!s.added && !s.changed && !s.removed) return "no file changes";
+    if (!s.added && !s.changed && !s.removed) return tr("no file changes");
     std::string o;
-    auto part = [&](size_t n, const char* w) { if (!n) return; if (!o.empty()) o += ", "; o += std::to_string(n) + " " + w; };
-    part(s.changed, s.changed == 1 ? "file changed" : "files changed");
-    part(s.added, "added");
-    part(s.removed, "removed");
+    auto part = [&](const std::string& t) { if (!o.empty()) o += ", "; o += t; };
+    if (s.changed) part(s.changed == 1 ? trf("{0} file changed", {s.changed}) : trf("{0} files changed", {s.changed}));
+    if (s.added) part(trf("{0} added", {s.added}));
+    if (s.removed) part(trf("{0} removed", {s.removed}));
     if (!s.folders.empty()) {
         auto best = s.folders.begin();
         for (auto it = s.folders.begin(); it != s.folders.end(); ++it) if (it->second > best->second) best = it;
-        if (!best->first.empty() && s.folders.size() > 1 && best->second * 2 > s.added + s.changed) o += " (mostly " + best->first + ")";
-        else if (s.folders.size() == 1 && !best->first.empty()) o += " (in " + best->first + ")";
+        if (!best->first.empty() && s.folders.size() > 1 && best->second * 2 > s.added + s.changed) o = trf("{0} (mostly {1})", {o, best->first});
+        else if (s.folders.size() == 1 && !best->first.empty()) o = trf("{0} (in {1})", {o, best->first});
     }
     return o;
 }
@@ -152,10 +152,10 @@ inline PlayReport buildPlayReport(const Settings& st, const Playset& ps, const s
         auto it = info.find(m.id);
         if (it == info.end()) continue;
         if (!gameVer.empty() && matchGameVersion(it->second.supported, gameVer) == VerMatch::Mismatch)
-            r.outdated.push_back({m.id, nameOf(m), "made for game version " + it->second.supported + ", you have " + gameVer, 1});
+            r.outdated.push_back({m.id, nameOf(m), trf("made for game version {0}, you have {1}", {it->second.supported, gameVer}), 1});
         auto s = st.seen.find(m.id), n = fpNow.find(m.id);
         if (s != st.seen.end() && n != fpNow.end() && fingerprintChanged(s->second, n->second)) {
-            std::string t = "updated or edited";
+            std::string t = tr("updated or edited");
             Manifest old;
             auto f = files.find(m.id);
             if (f != files.end() && loadManifest(m.id, old)) {
@@ -168,12 +168,12 @@ inline PlayReport buildPlayReport(const Settings& st, const Playset& ps, const s
     if (r.hasPrev && st.playName == ps.name) {
         std::set<std::string> was(st.playMods.begin(), st.playMods.end()), is;
         for (auto& m : ps.mods) if (m.enabled) is.insert(m.id);
-        for (auto& m : ps.mods) if (m.enabled && !was.count(m.id)) r.added.push_back({m.id, nameOf(m), "enabled since then", 0});
+        for (auto& m : ps.mods) if (m.enabled && !was.count(m.id)) r.added.push_back({m.id, nameOf(m), tr("enabled since then"), 0});
         for (auto& id : st.playMods) {
             if (is.count(id)) continue;
             auto it = info.find(id);
-            if (it == info.end()) r.removed.push_back({id, id, "no longer installed", 1});
-            else r.removed.push_back({id, it->second.name, "turned off since then", 0});
+            if (it == info.end()) r.removed.push_back({id, id, tr("no longer installed"), 1});
+            else r.removed.push_back({id, it->second.name, tr("turned off since then"), 0});
         }
     } else r.samePlayset = false;
     return r;

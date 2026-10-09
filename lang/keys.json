@@ -1,0 +1,3846 @@
+[
+ {
+  "key": "{0} of {1} mods",
+  "where": [
+   "main.cpp:61"
+  ]
+ },
+ {
+  "key": "CK3 MOD MANAGER  ·  v{0}",
+  "where": [
+   "main.cpp:585"
+  ]
+ },
+ {
+  "key": "Author: {0}",
+  "where": [
+   "main.cpp:593"
+  ]
+ },
+ {
+  "key": "Warning: could not save the playset file.",
+  "where": [
+   "main.cpp:764"
+  ]
+ },
+ {
+  "key": "Warning: could not save settings.",
+  "where": [
+   "main.cpp:767"
+  ]
+ },
+ {
+  "key": "{0} of {1} enabled",
+  "where": [
+   "main.cpp:1002"
+  ]
+ },
+ {
+  "key": "{0} with problems",
+  "where": [
+   "main.cpp:1003"
+  ]
+ },
+ {
+  "key": "scanning mod files {0}/{1}",
+  "where": [
+   "main.cpp:1004"
+  ]
+ },
+ {
+  "key": "calculating conflicts",
+  "where": [
+   "main.cpp:1005"
+  ]
+ },
+ {
+  "key": "{0} file conflicts",
+  "where": [
+   "main.cpp:1007"
+  ]
+ },
+ {
+  "key": "{0} script overlaps",
+  "where": [
+   "main.cpp:1008"
+  ]
+ },
+ {
+  "key": "{0} replace base-game files",
+  "where": [
+   "main.cpp:1012"
+  ]
+ },
+ {
+  "key": "{0} may be outdated",
+  "where": [
+   "main.cpp:1014"
+  ]
+ },
+ {
+  "key": "Downloaded from Steam. Tick the box to add it",
+  "where": [
+   "main.cpp:1054"
+  ]
+ },
+ {
+  "key": "{0}  (not installed)",
+  "where": [
+   "main.cpp:1130"
+  ]
+ },
+ {
+  "key": "Your {0} playset(s) from the older version were converted to launcher playset files.",
+  "where": [
+   "main.cpp:1292"
+  ]
+ },
+ {
+  "key": "CK3 folder not found. Enter it below (the folder that contains \"mod\"), then press Save folder.",
+  "where": [
+   "main.cpp:1293"
+  ]
+ },
+ {
+  "key": "No mods found in {0}\\mod",
+  "where": [
+   "main.cpp:1294"
+  ]
+ },
+ {
+  "key": "Not installed ({0})",
+  "where": [
+   "main.cpp:1347"
+  ]
+ },
+ {
+  "key": "Files: {0}",
+  "where": [
+   "main.cpp:1351",
+   "main.cpp:1352"
+  ]
+ },
+ {
+  "key": "Files: archive {0}",
+  "where": [
+   "main.cpp:1351"
+  ]
+ },
+ {
+  "key": "Files: {0}  (NOT FOUND)",
+  "where": [
+   "main.cpp:1352"
+  ]
+ },
+ {
+  "key": "Position in playset: {0} (enabled)",
+  "where": [
+   "main.cpp:1354"
+  ]
+ },
+ {
+  "key": "Position in playset: {0} (disabled)",
+  "where": [
+   "main.cpp:1354"
+  ]
+ },
+ {
+  "key": "Descriptor: {0}",
+  "where": [
+   "main.cpp:1355"
+  ]
+ },
+ {
+  "key": "Source: {0}",
+  "where": [
+   "main.cpp:1355"
+  ]
+ },
+ {
+  "key": "Mod version: {0}",
+  "where": [
+   "main.cpp:1355"
+  ]
+ },
+ {
+  "key": "Game version: {0}",
+  "where": [
+   "main.cpp:1356"
+  ]
+ },
+ {
+  "key": "Type: {0} (set by you)",
+  "where": [
+   "main.cpp:1358"
+  ]
+ },
+ {
+  "key": "Type: {0} ({1})",
+  "where": [
+   "main.cpp:1358"
+  ]
+ },
+ {
+  "key": "Position: locked (Auto Sort will not move it)",
+  "where": [
+   "main.cpp:1359"
+  ]
+ },
+ {
+  "key": "Known mod: {0}",
+  "where": [
+   "main.cpp:1360"
+  ]
+ },
+ {
+  "key": "Dependencies: {0}",
+  "where": [
+   "main.cpp:1361"
+  ]
+ },
+ {
+  "key": "Replaces vanilla folders: {0}",
+  "where": [
+   "main.cpp:1361"
+  ]
+ },
+ {
+  "key": "Tags: {0}",
+  "where": [
+   "main.cpp:1361"
+  ]
+ },
+ {
+  "key": "Checks:",
+  "where": [
+   "main.cpp:1365"
+  ]
+ },
+ {
+  "key": "  [problem] {0}",
+  "where": [
+   "main.cpp:1366"
+  ]
+ },
+ {
+  "key": "  [warning] {0}",
+  "where": [
+   "main.cpp:1366"
+  ]
+ },
+ {
+  "key": "  [info] {0}",
+  "where": [
+   "main.cpp:1366"
+  ]
+ },
+ {
+  "key": "Checks: no problems found.",
+  "where": [
+   "main.cpp:1367"
+  ]
+ },
+ {
+  "key": "Mod details",
+  "where": [
+   "main.cpp:1368"
+  ]
+ },
+ {
+  "key": "The mod folder changed, list refreshed: {0} mods installed",
+  "where": [
+   "main.cpp:1385"
+  ]
+ },
+ {
+  "key": "Rescanned: {0} mods installed",
+  "where": [
+   "main.cpp:1385"
+  ]
+ },
+ {
+  "key": "{0} new (added at the end of your playsets, disabled)",
+  "where": [
+   "main.cpp:1386"
+  ]
+ },
+ {
+  "key": "{0} removed",
+  "where": [
+   "main.cpp:1387",
+   "changes.hpp:120"
+  ]
+ },
+ {
+  "key": "{0} from Steam are not registered by the Paradox launcher yet (Play registers them).",
+  "where": [
+   "main.cpp:1389"
+  ]
+ },
+ {
+  "key": "{0} hidden because you removed them (Advanced > Show removed mods).",
+  "where": [
+   "main.cpp:1390"
+  ]
+ },
+ {
+  "key": "Nothing new found: if you just subscribed, wait until Steam has finished downloading the mod, then rescan.",
+  "where": [
+   "main.cpp:1391"
+  ]
+ },
+ {
+  "key": "Select a mod first.",
+  "where": [
+   "main.cpp:1429"
+  ]
+ },
+ {
+  "key": "OK",
+  "where": [
+   "main.cpp:1491"
+  ]
+ },
+ {
+  "key": "Cancel",
+  "where": [
+   "main.cpp:1492",
+   "main.cpp:1626"
+  ]
+ },
+ {
+  "key": "Auto Sort preview - The Royal Court",
+  "where": [
+   "main.cpp:1586"
+  ]
+ },
+ {
+  "key": "Auto Sort will move {0} of {1} mods. Green = moves earlier, amber = moves later. Nothing is changed until you press Apply, and you can undo it afterwards.",
+  "where": [
+   "main.cpp:1587"
+  ]
+ },
+ {
+  "key": "{0} mod(s) recognised from the known-mods list.",
+  "where": [
+   "main.cpp:1588"
+  ]
+ },
+ {
+  "key": "{0} patch(es) placed after the mods they are for.",
+  "where": [
+   "main.cpp:1589"
+  ]
+ },
+ {
+  "key": "{0} file-conflict tie-break(s) applied.",
+  "where": [
+   "main.cpp:1590"
+  ]
+ },
+ {
+  "key": "New #",
+  "where": [
+   "main.cpp:1601"
+  ]
+ },
+ {
+  "key": "Mod",
+  "where": [
+   "main.cpp:1601",
+   "main.cpp:2464",
+   "main.cpp:2465"
+  ]
+ },
+ {
+  "key": "Type",
+  "where": [
+   "main.cpp:1601",
+   "main.cpp:1837",
+   "main.cpp:3419"
+  ]
+ },
+ {
+  "key": "Change",
+  "where": [
+   "main.cpp:1601"
+  ]
+ },
+ {
+  "key": "Why",
+  "where": [
+   "main.cpp:1601"
+  ]
+ },
+ {
+  "key": "locked",
+  "where": [
+   "main.cpp:1617"
+  ]
+ },
+ {
+  "key": "from {0}",
+  "where": [
+   "main.cpp:1618",
+   "main.cpp:1619"
+  ]
+ },
+ {
+  "key": "Apply sort",
+  "where": [
+   "main.cpp:1625"
+  ]
+ },
+ {
+  "key": "Version {0}",
+  "where": [
+   "main.cpp:1700"
+  ]
+ },
+ {
+  "key": "Expand all",
+  "where": [
+   "main.cpp:1745"
+  ]
+ },
+ {
+  "key": "Collapse all",
+  "where": [
+   "main.cpp:1746"
+  ]
+ },
+ {
+  "key": "Changelog - The Royal Court",
+  "where": [
+   "main.cpp:1786"
+  ]
+ },
+ {
+  "key": "Severity",
+  "where": [
+   "main.cpp:1834",
+   "main.cpp:1835",
+   "main.cpp:1836"
+  ]
+ },
+ {
+  "key": "Loses (loads earlier)",
+  "where": [
+   "main.cpp:1834"
+  ]
+ },
+ {
+  "key": "Wins (loads later)",
+  "where": [
+   "main.cpp:1834"
+  ]
+ },
+ {
+  "key": "Files",
+  "where": [
+   "main.cpp:1834"
+  ]
+ },
+ {
+  "key": "Where",
+  "where": [
+   "main.cpp:1834"
+  ]
+ },
+ {
+  "key": "File",
+  "where": [
+   "main.cpp:1835",
+   "main.cpp:2466"
+  ]
+ },
+ {
+  "key": "Winner (loads last)",
+  "where": [
+   "main.cpp:1835"
+  ]
+ },
+ {
+  "key": "Also in",
+  "where": [
+   "main.cpp:1835"
+  ]
+ },
+ {
+  "key": "Base game",
+  "where": [
+   "main.cpp:1835",
+   "main.cpp:2167",
+   "main.cpp:2421"
+  ]
+ },
+ {
+  "key": "Base-game file that mods replace",
+  "where": [
+   "main.cpp:1836"
+  ]
+ },
+ {
+  "key": "Replaced by (load order, last one is used)",
+  "where": [
+   "main.cpp:1836"
+  ]
+ },
+ {
+  "key": "Area",
+  "where": [
+   "main.cpp:1837"
+  ]
+ },
+ {
+  "key": "Name",
+  "where": [
+   "main.cpp:1837"
+  ]
+ },
+ {
+  "key": "Defined by (load order)",
+  "where": [
+   "main.cpp:1837"
+  ]
+ },
+ {
+  "key": "What happens",
+  "where": [
+   "main.cpp:1837"
+  ]
+ },
+ {
+  "key": "Reading mod files... {0}/{1}",
+  "where": [
+   "main.cpp:1906"
+  ]
+ },
+ {
+  "key": "Calculating conflicts...",
+  "where": [
+   "main.cpp:1907"
+  ]
+ },
+ {
+  "key": "No script data yet. Enable some mods that have a files folder, then press Rescan files.",
+  "where": [
+   "main.cpp:1909"
+  ]
+ },
+ {
+  "key": "{0} overlaps",
+  "where": [
+   "main.cpp:1913"
+  ]
+ },
+ {
+  "key": "{0} event IDs",
+  "where": [
+   "main.cpp:1913"
+  ]
+ },
+ {
+  "key": "{0} definitions/defines",
+  "where": [
+   "main.cpp:1913"
+  ]
+ },
+ {
+  "key": "{0} on_actions",
+  "where": [
+   "main.cpp:1914"
+  ]
+ },
+ {
+  "key": "{0} localization keys.",
+  "where": [
+   "main.cpp:1914"
+  ]
+ },
+ {
+  "key": "Double-click a row for the files.",
+  "where": [
+   "main.cpp:1914"
+  ]
+ },
+ {
+  "key": "({0} mods not read)",
+  "where": [
+   "main.cpp:1915"
+  ]
+ },
+ {
+  "key": "No file data yet. Enable some mods that have a files folder, then press Rescan files.",
+  "where": [
+   "main.cpp:1918"
+  ]
+ },
+ {
+  "key": "The game's own files could not be read (is the game installed? Play once, or set the game in Advanced), so mods cannot be compared with them.",
+  "where": [
+   "main.cpp:1920"
+  ]
+ },
+ {
+  "key": "{0} base-game files are replaced by {1} mods.",
+  "where": [
+   "main.cpp:1923"
+  ]
+ },
+ {
+  "key": "{0} base-game files are replaced by {1} mods",
+  "where": [
+   "main.cpp:1924"
+  ]
+ },
+ {
+  "key": "{0} replace_path folders remove base-game files.",
+  "where": [
+   "main.cpp:1924"
+  ]
+ },
+ {
+  "key": "Double-click a row for who wins, right-click to reorder.",
+  "where": [
+   "main.cpp:1926"
+  ]
+ },
+ {
+  "key": "{0} conflicting files",
+  "where": [
+   "main.cpp:1930"
+  ]
+ },
+ {
+  "key": "{0} mod pairs",
+  "where": [
+   "main.cpp:1930"
+  ]
+ },
+ {
+  "key": "{0} mods checked",
+  "where": [
+   "main.cpp:1931"
+  ]
+ },
+ {
+  "key": "({0} skipped: no readable files folder)",
+  "where": [
+   "main.cpp:1932"
+  ]
+ },
+ {
+  "key": "Files shared by {0}  and  {1}  (press \"By file\" to see all)",
+  "where": [
+   "main.cpp:1933"
+  ]
+ },
+ {
+  "key": "{0} files",
+  "where": [
+   "main.cpp:1933"
+  ]
+ },
+ {
+  "key": "The later mod wins. Double-click a pair for its files, right-click to reorder.",
+  "where": [
+   "main.cpp:1934"
+  ]
+ },
+ {
+  "key": "Double-click a file for who wins.",
+  "where": [
+   "main.cpp:1935"
+  ]
+ },
+ {
+  "key": "High",
+  "where": [
+   "main.cpp:1957",
+   "core.hpp:912"
+  ]
+ },
+ {
+  "key": "Medium",
+  "where": [
+   "main.cpp:1957",
+   "core.hpp:912"
+  ]
+ },
+ {
+  "key": "Low",
+  "where": [
+   "main.cpp:1957",
+   "core.hpp:912"
+  ]
+ },
+ {
+  "key": "(the whole folder: {0} base-game files removed)",
+  "where": [
+   "main.cpp:1987"
+  ]
+ },
+ {
+  "key": "+{0} more",
+  "where": [
+   "main.cpp:1994",
+   "main.cpp:2003"
+  ]
+ },
+ {
+  "key": "yes",
+  "where": [
+   "main.cpp:2004"
+  ]
+ },
+ {
+  "key": "Files both mods ship",
+  "where": [
+   "main.cpp:2059"
+  ]
+ },
+ {
+  "key": "Moved \"{0}\" below \"{1}\". Press Undo to go back.",
+  "where": [
+   "main.cpp:2092"
+  ]
+ },
+ {
+  "key": "Moved \"{0}\" above \"{1}\". Press Undo to go back.",
+  "where": [
+   "main.cpp:2092"
+  ]
+ },
+ {
+  "key": "{0} uses replace_path for this folder. While it is enabled, none of the {1} files the base game has there are loaded (and neither are files of mods that load before it). Total conversions do this on purpose; for any other mod it is worth a look.",
+  "where": [
+   "main.cpp:2103"
+  ]
+ },
+ {
+  "key": "This is a file of the base game. A mod's copy REPLACES it completely: the game does not merge them.\n\nShipped by (load order, the last one's copy is used):\n",
+  "where": [
+   "main.cpp:2108"
+  ]
+ },
+ {
+  "key": "This file also exists in the base game, so the winner's copy replaces the game's.\n\n",
+  "where": [
+   "main.cpp:2113"
+  ]
+ },
+ {
+  "key": "Load order (the last mod's copy is used):\n",
+  "where": [
+   "main.cpp:2113"
+  ]
+ },
+ {
+  "key": "(made for an older game version)",
+  "where": [
+   "main.cpp:2120"
+  ]
+ },
+ {
+  "key": "← wins",
+  "where": [
+   "main.cpp:2122"
+  ]
+ },
+ {
+  "key": "loses",
+  "where": [
+   "main.cpp:2122"
+  ]
+ },
+ {
+  "key": "The game's own copy is not used while this mod is enabled.",
+  "where": [
+   "main.cpp:2124"
+  ]
+ },
+ {
+  "key": "To change who wins, right-click the row and move one of the mods.",
+  "where": [
+   "main.cpp:2125"
+  ]
+ },
+ {
+  "key": "Base-game file",
+  "where": [
+   "main.cpp:2126"
+  ]
+ },
+ {
+  "key": "Who wins",
+  "where": [
+   "main.cpp:2126"
+  ]
+ },
+ {
+  "key": "Let \"{0}\" win: move it below \"{1}\"",
+  "where": [
+   "main.cpp:2138"
+  ]
+ },
+ {
+  "key": "Let \"{0}\" win: move \"{1}\" above it",
+  "where": [
+   "main.cpp:2139"
+  ]
+ },
+ {
+  "key": "Show the files they share",
+  "where": [
+   "main.cpp:2141"
+  ]
+ },
+ {
+  "key": "Copy file path",
+  "where": [
+   "main.cpp:2142"
+  ]
+ },
+ {
+  "key": "Could not copy to the clipboard (another program may be holding it). Try again.",
+  "where": [
+   "main.cpp:2156",
+   "main.cpp:2556",
+   "main.cpp:3871"
+  ]
+ },
+ {
+  "key": "By mod pair",
+  "where": [
+   "main.cpp:2164"
+  ]
+ },
+ {
+  "key": "By file",
+  "where": [
+   "main.cpp:2165"
+  ]
+ },
+ {
+  "key": "By definition",
+  "where": [
+   "main.cpp:2166"
+  ]
+ },
+ {
+  "key": "Rescan files",
+  "where": [
+   "main.cpp:2168"
+  ]
+ },
+ {
+  "key": "Defined in (load order):\n",
+  "where": [
+   "main.cpp:2228"
+  ]
+ },
+ {
+  "key": "Script overlap",
+  "where": [
+   "main.cpp:2230"
+  ]
+ },
+ {
+  "key": "Conflicts - The Royal Court",
+  "where": [
+   "main.cpp:2277"
+  ]
+ },
+ {
+  "key": "The CK3 folder is not set. Enter it in the main window first.",
+  "where": [
+   "main.cpp:2341",
+   "main.cpp:3077"
+  ]
+ },
+ {
+  "key": "There is no game log yet ({0}). Start the game once, then open this again.",
+  "where": [
+   "main.cpp:2346"
+  ]
+ },
+ {
+  "key": "the game ran with the mods you have enabled now",
+  "where": [
+   "main.cpp:2367"
+  ]
+ },
+ {
+  "key": "NOT the playset you have now ({0} turned on, {1} turned off since); messages may point at the wrong mods",
+  "where": [
+   "main.cpp:2368"
+  ]
+ },
+ {
+  "key": "Log from {0}",
+  "where": [
+   "main.cpp:2375"
+  ]
+ },
+ {
+  "key": "{0} errors, {1} warnings ({2} different)",
+  "where": [
+   "main.cpp:2375"
+  ]
+ },
+ {
+  "key": "still reading your mods' files, this updates by itself",
+  "where": [
+   "main.cpp:2376"
+  ]
+ },
+ {
+  "key": "base-game file list not loaded",
+  "where": [
+   "main.cpp:2377"
+  ]
+ },
+ {
+  "key": "(matched by name)",
+  "where": [
+   "main.cpp:2404"
+  ]
+ },
+ {
+  "key": "Error",
+  "where": [
+   "main.cpp:2404"
+  ]
+ },
+ {
+  "key": "Warning",
+  "where": [
+   "main.cpp:2404"
+  ]
+ },
+ {
+  "key": "Base game files (no mod replaces them)",
+  "where": [
+   "main.cpp:2422"
+  ]
+ },
+ {
+  "key": "Problems in the game's own files, or caused by a mod referring to something that is missing",
+  "where": [
+   "main.cpp:2422"
+  ]
+ },
+ {
+  "key": "Could not be tied to a mod",
+  "where": [
+   "main.cpp:2428"
+  ]
+ },
+ {
+  "key": "No file or name in the message matches a mod you have enabled",
+  "where": [
+   "main.cpp:2428"
+  ]
+ },
+ {
+  "key": "Not tied to a mod",
+  "where": [
+   "main.cpp:2435"
+  ]
+ },
+ {
+  "key": "No playset.",
+  "where": [
+   "main.cpp:2443"
+  ]
+ },
+ {
+  "key": "Since you last pressed Play: {0}",
+  "where": [
+   "main.cpp:2445"
+  ]
+ },
+ {
+  "key": "game {0}",
+  "where": [
+   "main.cpp:2445"
+  ]
+ },
+ {
+  "key": "(a different playset, so turned-on and turned-off mods are not compared)",
+  "where": [
+   "main.cpp:2445"
+  ]
+ },
+ {
+  "key": "Play has not been pressed with this version yet. After you press Play, this window shows what changed since.",
+  "where": [
+   "main.cpp:2446"
+  ]
+ },
+ {
+  "key": "Game updated",
+  "where": [
+   "main.cpp:2452"
+  ]
+ },
+ {
+  "key": "Made for an older game",
+  "where": [
+   "main.cpp:2453"
+  ]
+ },
+ {
+  "key": "Updated",
+  "where": [
+   "main.cpp:2454"
+  ]
+ },
+ {
+  "key": "Turned on",
+  "where": [
+   "main.cpp:2455"
+  ]
+ },
+ {
+  "key": "Gone",
+  "where": [
+   "main.cpp:2456"
+  ]
+ },
+ {
+  "key": "Nothing has changed since you last pressed Play.",
+  "where": [
+   "main.cpp:2457"
+  ]
+ },
+ {
+  "key": "Nothing to compare yet.",
+  "where": [
+   "main.cpp:2457"
+  ]
+ },
+ {
+  "key": "What",
+  "where": [
+   "main.cpp:2464"
+  ]
+ },
+ {
+  "key": "Details",
+  "where": [
+   "main.cpp:2464"
+  ]
+ },
+ {
+  "key": "Errors",
+  "where": [
+   "main.cpp:2465"
+  ]
+ },
+ {
+  "key": "Warnings",
+  "where": [
+   "main.cpp:2465"
+  ]
+ },
+ {
+  "key": "Different",
+  "where": [
+   "main.cpp:2465"
+  ]
+ },
+ {
+  "key": "Most common message",
+  "where": [
+   "main.cpp:2465"
+  ]
+ },
+ {
+  "key": "Level",
+  "where": [
+   "main.cpp:2466"
+  ]
+ },
+ {
+  "key": "Times",
+  "where": [
+   "main.cpp:2466"
+  ]
+ },
+ {
+  "key": "Message",
+  "where": [
+   "main.cpp:2466"
+  ]
+ },
+ {
+  "key": "showing {0} of {1}",
+  "where": [
+   "main.cpp:2483"
+  ]
+ },
+ {
+  "key": "By mod",
+  "where": [
+   "main.cpp:2525"
+  ]
+ },
+ {
+  "key": "All messages",
+  "where": [
+   "main.cpp:2525"
+  ]
+ },
+ {
+  "key": "Copy report",
+  "where": [
+   "main.cpp:2526"
+  ]
+ },
+ {
+  "key": "Reload",
+  "where": [
+   "main.cpp:2527"
+  ]
+ },
+ {
+  "key": "Report copied to the clipboard.",
+  "where": [
+   "main.cpp:2557"
+  ]
+ },
+ {
+  "key": "Copy this line",
+  "where": [
+   "main.cpp:2587"
+  ]
+ },
+ {
+  "key": "Copy all messages for this mod (to send to its author)",
+  "where": [
+   "main.cpp:2588"
+  ]
+ },
+ {
+  "key": "Game log - The Royal Court",
+  "where": [
+   "main.cpp:2649"
+  ]
+ },
+ {
+  "key": "Since you last pressed Play - The Royal Court",
+  "where": [
+   "main.cpp:2649"
+  ]
+ },
+ {
+  "key": "Since you last played:",
+  "where": [
+   "main.cpp:2659"
+  ]
+ },
+ {
+  "key": "the game updated to {0}",
+  "where": [
+   "main.cpp:2662"
+  ]
+ },
+ {
+  "key": "{0} mod(s) updated",
+  "where": [
+   "main.cpp:2663"
+  ]
+ },
+ {
+  "key": "{0} made for an older game",
+  "where": [
+   "main.cpp:2664"
+  ]
+ },
+ {
+  "key": "{0} turned on or off",
+  "where": [
+   "main.cpp:2665"
+  ]
+ },
+ {
+  "key": "Details: Advanced > What changed since I last pressed Play.",
+  "where": [
+   "main.cpp:2667"
+  ]
+ },
+ {
+  "key": "Welcome",
+  "where": [
+   "main.cpp:2676"
+  ]
+ },
+ {
+  "key": "The Royal Court is a fast, light mod manager for Crusader Kings III. This short tour shows the features that save you the most trouble.",
+  "where": [
+   "main.cpp:2677"
+  ]
+ },
+ {
+  "key": "Your playsets are saved as Paradox Launcher playset files, so nothing is locked in.",
+  "where": [
+   "main.cpp:2678"
+  ]
+ },
+ {
+  "key": "No installer and no browser. The program goes online only when you press Updates.",
+  "where": [
+   "main.cpp:2679"
+  ]
+ },
+ {
+  "key": "It never changes your mod files. It reads them to find problems.",
+  "where": [
+   "main.cpp:2680"
+  ]
+ },
+ {
+  "key": "You can open this tour again at any time from Advanced > Show the quick tour again.",
+  "where": [
+   "main.cpp:2681"
+  ]
+ },
+ {
+  "key": "If your mods do not appear, type your Crusader Kings III folder at the bottom (the folder that contains \"mod\") and press Save folder.",
+  "where": [
+   "main.cpp:2682"
+  ]
+ },
+ {
+  "key": "Playsets and load order",
+  "where": [
+   "main.cpp:2683"
+  ]
+ },
+ {
+  "key": "A playset is a list of mods with an order. The order matters: when two mods change the same thing, the one lower in the list wins.",
+  "where": [
+   "main.cpp:2684"
+  ]
+ },
+ {
+  "key": "Tick a mod to turn it on or off. Every change is saved at once.",
+  "where": [
+   "main.cpp:2685"
+  ]
+ },
+ {
+  "key": "Drag rows, or use Up and Down, to change the order. Hold Ctrl or Shift to select several mods and move them together.",
+  "where": [
+   "main.cpp:2686"
+  ]
+ },
+ {
+  "key": "Use New, Duplicate, Rename and Delete for your playsets. Duplicate one before you experiment.",
+  "where": [
+   "main.cpp:2687"
+  ]
+ },
+ {
+  "key": "Click a column header to sort the view. The Notes column flags missing mods, mods made for an older game and conflicts.",
+  "where": [
+   "main.cpp:2688"
+  ]
+ },
+ {
+  "key": "The filter box next to the magnifier finds a mod by name as you type.",
+  "where": [
+   "main.cpp:2689"
+  ]
+ },
+ {
+  "key": "Auto Sort",
+  "where": [
+   "main.cpp:2690",
+   "main.cpp:3416"
+  ]
+ },
+ {
+  "key": "Press Auto Sort and the program proposes a better load order. Nothing changes until you look at the preview and press Apply.",
+  "where": [
+   "main.cpp:2691"
+  ]
+ },
+ {
+  "key": "Dependencies go first, then libraries, overhauls, content, graphics, interface, translations and patches.",
+  "where": [
+   "main.cpp:2692"
+  ]
+ },
+ {
+  "key": "Total conversions load first, and well-known mods such as Rise and Fall are placed where their authors say.",
+  "where": [
+   "main.cpp:2693"
+  ]
+ },
+ {
+  "key": "Right-click a mod to lock it so Auto Sort never moves it, or to correct its type.",
+  "where": [
+   "main.cpp:2694"
+  ]
+ },
+ {
+  "key": "Not happy with the result? Undo order puts the list back as it was.",
+  "where": [
+   "main.cpp:2695"
+  ]
+ },
+ {
+  "key": "Sorted something wrongly? Advanced > Report a sort problem copies the details so the known-mods list can be fixed.",
+  "where": [
+   "main.cpp:2696"
+  ]
+ },
+ {
+  "key": "Conflicts",
+  "where": [
+   "main.cpp:2697",
+   "main.cpp:3416"
+  ]
+ },
+ {
+  "key": "Conflicts shows where mods collide, before you spend an evening in a broken game.",
+  "where": [
+   "main.cpp:2698"
+  ]
+ },
+ {
+  "key": "By mod pair or by file: mods that ship the same file. The mod loaded last usually wins.",
+  "where": [
+   "main.cpp:2699"
+  ]
+ },
+ {
+  "key": "By definition: mods that define the same trait, event, define or localization key.",
+  "where": [
+   "main.cpp:2700"
+  ]
+ },
+ {
+  "key": "Base game: mods that replace a file of the game itself. The game never merges those.",
+  "where": [
+   "main.cpp:2701"
+  ]
+ },
+ {
+  "key": "Double-click a file to see every mod that ships it and who wins. Right-click a row to let one mod win; the order is saved and checked again.",
+  "where": [
+   "main.cpp:2702"
+  ]
+ },
+ {
+  "key": "Every conflict has a severity (High, Medium, Low). Type high, medium or low in the filter box to see only those.",
+  "where": [
+   "main.cpp:2703"
+  ]
+ },
+ {
+  "key": "Play and backups",
+  "where": [
+   "main.cpp:2704"
+  ]
+ },
+ {
+  "key": "Play starts Crusader Kings III directly with the playset you selected, without the Paradox Launcher.",
+  "where": [
+   "main.cpp:2705"
+  ]
+ },
+ {
+  "key": "Steam must be running. The program writes your playset into the game's dlc_load.json first.",
+  "where": [
+   "main.cpp:2706"
+  ]
+ },
+ {
+  "key": "Your own dlc_load.json is kept next to it as dlc_load.json.rc-original.",
+  "where": [
+   "main.cpp:2707"
+  ]
+ },
+ {
+  "key": "Your playset is backed up automatically at startup and before Auto Sort.",
+  "where": [
+   "main.cpp:2708"
+  ]
+ },
+ {
+  "key": "Advanced has Back up now, Restore from a backup and Open backups folder.",
+  "where": [
+   "main.cpp:2709"
+  ]
+ },
+ {
+  "key": "Game launch options for each playset (for example -debug_mode) are under Advanced.",
+  "where": [
+   "main.cpp:2710"
+  ]
+ },
+ {
+  "key": "When something goes wrong",
+  "where": [
+   "main.cpp:2711"
+  ]
+ },
+ {
+  "key": "Three helpers read the game's own files and tell you where to look. They only read; they never change anything.",
+  "where": [
+   "main.cpp:2712"
+  ]
+ },
+ {
+  "key": "Crash helper: after a crash it says what kind of crash it was and which of your mods the last log messages point at.",
+  "where": [
+   "main.cpp:2713"
+  ]
+ },
+ {
+  "key": "Game log: every error and warning of the game, grouped by the mod it comes from, with a copy button for the mod's author.",
+  "where": [
+   "main.cpp:2714"
+  ]
+ },
+ {
+  "key": "What changed since I last pressed Play: mods that updated, mods made for an older game, mods turned on or off, a game update.",
+  "where": [
+   "main.cpp:2715"
+  ]
+ },
+ {
+  "key": "The status line at the bottom tells you when the game crashed or when something changed.",
+  "where": [
+   "main.cpp:2716"
+  ]
+ },
+ {
+  "key": "These helpers are in the Advanced menu.",
+  "where": [
+   "main.cpp:2717"
+  ]
+ },
+ {
+  "key": "Share, language and look",
+  "where": [
+   "main.cpp:2718"
+  ]
+ },
+ {
+  "key": "A few things that make the program yours.",
+  "where": [
+   "main.cpp:2719"
+  ]
+ },
+ {
+  "key": "Export > Copy a share code turns a whole playset into one line of text. Import > Paste a share code builds it again for a friend.",
+  "where": [
+   "main.cpp:2720"
+  ]
+ },
+ {
+  "key": "The language button in the top bar switches the program between eleven languages at once.",
+  "where": [
+   "main.cpp:2721"
+  ]
+ },
+ {
+  "key": "The sun and moon switch changes between the dark and the light look.",
+  "where": [
+   "main.cpp:2722"
+  ]
+ },
+ {
+  "key": "Updates checks GitHub when you press it and can update the program in place.",
+  "where": [
+   "main.cpp:2723"
+  ]
+ },
+ {
+  "key": "That is the tour. Enjoy your court!",
+  "where": [
+   "main.cpp:2724"
+  ]
+ },
+ {
+  "key": "Start",
+  "where": [
+   "main.cpp:2830"
+  ]
+ },
+ {
+  "key": "Next",
+  "where": [
+   "main.cpp:2830"
+  ]
+ },
+ {
+  "key": "Back",
+  "where": [
+   "main.cpp:2830"
+  ]
+ },
+ {
+  "key": "Skip the tour",
+  "where": [
+   "main.cpp:2830"
+  ]
+ },
+ {
+  "key": "Quick tour - The Royal Court",
+  "where": [
+   "main.cpp:2957"
+  ]
+ },
+ {
+  "key": "The game crashed on {0}. Advanced > Crash helper shows the likely cause.",
+  "where": [
+   "main.cpp:2976"
+  ]
+ },
+ {
+  "key": "Crash from {0}",
+  "where": [
+   "main.cpp:2985"
+  ]
+ },
+ {
+  "key": "WHAT HAPPENED",
+  "where": [
+   "main.cpp:2986"
+  ]
+ },
+ {
+  "key": "The crash folder had no copy of the logs, so the game's current logs are used. If you started the game again after the crash, they may not match.",
+  "where": [
+   "main.cpp:3001"
+  ]
+ },
+ {
+  "key": "LIKELY SUSPECTS",
+  "where": [
+   "main.cpp:3005"
+  ]
+ },
+ {
+  "key": "Your mods' files are still being read, so some messages could not be matched yet. Open this again in a moment.",
+  "where": [
+   "main.cpp:3010"
+  ]
+ },
+ {
+  "key": "{0} errors and {1} warnings among the last messages the game wrote",
+  "where": [
+   "main.cpp:3029"
+  ]
+ },
+ {
+  "key": "None of the last messages the game wrote could be tied to one of your mods.",
+  "where": [
+   "main.cpp:3034"
+  ]
+ },
+ {
+  "key": "THE PLAYSET AT THE TIME",
+  "where": [
+   "main.cpp:3048"
+  ]
+ },
+ {
+  "key": "The game had the same mods turned on that you have turned on now.",
+  "where": [
+   "main.cpp:3049"
+  ]
+ },
+ {
+  "key": "Not the playset you have now: {0} mod(s) turned on since, {1} turned off since.",
+  "where": [
+   "main.cpp:3051"
+  ]
+ },
+ {
+  "key": "WHAT TO TRY",
+  "where": [
+   "main.cpp:3059"
+  ]
+ },
+ {
+  "key": "Turn off the top suspect (or the mod you added or updated most recently) and start the game again.",
+  "where": [
+   "main.cpp:3060"
+  ]
+ },
+ {
+  "key": "Use Auto Sort and the Conflicts window to look for mods that overwrite each other or load in the wrong order.",
+  "where": [
+   "main.cpp:3061"
+  ]
+ },
+ {
+  "key": "Check the mod's Workshop page: is it made for your game version? Do other players report crashes?",
+  "where": [
+   "main.cpp:3062"
+  ]
+ },
+ {
+  "key": "If the crash keeps happening, turn mods off in halves to find the one that causes it.",
+  "where": [
+   "main.cpp:3063"
+  ]
+ },
+ {
+  "key": "FIRST LINES OF THE CALL STACK (for bug reports)",
+  "where": [
+   "main.cpp:3065"
+  ]
+ },
+ {
+  "key": "BUILD",
+  "where": [
+   "main.cpp:3069"
+  ]
+ },
+ {
+  "key": "Crash folder: {0}",
+  "where": [
+   "main.cpp:3070"
+  ]
+ },
+ {
+  "key": "The crash files stay as they are; this window only reads them. Select all (Ctrl+A) and copy (Ctrl+C) to send this text to a mod author.",
+  "where": [
+   "main.cpp:3071"
+  ]
+ },
+ {
+  "key": "No crash found. When the game crashes it writes a folder in {0}.",
+  "where": [
+   "main.cpp:3079"
+  ]
+ },
+ {
+  "key": "Newest: ",
+  "where": [
+   "main.cpp:3083"
+  ]
+ },
+ {
+  "key": "Crash helper - {0}",
+  "where": [
+   "main.cpp:3090"
+  ]
+ },
+ {
+  "key": "Find ck3.exe (in your Crusader Kings III folder, inside \"binaries\")",
+  "where": [
+   "main.cpp:3151"
+  ]
+ },
+ {
+  "key": "Programs (*.exe)",
+  "where": [
+   "main.cpp:3152"
+  ]
+ },
+ {
+  "key": "Windows error {0}",
+  "where": [
+   "main.cpp:3170"
+  ]
+ },
+ {
+  "key": "Select your Crusader Kings III folder (the one that contains \"mod\")",
+  "where": [
+   "main.cpp:3182"
+  ]
+ },
+ {
+  "key": "Paradox Launcher playset (*.json)",
+  "where": [
+   "main.cpp:3197"
+  ]
+ },
+ {
+  "key": "All files (*.*)",
+  "where": [
+   "main.cpp:3197"
+  ]
+ },
+ {
+  "key": "unknown",
+  "where": [
+   "main.cpp:3387"
+  ]
+ },
+ {
+  "key": "CK3 version: {0}",
+  "where": [
+   "main.cpp:3388"
+  ]
+ },
+ {
+  "key": "Playset",
+  "where": [
+   "main.cpp:3411"
+  ]
+ },
+ {
+  "key": "CK3 folder",
+  "where": [
+   "main.cpp:3411"
+  ]
+ },
+ {
+  "key": "New",
+  "where": [
+   "main.cpp:3412"
+  ]
+ },
+ {
+  "key": "Duplicate",
+  "where": [
+   "main.cpp:3412"
+  ]
+ },
+ {
+  "key": "Rename",
+  "where": [
+   "main.cpp:3412"
+  ]
+ },
+ {
+  "key": "Delete",
+  "where": [
+   "main.cpp:3412"
+  ]
+ },
+ {
+  "key": "Export",
+  "where": [
+   "main.cpp:3413"
+  ]
+ },
+ {
+  "key": "Import",
+  "where": [
+   "main.cpp:3413"
+  ]
+ },
+ {
+  "key": "Play",
+  "where": [
+   "main.cpp:3413"
+  ]
+ },
+ {
+  "key": "Advanced",
+  "where": [
+   "main.cpp:3414"
+  ]
+ },
+ {
+  "key": "Changelog",
+  "where": [
+   "main.cpp:3414"
+  ]
+ },
+ {
+  "key": "Updates",
+  "where": [
+   "main.cpp:3414"
+  ]
+ },
+ {
+  "key": "Enable shown",
+  "where": [
+   "main.cpp:3415"
+  ]
+ },
+ {
+  "key": "Disable shown",
+  "where": [
+   "main.cpp:3415"
+  ]
+ },
+ {
+  "key": "Undo order",
+  "where": [
+   "main.cpp:3416"
+  ]
+ },
+ {
+  "key": "Up",
+  "where": [
+   "main.cpp:3417"
+  ]
+ },
+ {
+  "key": "Down",
+  "where": [
+   "main.cpp:3417"
+  ]
+ },
+ {
+  "key": "Browse",
+  "where": [
+   "main.cpp:3417"
+  ]
+ },
+ {
+  "key": "Save folder",
+  "where": [
+   "main.cpp:3417"
+  ]
+ },
+ {
+  "key": "Version",
+  "where": [
+   "main.cpp:3419"
+  ]
+ },
+ {
+  "key": "Game Version",
+  "where": [
+   "main.cpp:3419"
+  ]
+ },
+ {
+  "key": "Source",
+  "where": [
+   "main.cpp:3419"
+  ]
+ },
+ {
+  "key": "Notes",
+  "where": [
+   "main.cpp:3419"
+  ]
+ },
+ {
+  "key": "Create an empty playset",
+  "where": [
+   "main.cpp:3426"
+  ]
+ },
+ {
+  "key": "Copy the selected playset under a new name",
+  "where": [
+   "main.cpp:3427"
+  ]
+ },
+ {
+  "key": "Rename the selected playset",
+  "where": [
+   "main.cpp:3428"
+  ]
+ },
+ {
+  "key": "Delete the selected playset (your mods are not touched)",
+  "where": [
+   "main.cpp:3429"
+  ]
+ },
+ {
+  "key": "Save this playset as a Paradox Launcher playset file",
+  "where": [
+   "main.cpp:3430"
+  ]
+ },
+ {
+  "key": "Load a Paradox Launcher playset file",
+  "where": [
+   "main.cpp:3431"
+  ]
+ },
+ {
+  "key": "Start Crusader Kings III with this playset (skips the launcher)",
+  "where": [
+   "main.cpp:3432"
+  ]
+ },
+ {
+  "key": "Backups, compare playsets, launch options, saves, updates and the diagnostics log",
+  "where": [
+   "main.cpp:3433"
+  ]
+ },
+ {
+  "key": "What changed in each version",
+  "where": [
+   "main.cpp:3434"
+  ]
+ },
+ {
+  "key": "Check GitHub for a newer version of The Royal Court, and for a newer known-mods list",
+  "where": [
+   "main.cpp:3435"
+  ]
+ },
+ {
+  "key": "Enable every mod currently shown in the list",
+  "where": [
+   "main.cpp:3436"
+  ]
+ },
+ {
+  "key": "Disable every mod currently shown in the list",
+  "where": [
+   "main.cpp:3437"
+  ]
+ },
+ {
+  "key": "Find mods that change the same files or definitions",
+  "where": [
+   "main.cpp:3438"
+  ]
+ },
+ {
+  "key": "Propose a better load order (you see a preview first)",
+  "where": [
+   "main.cpp:3439"
+  ]
+ },
+ {
+  "key": "Go back to the load order from before the last Auto Sort or the last move made from the conflicts window",
+  "where": [
+   "main.cpp:3440"
+  ]
+ },
+ {
+  "key": "Pick your Crusader Kings III folder",
+  "where": [
+   "main.cpp:3441"
+  ]
+ },
+ {
+  "key": "Remember this folder",
+  "where": [
+   "main.cpp:3442"
+  ]
+ },
+ {
+  "key": "Rescan the mod folder (use after subscribing to a mod while the app is open)",
+  "where": [
+   "main.cpp:3443"
+  ]
+ },
+ {
+  "key": "Switch between dark and light",
+  "where": [
+   "main.cpp:3444"
+  ]
+ },
+ {
+  "key": "Move the selected mod(s) up in the load order",
+  "where": [
+   "main.cpp:3445"
+  ]
+ },
+ {
+  "key": "Move the selected mod(s) down in the load order",
+  "where": [
+   "main.cpp:3446"
+  ]
+ },
+ {
+  "key": "Language",
+  "where": [
+   "main.cpp:3447"
+  ]
+ },
+ {
+  "key": "Language: {0}",
+  "where": [
+   "main.cpp:3469"
+  ]
+ },
+ {
+  "key": "Automatic (same as Windows)",
+  "where": [
+   "main.cpp:3474"
+  ]
+ },
+ {
+  "key": "The CK3 folder is not set. Enter it at the bottom (the folder that contains \"mod\") and press Save folder.",
+  "where": [
+   "main.cpp:3548",
+   "main.cpp:4215"
+  ]
+ },
+ {
+  "key": "Crusader Kings III is running. Close the game first, then try again.",
+  "where": [
+   "main.cpp:3549"
+  ]
+ },
+ {
+  "key": "No saves found in {0}",
+  "where": [
+   "main.cpp:3551"
+  ]
+ },
+ {
+  "key": "Delete ALL saved games?\n\n{0} save file(s), {1}\nin {2}\n\nThey are moved to the Recycle Bin (anything too big for it is deleted permanently). If Steam Cloud sync is on, Steam may bring cloud copies back.",
+  "where": [
+   "main.cpp:3552"
+  ]
+ },
+ {
+  "key": "Delete all saves",
+  "where": [
+   "main.cpp:3554"
+  ]
+ },
+ {
+  "key": "Some saves could not be deleted ({0} item(s) left in the save folder).",
+  "where": [
+   "main.cpp:3566"
+  ]
+ },
+ {
+  "key": "Deleted {0} save file(s) ({1}) to the Recycle Bin.",
+  "where": [
+   "main.cpp:3568"
+  ]
+ },
+ {
+  "key": "This playset has no backups yet. One is made automatically before every Auto Sort, and when the app starts if the playset changed.",
+  "where": [
+   "main.cpp:3574"
+  ]
+ },
+ {
+  "key": "Restore this playset from a backup (the newest are listed first by date in the name)",
+  "where": [
+   "main.cpp:3580"
+  ]
+ },
+ {
+  "key": "Playset backups (*.json)",
+  "where": [
+   "main.cpp:3581"
+  ]
+ },
+ {
+  "key": "Could not read that backup.",
+  "where": [
+   "main.cpp:3589"
+  ]
+ },
+ {
+  "key": "Restore \"{0}\" to the load order and enabled mods saved in:\n{1}\n\nYour current state is backed up first, so you can come back.",
+  "where": [
+   "main.cpp:3592"
+  ]
+ },
+ {
+  "key": "Playset restored from the backup.",
+  "where": [
+   "main.cpp:3600"
+  ]
+ },
+ {
+  "key": "Bad update address.",
+  "where": [
+   "main.cpp:3670"
+  ]
+ },
+ {
+  "key": "Could not start the Windows network library.",
+  "where": [
+   "main.cpp:3671"
+  ]
+ },
+ {
+  "key": "Could not reach GitHub.",
+  "where": [
+   "main.cpp:3672"
+  ]
+ },
+ {
+  "key": "Could not reach GitHub (are you online?).",
+  "where": [
+   "main.cpp:3673"
+  ]
+ },
+ {
+  "key": "No release was found on GitHub yet.",
+  "where": [
+   "main.cpp:3674"
+  ]
+ },
+ {
+  "key": "GitHub is limiting requests right now. Try again in a little while.",
+  "where": [
+   "main.cpp:3675"
+  ]
+ },
+ {
+  "key": "The connection was interrupted.",
+  "where": [
+   "main.cpp:3676"
+  ]
+ },
+ {
+  "key": "The download is larger than expected.",
+  "where": [
+   "main.cpp:3677"
+  ]
+ },
+ {
+  "key": "GitHub's answer could not be read.",
+  "where": [
+   "main.cpp:3678"
+  ]
+ },
+ {
+  "key": "This release has no update file attached.",
+  "where": [
+   "main.cpp:3679"
+  ]
+ },
+ {
+  "key": "The release's checksum list does not include the program.",
+  "where": [
+   "main.cpp:3680"
+  ]
+ },
+ {
+  "key": "The downloaded file is not a program.",
+  "where": [
+   "main.cpp:3681"
+  ]
+ },
+ {
+  "key": "The downloaded file does not match its checksum, so it was thrown away.",
+  "where": [
+   "main.cpp:3682"
+  ]
+ },
+ {
+  "key": "GitHub answered with error {0}.",
+  "where": [
+   "main.cpp:3685"
+  ]
+ },
+ {
+  "key": "Checking GitHub for a newer version...",
+  "where": [
+   "main.cpp:3729"
+  ]
+ },
+ {
+  "key": "Could not write next to the program (is it in a protected folder like Program Files?). Download the new version from GitHub instead.",
+  "where": [
+   "main.cpp:3747"
+  ]
+ },
+ {
+  "key": "Could not replace the program file (Windows error {0}).",
+  "where": [
+   "main.cpp:3749"
+  ]
+ },
+ {
+  "key": "Could not put the new program in place.",
+  "where": [
+   "main.cpp:3753"
+  ]
+ },
+ {
+  "key": "The update was installed but the new copy could not be started ({0}). Start the program again.",
+  "where": [
+   "main.cpp:3758"
+  ]
+ },
+ {
+  "key": "Version {0} is available",
+  "where": [
+   "main.cpp:3766"
+  ]
+ },
+ {
+  "key": "You have version {0}.",
+  "where": [
+   "main.cpp:3767"
+  ]
+ },
+ {
+  "key": "\"Update now\" downloads the new program, checks it against the release's checksum, replaces this one and restarts. Your playsets and settings are not touched.",
+  "where": [
+   "main.cpp:3767"
+  ]
+ },
+ {
+  "key": "Open the release page to download it.",
+  "where": [
+   "main.cpp:3767"
+  ]
+ },
+ {
+  "key": "Update now\nDownload, verify and restart",
+  "where": [
+   "main.cpp:3773"
+  ]
+ },
+ {
+  "key": "Open the release page\nSee what changed and download it yourself",
+  "where": [
+   "main.cpp:3774"
+  ]
+ },
+ {
+  "key": "What's new",
+  "where": [
+   "main.cpp:3782"
+  ]
+ },
+ {
+  "key": "Hide",
+  "where": [
+   "main.cpp:3782"
+  ]
+ },
+ {
+  "key": "Yes = update now, No = not now.",
+  "where": [
+   "main.cpp:3786"
+  ]
+ },
+ {
+  "key": "Yes = open release page, No = not now.",
+  "where": [
+   "main.cpp:3786"
+  ]
+ },
+ {
+  "key": "Downloading version {0}...",
+  "where": [
+   "main.cpp:3794"
+  ]
+ },
+ {
+  "key": "Known-mods list updated (revision {0}). Press Auto Sort to use it.",
+  "where": [
+   "main.cpp:3808"
+  ]
+ },
+ {
+  "key": "Update check failed.",
+  "where": [
+   "main.cpp:3817"
+  ]
+ },
+ {
+  "key": "You can always get the latest version from the GitHub page.",
+  "where": [
+   "main.cpp:3818"
+  ]
+ },
+ {
+  "key": "You have the latest version.",
+  "where": [
+   "main.cpp:3824"
+  ]
+ },
+ {
+  "key": "You have the latest version ({0}).",
+  "where": [
+   "main.cpp:3824"
+  ]
+ },
+ {
+  "key": "A newer version ({0}) is available - press Updates.",
+  "where": [
+   "main.cpp:3829"
+  ]
+ },
+ {
+  "key": "A newer version is available: {0}.",
+  "where": [
+   "main.cpp:3830"
+  ]
+ },
+ {
+  "key": "Update failed.",
+  "where": [
+   "main.cpp:3843"
+  ]
+ },
+ {
+  "key": "Your current version was left as it is.",
+  "where": [
+   "main.cpp:3844"
+  ]
+ },
+ {
+  "key": "There is no load order to report yet.",
+  "where": [
+   "main.cpp:3867"
+  ]
+ },
+ {
+  "key": "Sort report copied to the clipboard.",
+  "where": [
+   "main.cpp:3873"
+  ]
+ },
+ {
+  "key": "The load order of \"{0}\" is on your clipboard: mod names, Steam ids, types and which mods the program recognises. No file paths or personal information.\n\nOpen the GitHub issues page now? Write what you expected at the bottom and paste (Ctrl+V).",
+  "where": [
+   "main.cpp:3874"
+  ]
+ },
+ {
+  "key": "Report a sort problem",
+  "where": [
+   "main.cpp:3875"
+  ]
+ },
+ {
+  "key": "There is no share code on the clipboard. Copy one (it starts with RC1:) and try again.",
+  "where": [
+   "main.cpp:3896"
+  ]
+ },
+ {
+  "key": "Could not save the imported playset.",
+  "where": [
+   "main.cpp:3910",
+   "main.cpp:4197"
+  ]
+ },
+ {
+  "key": "Imported \"{0}\" from the share code ({1} mods)",
+  "where": [
+   "main.cpp:3914"
+  ]
+ },
+ {
+  "key": "{0} not installed",
+  "where": [
+   "main.cpp:3915"
+  ]
+ },
+ {
+  "key": "The playset was imported, but {0} enabled mod(s) are not installed on this computer:",
+  "where": [
+   "main.cpp:3918"
+  ]
+ },
+ {
+  "key": "Workshop mod {0}",
+  "where": [
+   "main.cpp:3920"
+  ]
+ },
+ {
+  "key": "... and {0} more",
+  "where": [
+   "main.cpp:3921",
+   "main.cpp:4301"
+  ]
+ },
+ {
+  "key": "{0} local mod(s) that are not Workshop mods (ask the sender for them)",
+  "where": [
+   "main.cpp:3922"
+  ]
+ },
+ {
+  "key": "Subscribe to them on the Steam Workshop, wait for Steam to download them, then press Rescan.\n\nCopy the Workshop links of the missing mods to the clipboard?",
+  "where": [
+   "main.cpp:3923"
+  ]
+ },
+ {
+  "key": "Share code imported",
+  "where": [
+   "main.cpp:3924",
+   "main.cpp:3925"
+  ]
+ },
+ {
+  "key": "Workshop links copied to the clipboard.",
+  "where": [
+   "main.cpp:3929"
+  ]
+ },
+ {
+  "key": "Game log: which mod causes the errors...",
+  "where": [
+   "main.cpp:3937"
+  ]
+ },
+ {
+  "key": "What changed since I last pressed Play...",
+  "where": [
+   "main.cpp:3938"
+  ]
+ },
+ {
+  "key": "Crash helper: why did the game crash...",
+  "where": [
+   "main.cpp:3939"
+  ]
+ },
+ {
+  "key": "Open playsets folder",
+  "where": [
+   "main.cpp:3941"
+  ]
+ },
+ {
+  "key": "Back up this playset now",
+  "where": [
+   "main.cpp:3943"
+  ]
+ },
+ {
+  "key": "Restore this playset from a backup...",
+  "where": [
+   "main.cpp:3944"
+  ]
+ },
+ {
+  "key": "Open backups folder",
+  "where": [
+   "main.cpp:3945"
+  ]
+ },
+ {
+  "key": "Compare with another playset...",
+  "where": [
+   "main.cpp:3947"
+  ]
+ },
+ {
+  "key": "Game launch options for this playset...",
+  "where": [
+   "main.cpp:3948"
+  ]
+ },
+ {
+  "key": "Show removed mods ({0})",
+  "where": [
+   "main.cpp:3949"
+  ]
+ },
+ {
+  "key": "Delete all saves...",
+  "where": [
+   "main.cpp:3951"
+  ]
+ },
+ {
+  "key": "Open saves folder",
+  "where": [
+   "main.cpp:3953"
+  ]
+ },
+ {
+  "key": "Open game logs folder",
+  "where": [
+   "main.cpp:3954"
+  ]
+ },
+ {
+  "key": "Show the quick tour again...",
+  "where": [
+   "main.cpp:3955"
+  ]
+ },
+ {
+  "key": "Check for updates when the program starts",
+  "where": [
+   "main.cpp:3957"
+  ]
+ },
+ {
+  "key": "Report a sort problem (copy details)...",
+  "where": [
+   "main.cpp:3958"
+  ]
+ },
+ {
+  "key": "Open diagnostics log (for bug reports)",
+  "where": [
+   "main.cpp:3959"
+  ]
+ },
+ {
+  "key": "This playset is already backed up exactly as it is now.",
+  "where": [
+   "main.cpp:3974"
+  ]
+ },
+ {
+  "key": "Backup saved: {0}.",
+  "where": [
+   "main.cpp:3974"
+  ]
+ },
+ {
+  "key": "The program will look for updates when it starts.",
+  "where": [
+   "main.cpp:3980"
+  ]
+ },
+ {
+  "key": "The program will no longer look for updates by itself.",
+  "where": [
+   "main.cpp:3980"
+  ]
+ },
+ {
+  "key": "Game launch options",
+  "where": [
+   "main.cpp:3993"
+  ]
+ },
+ {
+  "key": "Extra options for the game, e.g. -debug_mode (empty = none):",
+  "where": [
+   "main.cpp:3993"
+  ]
+ },
+ {
+  "key": "Launch options cleared.",
+  "where": [
+   "main.cpp:3999"
+  ]
+ },
+ {
+  "key": "Launch options saved for \"{0}\".",
+  "where": [
+   "main.cpp:3999"
+  ]
+ },
+ {
+  "key": "You need a second playset to compare with.",
+  "where": [
+   "main.cpp:4007"
+  ]
+ },
+ {
+  "key": "\"{0}\"  vs  \"{1}\"",
+  "where": [
+   "main.cpp:4019"
+  ]
+ },
+ {
+  "key": "{0} mods are enabled in both.",
+  "where": [
+   "main.cpp:4019"
+  ]
+ },
+ {
+  "key": "Load order of those: identical.",
+  "where": [
+   "main.cpp:4019"
+  ]
+ },
+ {
+  "key": "Load order of those: different.",
+  "where": [
+   "main.cpp:4019"
+  ]
+ },
+ {
+  "key": "Only enabled in {0}",
+  "where": [
+   "main.cpp:4020",
+   "main.cpp:4020"
+  ]
+ },
+ {
+  "key": "Enabled in one, disabled in the other",
+  "where": [
+   "main.cpp:4020"
+  ]
+ },
+ {
+  "key": "Mods at a different place in the shared load order",
+  "where": [
+   "main.cpp:4021"
+  ]
+ },
+ {
+  "key": "Compare playsets",
+  "where": [
+   "main.cpp:4022"
+  ]
+ },
+ {
+  "key": "That folder does not exist yet.",
+  "where": [
+   "main.cpp:4027"
+  ]
+ },
+ {
+  "key": "Could not add \"{0}\" to your mod folder.",
+  "where": [
+   "main.cpp:4041"
+  ]
+ },
+ {
+  "key": "Something went wrong, but your playset files are safe.",
+  "where": [
+   "main.cpp:4066"
+  ]
+ },
+ {
+  "key": "unknown error",
+  "where": [
+   "main.cpp:4066"
+  ]
+ },
+ {
+  "key": "New playset",
+  "where": [
+   "main.cpp:4095"
+  ]
+ },
+ {
+  "key": "Name for the new playset:",
+  "where": [
+   "main.cpp:4095"
+  ]
+ },
+ {
+  "key": "Could not create the playset file.",
+  "where": [
+   "main.cpp:4099",
+   "main.cpp:4111"
+  ]
+ },
+ {
+  "key": "Created \"{0}\".",
+  "where": [
+   "main.cpp:4102"
+  ]
+ },
+ {
+  "key": "{0} copy",
+  "where": [
+   "main.cpp:4107"
+  ]
+ },
+ {
+  "key": "Duplicate playset",
+  "where": [
+   "main.cpp:4108"
+  ]
+ },
+ {
+  "key": "Name for the copy:",
+  "where": [
+   "main.cpp:4108"
+  ]
+ },
+ {
+  "key": "Rename playset",
+  "where": [
+   "main.cpp:4119"
+  ]
+ },
+ {
+  "key": "New name:",
+  "where": [
+   "main.cpp:4119"
+  ]
+ },
+ {
+  "key": "A playset with that name already exists.",
+  "where": [
+   "main.cpp:4122"
+  ]
+ },
+ {
+  "key": "Could not rename the playset file.",
+  "where": [
+   "main.cpp:4124"
+  ]
+ },
+ {
+  "key": "You need at least one playset.",
+  "where": [
+   "main.cpp:4134"
+  ]
+ },
+ {
+  "key": "Delete playset \"{0}\"? Its file will be removed. A copy is kept in the Backups folder (Advanced > Open backups folder).",
+  "where": [
+   "main.cpp:4135"
+  ]
+ },
+ {
+  "key": "Save as a playset file (.json, also opens in the Paradox launcher)...",
+  "where": [
+   "main.cpp:4149"
+  ]
+ },
+ {
+  "key": "Copy a share code (short, fits in a chat message)",
+  "where": [
+   "main.cpp:4150"
+  ]
+ },
+ {
+  "key": "Copy a share code with mod names (longer, shows what is missing)",
+  "where": [
+   "main.cpp:4151"
+  ]
+ },
+ {
+  "key": "Share code for \"{0}\" copied ({1} enabled mods, {2} characters). Paste it in a chat; the other person uses Import > Paste a share code.",
+  "where": [
+   "main.cpp:4160"
+  ]
+ },
+ {
+  "key": "Could not write that file.",
+  "where": [
+   "main.cpp:4170"
+  ]
+ },
+ {
+  "key": "Exported \"{0}\" ({1} enabled mods) to {2}",
+  "where": [
+   "main.cpp:4173"
+  ]
+ },
+ {
+  "key": "Open a playset file (.json)...",
+  "where": [
+   "main.cpp:4178"
+  ]
+ },
+ {
+  "key": "Paste a share code from the clipboard",
+  "where": [
+   "main.cpp:4179"
+  ]
+ },
+ {
+  "key": "Could not read that file (is it larger than 5 MB?).",
+  "where": [
+   "main.cpp:4188"
+  ]
+ },
+ {
+  "key": "Imported \"{0}\"",
+  "where": [
+   "main.cpp:4200"
+  ]
+ },
+ {
+  "key": "{0} mod(s) not installed (shown in the list)",
+  "where": [
+   "main.cpp:4201"
+  ]
+ },
+ {
+  "key": "{0} invalid entries ignored",
+  "where": [
+   "main.cpp:4202"
+  ]
+ },
+ {
+  "key": "Clear the filter and column sorting (click the # header) to change load order.",
+  "where": [
+   "main.cpp:4208",
+   "main.cpp:4479"
+  ]
+ },
+ {
+  "key": "Please choose ck3.exe (it is in the \"binaries\" folder of your Crusader Kings III install).",
+  "where": [
+   "main.cpp:4221"
+  ]
+ },
+ {
+  "key": "Crusader Kings III is already running. Close the game first, then press Play again.",
+  "where": [
+   "main.cpp:4226"
+  ]
+ },
+ {
+  "key": "Steam needs to be running to start the game without the launcher. Start Steam, then press Play again.",
+  "where": [
+   "main.cpp:4227"
+  ]
+ },
+ {
+  "key": "Could not start the game ({0}).",
+  "where": [
+   "main.cpp:4244"
+  ]
+ },
+ {
+  "key": "{0}. Starting Crusader Kings III directly (launcher skipped).",
+  "where": [
+   "main.cpp:4249"
+  ]
+ },
+ {
+  "key": "Registered {0} new Steam mod(s) for you.",
+  "where": [
+   "main.cpp:4249"
+  ]
+ },
+ {
+  "key": "WARNING: {0} Steam mod(s) could not be added to your mod folder and were left out.",
+  "where": [
+   "main.cpp:4249"
+  ]
+ },
+ {
+  "key": "Already checking...",
+  "where": [
+   "main.cpp:4257"
+  ]
+ },
+ {
+  "key": "Permanently delete \"{0}\"?\n\nThis erases the mod's entry (its descriptor file in your CK3 mod folder) from your disk and from every playset. This cannot be undone.",
+  "where": [
+   "main.cpp:4294"
+  ]
+ },
+ {
+  "key": "The mod's files are already gone (you unsubscribed on Steam), so this just clears the leftover entry.",
+  "where": [
+   "main.cpp:4295"
+  ]
+ },
+ {
+  "key": "The mod is still installed through Steam. Unsubscribe on Steam first, otherwise Steam will bring it back.",
+  "where": [
+   "main.cpp:4295"
+  ]
+ },
+ {
+  "key": "Permanently delete \"{0}\"?\n\nIts descriptor file and its folder inside your CK3 mod folder are erased from your disk. This cannot be undone.",
+  "where": [
+   "main.cpp:4296"
+  ]
+ },
+ {
+  "key": "Remove \"{0}\" from the list?\n\nNothing is deleted from your disk. The mod disappears from every playset and from this list (Advanced > Show removed mods brings it back).",
+  "where": [
+   "main.cpp:4297"
+  ]
+ },
+ {
+  "key": "Permanently delete these {0} mods?",
+  "where": [
+   "main.cpp:4302"
+  ]
+ },
+ {
+  "key": "Their descriptor files and folders inside your CK3 mod folder are erased from your disk and from every playset. This cannot be undone.\n\nMods that are still installed through Steam come back unless you unsubscribe on Steam first.",
+  "where": [
+   "main.cpp:4302"
+  ]
+ },
+ {
+  "key": "Remove these {0} mods from the list?",
+  "where": [
+   "main.cpp:4303"
+  ]
+ },
+ {
+  "key": "Nothing is deleted from your disk. They disappear from every playset and from this list (Advanced > Show removed mods brings them back).",
+  "where": [
+   "main.cpp:4303"
+  ]
+ },
+ {
+  "key": "Deleted \"{0}\".",
+  "where": [
+   "main.cpp:4351"
+  ]
+ },
+ {
+  "key": "Deleted {0} mods.",
+  "where": [
+   "main.cpp:4351"
+  ]
+ },
+ {
+  "key": "Removed \"{0}\" from the list.",
+  "where": [
+   "main.cpp:4351"
+  ]
+ },
+ {
+  "key": "Removed {0} mods from the list.",
+  "where": [
+   "main.cpp:4351"
+  ]
+ },
+ {
+  "key": "{0} mod(s) could not be fully deleted (are their files open in another program?). They are left in the list; close the other program and try again.",
+  "where": [
+   "main.cpp:4352"
+  ]
+ },
+ {
+  "key": "Nothing to sort.",
+  "where": [
+   "main.cpp:4356"
+  ]
+ },
+ {
+  "key": "Already in a good order, nothing to move.",
+  "where": [
+   "main.cpp:4360"
+  ]
+ },
+ {
+  "key": "Auto Sort cancelled, nothing changed.",
+  "where": [
+   "main.cpp:4364"
+  ]
+ },
+ {
+  "key": "Auto Sort moved {0} mods. Press Undo order to go back.",
+  "where": [
+   "main.cpp:4373"
+  ]
+ },
+ {
+  "key": "Load order restored to how it was before the last change.",
+  "where": [
+   "main.cpp:4386"
+  ]
+ },
+ {
+  "key": "Folder saved. Found {0} installed mods.",
+  "where": [
+   "main.cpp:4400"
+  ]
+ },
+ {
+  "key": "Showing load order.",
+  "where": [
+   "main.cpp:4475"
+  ]
+ },
+ {
+  "key": "Sorted view (load order is unchanged). Click # to go back to load order.",
+  "where": [
+   "main.cpp:4475"
+  ]
+ },
+ {
+  "key": "Lock position of {0} mods (Auto Sort never moves them)",
+  "where": [
+   "main.cpp:4641"
+  ]
+ },
+ {
+  "key": "Lock position (Auto Sort never moves it)",
+  "where": [
+   "main.cpp:4641"
+  ]
+ },
+ {
+  "key": "Type for all: {0}",
+  "where": [
+   "main.cpp:4643"
+  ]
+ },
+ {
+  "key": "Type: {0}",
+  "where": [
+   "main.cpp:4643"
+  ]
+ },
+ {
+  "key": "Type for all: automatic",
+  "where": [
+   "main.cpp:4644"
+  ]
+ },
+ {
+  "key": "Type: automatic",
+  "where": [
+   "main.cpp:4644"
+  ]
+ },
+ {
+  "key": "Remove {0} mods from list...",
+  "where": [
+   "main.cpp:4646"
+  ]
+ },
+ {
+  "key": "Remove from list...",
+  "where": [
+   "main.cpp:4646"
+  ]
+ },
+ {
+  "key": "Delete {0} mods permanently...",
+  "where": [
+   "main.cpp:4648"
+  ]
+ },
+ {
+  "key": "Delete mod permanently...",
+  "where": [
+   "main.cpp:4648"
+  ]
+ },
+ {
+  "key": "Not installed",
+  "where": [
+   "core.hpp:631"
+  ]
+ },
+ {
+  "key": "Subscribed on Steam, not added yet. Tick the box to add it",
+  "where": [
+   "core.hpp:632"
+  ]
+ },
+ {
+  "key": "Mod files not found",
+  "where": [
+   "core.hpp:636"
+  ]
+ },
+ {
+  "key": "Needs \"{0}\" (installed, not enabled)",
+  "where": [
+   "core.hpp:642"
+  ]
+ },
+ {
+  "key": "Needs \"{0}\" (not installed)",
+  "where": [
+   "core.hpp:642"
+  ]
+ },
+ {
+  "key": "\"{0}\" should load before this mod (it is #{1})",
+  "where": [
+   "core.hpp:644"
+  ]
+ },
+ {
+  "key": "Same name as enabled mod #{0}",
+  "where": [
+   "core.hpp:649"
+  ]
+ },
+ {
+  "key": "Made for game {0} (installed {1})",
+  "where": [
+   "core.hpp:652"
+  ]
+ },
+ {
+  "key": "Replaces vanilla folder(s): {0}",
+  "where": [
+   "core.hpp:656"
+  ]
+ },
+ {
+  "key": "{0}  (+{1} more)",
+  "where": [
+   "core.hpp:668"
+  ]
+ },
+ {
+  "key": "replace_path \"{0}\" removes {1} file(s) of \"{2}\" (loaded earlier)",
+  "where": [
+   "core.hpp:1047"
+  ]
+ },
+ {
+  "key": "{0} file(s) in \"{1}\" removed by \"{2}\" (replace_path)",
+  "where": [
+   "core.hpp:1048"
+  ]
+ },
+ {
+  "key": "replace_path \"{0}\" removes {1} file(s) of the base game",
+  "where": [
+   "core.hpp:1052"
+  ]
+ },
+ {
+  "key": "Replaces {0} file(s) of the base game and was made for an older game version: changes the update made to those files are lost",
+  "where": [
+   "core.hpp:1057"
+  ]
+ },
+ {
+  "key": "Replaces {0} file(s) of the base game",
+  "where": [
+   "core.hpp:1058"
+  ]
+ },
+ {
+  "key": "Overrides {0} file(s) from earlier mods",
+  "where": [
+   "core.hpp:1063"
+  ]
+ },
+ {
+  "key": "{0} of its files are overridden by later mods",
+  "where": [
+   "core.hpp:1064"
+  ]
+ },
+ {
+  "key": "Definition",
+  "where": [
+   "core.hpp:1377"
+  ]
+ },
+ {
+  "key": "Event ID",
+  "where": [
+   "core.hpp:1377"
+  ]
+ },
+ {
+  "key": "Localization key",
+  "where": [
+   "core.hpp:1377"
+  ]
+ },
+ {
+  "key": "Define",
+  "where": [
+   "core.hpp:1377"
+  ]
+ },
+ {
+  "key": "On_action",
+  "where": [
+   "core.hpp:1377"
+  ]
+ },
+ {
+  "key": "The later definition replaces the earlier ones",
+  "where": [
+   "core.hpp:1443"
+  ]
+ },
+ {
+  "key": "Unclear who wins: file name order favours \"{0}\", load order favours the later mod",
+  "where": [
+   "core.hpp:1444"
+  ]
+ },
+ {
+  "key": "Duplicate event ID: the game logs an error and ignores one of them",
+  "where": [
+   "core.hpp:1445"
+  ]
+ },
+ {
+  "key": "Several mods set effect/trigger of this on_action: only one takes effect",
+  "where": [
+   "core.hpp:1446"
+  ]
+ },
+ {
+  "key": "Same text key defined by several mods",
+  "where": [
+   "core.hpp:1447"
+  ]
+ },
+ {
+  "key": "{0} event ID(s) are also used by other mods (duplicate event IDs)",
+  "where": [
+   "core.hpp:1471"
+  ]
+ },
+ {
+  "key": "{0} on_action(s) are also extended by other mods",
+  "where": [
+   "core.hpp:1476"
+  ]
+ },
+ {
+  "key": "{0} definition(s) are also defined by other mods (see Conflicts > By definition)",
+  "where": [
+   "core.hpp:1477"
+  ]
+ },
+ {
+  "key": "{0} script definition(s) are also defined by other mods",
+  "where": [
+   "core.hpp:1478"
+  ]
+ },
+ {
+  "key": "{0} localization key(s) are also defined by other mods",
+  "where": [
+   "core.hpp:1479"
+  ]
+ },
+ {
+  "key": "{0} (on in {1}, off in {2})",
+  "where": [
+   "core.hpp:1502",
+   "core.hpp:1508"
+  ]
+ },
+ {
+  "key": "Updated since you last pressed Play (Workshop update or edited files)",
+  "where": [
+   "core.hpp:1553"
+  ]
+ },
+ {
+  "key": "Library",
+  "where": [
+   "core.hpp:1566"
+  ]
+ },
+ {
+  "key": "Overhaul",
+  "where": [
+   "core.hpp:1566"
+  ]
+ },
+ {
+  "key": "Content",
+  "where": [
+   "core.hpp:1566"
+  ]
+ },
+ {
+  "key": "Graphics",
+  "where": [
+   "core.hpp:1566"
+  ]
+ },
+ {
+  "key": "Interface",
+  "where": [
+   "core.hpp:1566"
+  ]
+ },
+ {
+  "key": "Translation",
+  "where": [
+   "core.hpp:1566"
+  ]
+ },
+ {
+  "key": "Patch",
+  "where": [
+   "core.hpp:1566"
+  ]
+ },
+ {
+  "key": "Workshop",
+  "where": [
+   "core.hpp:1571"
+  ]
+ },
+ {
+  "key": "Local",
+  "where": [
+   "core.hpp:1571"
+  ]
+ },
+ {
+  "key": "Rise and Fall: its author says to place it at the very bottom of the load order",
+  "where": [
+   "core.hpp:1650"
+  ]
+ },
+ {
+  "key": "RUI: its page says to place it below Rise and Fall",
+  "where": [
+   "core.hpp:1651"
+  ]
+ },
+ {
+  "key": "Unofficial Patch: its page says it must be loaded at the very top of your mod list (only a total conversion goes above it)",
+  "where": [
+   "core.hpp:1653"
+  ]
+ },
+ {
+  "key": "Better Barbershop: its page says to put it below CFP, EPE and AGOT",
+  "where": [
+   "core.hpp:1655"
+  ]
+ },
+ {
+  "key": "Community Flavor Pack (known mod)",
+  "where": [
+   "core.hpp:1656"
+  ]
+ },
+ {
+  "key": "Ethnicities & Portraits Expanded (known mod)",
+  "where": [
+   "core.hpp:1657"
+  ]
+ },
+ {
+  "key": "Better Character UI: its page says it must be placed under other UI mods",
+  "where": [
+   "core.hpp:1658"
+  ]
+ },
+ {
+  "key": "A Game of Thrones: the AGOT Submod Core page says it must remain at the top of the load order",
+  "where": [
+   "core.hpp:1660"
+  ]
+ },
+ {
+  "key": "LotR: Realms in Exile is a total conversion, so it goes first (standard rule for total conversions)",
+  "where": [
+   "core.hpp:1664"
+  ]
+ },
+ {
+  "key": "Princes of Darkness is a total conversion, so it goes first (standard rule for total conversions)",
+  "where": [
+   "core.hpp:1666"
+  ]
+ },
+ {
+  "key": "Elder Kings 2 is a total conversion, so it goes first (standard rule for total conversions)",
+  "where": [
+   "core.hpp:1668"
+  ]
+ },
+ {
+  "key": "AGOT Submod Core: its page says to load it immediately after A Game of Thrones",
+  "where": [
+   "core.hpp:1670"
+  ]
+ },
+ {
+  "key": "AGOT submod: the AGOT Submod Core page says participating submods must load after AGOT Submod Core",
+  "where": [
+   "core.hpp:1673"
+  ]
+ },
+ {
+  "key": "More Interactive Vassals: its page says to place it at the bottom of the load order (Rise and Fall still goes below it)",
+  "where": [
+   "core.hpp:1676"
+  ]
+ },
+ {
+  "key": "Battle Graphics: its page lists the order: other mods, CFP, EPE, the CFP + EPE patch, then Battle Graphics, then its own compatibility patches",
+  "where": [
+   "core.hpp:1679"
+  ]
+ },
+ {
+  "key": "Dynamic Family Portrait: its page says to load it below EPE (above EPE disables its brighter portraits)",
+  "where": [
+   "core.hpp:1681"
+  ]
+ },
+ {
+  "key": "Visible Disfigurement: its page says to load it after CFP / EPE",
+  "where": [
+   "core.hpp:1683"
+  ]
+ },
+ {
+  "key": "Unique Artifacts +: no load order is given, but its page warns that conflicts may occur with mods that modify adventure inspiration rewards, unique artifact generation, pilgrimage artifact rewards, legend-related artifact rewards or the same artifact creation effects; if another mod changes the same systems, a compatibility patch may be required",
+  "where": [
+   "core.hpp:1685"
+  ]
+ },
+ {
+  "key": "More Lifestyles: its page says to put it lower in the load order",
+  "where": [
+   "core.hpp:1687"
+  ]
+ },
+ {
+  "key": "default",
+  "where": [
+   "core.hpp:1764"
+  ]
+ },
+ {
+  "key": "name has \"{0}\"",
+  "where": [
+   "core.hpp:1773",
+   "core.hpp:1774",
+   "core.hpp:1777"
+  ]
+ },
+ {
+  "key": "tag Fixes",
+  "where": [
+   "core.hpp:1775"
+  ]
+ },
+ {
+  "key": "tag Translation",
+  "where": [
+   "core.hpp:1776"
+  ]
+ },
+ {
+  "key": "tag Total Conversion",
+  "where": [
+   "core.hpp:1779"
+  ]
+ },
+ {
+  "key": "replaces {0} vanilla folders",
+  "where": [
+   "core.hpp:1781"
+  ]
+ },
+ {
+  "key": "tag Interface",
+  "where": [
+   "core.hpp:1782"
+  ]
+ },
+ {
+  "key": "tag Graphics",
+  "where": [
+   "core.hpp:1784"
+  ]
+ },
+ {
+  "key": "tag Character Models",
+  "where": [
+   "core.hpp:1785"
+  ]
+ },
+ {
+  "key": "tag Sound",
+  "where": [
+   "core.hpp:1786"
+  ]
+ },
+ {
+  "key": "files: mostly localization",
+  "where": [
+   "core.hpp:1803"
+  ]
+ },
+ {
+  "key": "files: mostly interface",
+  "where": [
+   "core.hpp:1804"
+  ]
+ },
+ {
+  "key": "files: mostly graphics/audio",
+  "where": [
+   "core.hpp:1805"
+  ]
+ },
+ {
+  "key": "files: rewrites the map and history",
+  "where": [
+   "core.hpp:1806"
+  ]
+ },
+ {
+  "key": "not installed",
+  "where": [
+   "core.hpp:1837"
+  ]
+ },
+ {
+  "key": "set by you",
+  "where": [
+   "core.hpp:1851"
+  ]
+ },
+ {
+  "key": "Needs \"{0}\" to load first",
+  "where": [
+   "core.hpp:1869"
+  ]
+ },
+ {
+  "key": "Could not put \"{0}\" below \"{1}\" (it would contradict a dependency).",
+  "where": [
+   "core.hpp:1896"
+  ]
+ },
+ {
+  "key": "Could not put \"{0}\" above \"{1}\" (it would contradict a dependency).",
+  "where": [
+   "core.hpp:1896"
+  ]
+ },
+ {
+  "key": "loads after \"{0}\"",
+  "where": [
+   "core.hpp:1898"
+  ]
+ },
+ {
+  "key": "{0}: loads after \"{1}\"",
+  "where": [
+   "core.hpp:1898"
+  ]
+ },
+ {
+  "key": "loads before \"{0}\"",
+  "where": [
+   "core.hpp:1899"
+  ]
+ },
+ {
+  "key": "{0}: loads before \"{1}\"",
+  "where": [
+   "core.hpp:1899"
+  ]
+ },
+ {
+  "key": "Is a patch for \"{0}\", so it loads after it",
+  "where": [
+   "core.hpp:1919"
+  ]
+ },
+ {
+  "key": "Circular dependency around \"{0}\"; the dependency was ignored.",
+  "where": [
+   "core.hpp:1968"
+  ]
+ },
+ {
+  "key": "\"{0}\" needs \"{1}\" to load first, but a locked mod prevents it.",
+  "where": [
+   "core.hpp:1987"
+  ]
+ },
+ {
+  "key": "\"{0}\" loads after \"{1}\", but a locked mod prevents it.",
+  "where": [
+   "core.hpp:1988"
+  ]
+ },
+ {
+  "key": "\"{0}\" loads before \"{1}\", but a locked mod prevents it.",
+  "where": [
+   "core.hpp:1989"
+  ]
+ },
+ {
+  "key": "\"{0}\" {1}: loads after \"{2}\", but a locked mod prevents it.",
+  "where": [
+   "core.hpp:1990"
+  ]
+ },
+ {
+  "key": "\"{0}\" {1}: loads before \"{2}\", but a locked mod prevents it.",
+  "where": [
+   "core.hpp:1991"
+  ]
+ },
+ {
+  "key": "Loads after \"{0}\" (they overwrite the same files; this is the smaller mod, so it wins)",
+  "where": [
+   "core.hpp:2004"
+  ]
+ },
+ {
+  "key": "{0} group",
+  "where": [
+   "core.hpp:2005"
+  ]
+ },
+ {
+  "key": "{0} group ({1})",
+  "where": [
+   "core.hpp:2005"
+  ]
+ },
+ {
+  "key": "That file is too large to be a playset.",
+  "where": [
+   "core.hpp:2096"
+  ]
+ },
+ {
+  "key": "That file is not valid JSON.",
+  "where": [
+   "core.hpp:2098"
+  ]
+ },
+ {
+  "key": "That playset is for \"{0}\", not Crusader Kings III.",
+  "where": [
+   "core.hpp:2100"
+  ]
+ },
+ {
+  "key": "That file is not a playset (no mod list found).",
+  "where": [
+   "core.hpp:2104"
+  ]
+ },
+ {
+  "key": "The playset file lists too many mods.",
+  "where": [
+   "core.hpp:2105"
+  ]
+ },
+ {
+  "key": "Could not read the downloaded mod \"{0}\".",
+  "where": [
+   "core.hpp:2458"
+  ]
+ },
+ {
+  "key": "Could not write {0} into your mod folder.",
+  "where": [
+   "core.hpp:2461"
+  ]
+ },
+ {
+  "key": "The CK3 folder is not set.",
+  "where": [
+   "core.hpp:2473"
+  ]
+ },
+ {
+  "key": "Could not read your existing dlc_load.json (it may be in use or unusually large), so it was left unchanged.",
+  "where": [
+   "core.hpp:2479"
+  ]
+ },
+ {
+  "key": "Could not save a copy of your dlc_load.json, so nothing was changed.",
+  "where": [
+   "core.hpp:2484"
+  ]
+ },
+ {
+  "key": "Could not write dlc_load.json (is the CK3 folder writable?).",
+  "where": [
+   "core.hpp:2496"
+  ]
+ },
+ {
+  "key": "Loaded \"{0}\": {1} mods ({2} not installed, skipped)",
+  "where": [
+   "core.hpp:2498"
+  ]
+ },
+ {
+  "key": "Loaded \"{0}\": {1} mods",
+  "where": [
+   "core.hpp:2499"
+  ]
+ },
+ {
+  "key": "no file changes",
+  "where": [
+   "changes.hpp:115"
+  ]
+ },
+ {
+  "key": "{0} file changed",
+  "where": [
+   "changes.hpp:118"
+  ]
+ },
+ {
+  "key": "{0} files changed",
+  "where": [
+   "changes.hpp:118"
+  ]
+ },
+ {
+  "key": "{0} added",
+  "where": [
+   "changes.hpp:119"
+  ]
+ },
+ {
+  "key": "{0} (mostly {1})",
+  "where": [
+   "changes.hpp:124"
+  ]
+ },
+ {
+  "key": "{0} (in {1})",
+  "where": [
+   "changes.hpp:125"
+  ]
+ },
+ {
+  "key": "made for game version {0}, you have {1}",
+  "where": [
+   "changes.hpp:155"
+  ]
+ },
+ {
+  "key": "updated or edited",
+  "where": [
+   "changes.hpp:158"
+  ]
+ },
+ {
+  "key": "enabled since then",
+  "where": [
+   "changes.hpp:171"
+  ]
+ },
+ {
+  "key": "no longer installed",
+  "where": [
+   "changes.hpp:175"
+  ]
+ },
+ {
+  "key": "turned off since then",
+  "where": [
+   "changes.hpp:176"
+  ]
+ },
+ {
+  "key": "No share code found. A share code starts with \"RC1:\".",
+  "where": [
+   "share.hpp:108"
+  ]
+ },
+ {
+  "key": "That share code is damaged (it may have been cut short).",
+  "where": [
+   "share.hpp:110"
+  ]
+ },
+ {
+  "key": "That share code is damaged (the check failed). Copy it again, all of it.",
+  "where": [
+   "share.hpp:114"
+  ]
+ },
+ {
+  "key": "That share code is from a newer version of the program. Update The Royal Court and try again.",
+  "where": [
+   "share.hpp:116"
+  ]
+ },
+ {
+  "key": "That share code is damaged.",
+  "where": [
+   "share.hpp:120",
+   "share.hpp:123",
+   "share.hpp:126"
+  ]
+ },
+ {
+  "key": "The game touched memory it should not (access violation)",
+  "where": [
+   "crash.hpp:227"
+  ]
+ },
+ {
+  "key": "The game ran out of memory",
+  "where": [
+   "crash.hpp:228"
+  ]
+ },
+ {
+  "key": "The game's call stack overflowed",
+  "where": [
+   "crash.hpp:229"
+  ]
+ },
+ {
+  "key": "A graphics driver or graphics-card error",
+  "where": [
+   "crash.hpp:230"
+  ]
+ },
+ {
+  "key": "The game stopped itself on an internal check (assertion)",
+  "where": [
+   "crash.hpp:231"
+  ]
+ },
+ {
+  "key": "A processor instruction the computer could not run",
+  "where": [
+   "crash.hpp:232"
+  ]
+ },
+ {
+  "key": "The game divided by zero",
+  "where": [
+   "crash.hpp:233"
+  ]
+ },
+ {
+  "key": "A crash with no recognised cause",
+  "where": [
+   "crash.hpp:234"
+  ]
+ },
+ {
+  "key": "This is the most common crash with mods. It is usually a script or data file the game cannot handle: a mod that is out of date for this game version, two mods that overwrite the same files, or a mod loaded in the wrong order. Check the suspects below, then try turning off the most recently added or updated mods first.",
+  "where": [
+   "crash.hpp:239"
+  ]
+ },
+ {
+  "key": "A big playset on a long game can use more memory than the computer has. Close other programs, turn off graphics-heavy and map mods first, and restart the game now and then in a long campaign.",
+  "where": [
+   "crash.hpp:240"
+  ]
+ },
+ {
+  "key": "This is almost always a mod that makes events or effects call each other forever. Look at the suspects below, and at mods that changed recently.",
+  "where": [
+   "crash.hpp:241"
+  ]
+ },
+ {
+  "key": "This points at the graphics driver or card rather than a script mod. Update the graphics driver, and turn off mods that add many or large textures, 3D models or shaders.",
+  "where": [
+   "crash.hpp:242"
+  ]
+ },
+ {
+  "key": "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.",
+  "where": [
+   "crash.hpp:243"
+  ]
+ },
+ {
+  "key": "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.",
+  "where": [
+   "crash.hpp:244"
+  ]
+ },
+ {
+  "key": "A mod gave the game a value of zero where it must not. Check the suspects below.",
+  "where": [
+   "crash.hpp:245"
+  ]
+ },
+ {
+  "key": "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.",
+  "where": [
+   "crash.hpp:246"
+  ]
+ }
+]

@@ -105,35 +105,35 @@ struct ShareDecode { bool ok = false; std::string error, name; bool withNames = 
 inline ShareDecode decodeShareCode(const std::string& pasted) {
     ShareDecode d;
     std::string code = findShareCode(pasted);
-    if (code.empty()) { d.error = "No share code found. A share code starts with \"RC1:\"."; return d; }
+    if (code.empty()) { d.error = tr("No share code found. A share code starts with \"RC1:\"."); return d; }
     std::string b;
-    if (!b64urlDecode(code.substr(4), b) || b.size() < 8) { d.error = "That share code is damaged (it may have been cut short)."; return d; }
+    if (!b64urlDecode(code.substr(4), b) || b.size() < 8) { d.error = tr("That share code is damaged (it may have been cut short)."); return d; }
     std::string body = b.substr(0, b.size() - 4);
     uint32_t want = 0;
     for (int i = 0; i < 4; i++) want |= (uint32_t)(unsigned char)b[b.size() - 4 + (size_t)i] << (i * 8);
-    if (crc32Of(body) != want) { d.error = "That share code is damaged (the check failed). Copy it again, all of it."; return d; }
+    if (crc32Of(body) != want) { d.error = tr("That share code is damaged (the check failed). Copy it again, all of it."); return d; }
     size_t i = 0;
-    if (body.size() < 2 || body[0] != 1) { d.error = "That share code is from a newer version of the program. Update The Royal Court and try again."; return d; }
+    if (body.size() < 2 || body[0] != 1) { d.error = tr("That share code is from a newer version of the program. Update The Royal Court and try again."); return d; }
     d.withNames = (body[1] & 1) != 0;
     i = 2;
     uint64_t len;
-    if (!getVar(body, i, len) || len > 200 || i + len > body.size()) { d.error = "That share code is damaged."; return d; }
+    if (!getVar(body, i, len) || len > 200 || i + len > body.size()) { d.error = tr("That share code is damaged."); return d; }
     d.name = body.substr(i, (size_t)len); i += (size_t)len;
     uint64_t count;
-    if (!getVar(body, i, count) || count > 5000) { d.error = "That share code is damaged."; return d; }
+    if (!getVar(body, i, count) || count > 5000) { d.error = tr("That share code is damaged."); return d; }
     for (uint64_t k = 0; k < count; k++) {
         uint64_t v;
-        if (!getVar(body, i, v)) { d.error = "That share code is damaged."; return d; }
+        if (!getVar(body, i, v)) { d.error = tr("That share code is damaged."); return d; }
         ShareMod m; m.enabled = (v & 1) != 0;
         if (v & 2) {
             uint64_t n = v >> 2;
-            if (n > 400 || i + n > body.size()) { d.error = "That share code is damaged."; return d; }
+            if (n > 400 || i + n > body.size()) { d.error = tr("That share code is damaged."); return d; }
             m.local = true; m.name = body.substr(i, (size_t)n); i += (size_t)n;
         } else {
             m.workshopId = std::to_string(v >> 2);
             if (d.withNames) {
                 uint64_t n;
-                if (!getVar(body, i, n) || n > 400 || i + n > body.size()) { d.error = "That share code is damaged."; return d; }
+                if (!getVar(body, i, n) || n > 400 || i + n > body.size()) { d.error = tr("That share code is damaged."); return d; }
                 m.name = body.substr(i, (size_t)n); i += (size_t)n;
             }
         }

@@ -21,12 +21,13 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include "lang.hpp"
 
 namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.17.0";
+inline const char* VERSION = "0.18.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -273,6 +274,9 @@ struct Settings {
     std::string playGameVer, playName;                                // game version and playset name when Play was last pressed
     long long playTime = 0;                                           // when (seconds since 1970; 0 = never)
     std::vector<std::string> playMods;                                // mods that were enabled then
+    std::string crashSeen;                                            // newest crash folder name the user has been told about (or that existed at first start)
+    bool tutorialDone = false;                                        // the first-launch tutorial has been shown
+    std::string language = "auto";                                    // "auto" (follow Windows) or a language code from LANGS
 };
 
 // A playset IS a Paradox Launcher playset file: <Playsets folder>/<name>.json. The file name is the playset name.
@@ -359,6 +363,9 @@ inline void loadSettings(Settings& st) {
     if (J* a = root.get("active"); a && a->t == J::Str) st.active = a->s;
     if (J* g = root.get("gameExe"); g && g->t == J::Str) st.gameExe = g->s;
     if (J* th = root.get("theme"); th && th->t == J::Str && (th->s == "dark" || th->s == "light")) st.theme = th->s;
+    if (J* cs = root.get("crashSeen"); cs && cs->t == J::Str && cs->s.size() < 100) st.crashSeen = cs->s;
+    if (J* td = root.get("tutorialDone"); td && td->t == J::Bool) st.tutorialDone = td->b;
+    if (J* lg = root.get("language"); lg && lg->t == J::Str && (lg->s == "auto" || langFromCode(lg->s) >= 0)) st.language = lg->s;
     if (J* lk = root.get("locks"); lk && lk->t == J::Obj)
         for (size_t i = 0; i < lk->keys.size(); i++)
             if (lk->vals[i].t == J::Arr) for (auto& e : lk->vals[i].a) if (e.t == J::Str) st.locks[lk->keys[i]].insert(e.s);
@@ -373,6 +380,9 @@ inline bool saveSettings(const Settings& st) {
     root.set("active", J::str(st.active));
     root.set("gameExe", J::str(st.gameExe));
     if (!st.theme.empty()) root.set("theme", J::str(st.theme));
+    if (!st.crashSeen.empty()) root.set("crashSeen", J::str(st.crashSeen));
+    if (st.tutorialDone) root.set("tutorialDone", J::boolean(true));
+    if (st.language != "auto") root.set("language", J::str(st.language));
     J lk = J::obj();
     for (auto& kv : st.locks) {
         if (kv.second.empty()) continue;
@@ -618,32 +628,32 @@ inline std::vector<std::vector<ModIssue>> analyzePlayset(const Playset& ps, cons
     for (size_t i = 0; i < ps.mods.size(); i++) {
         auto& iss = out[i];
         auto it = info.find(ps.mods[i].id);
-        if (it == info.end()) { iss.push_back({ps.mods[i].enabled ? 2 : 0, "Not installed"}); continue; }
-        if (it->second.pending) iss.push_back({0, "Subscribed on Steam, not added yet. Tick the box to add it"});
+        if (it == info.end()) { iss.push_back({ps.mods[i].enabled ? 2 : 0, tr("Not installed")}); continue; }
+        if (it->second.pending) iss.push_back({0, tr("Subscribed on Steam, not added yet. Tick the box to add it")});
         if (!ps.mods[i].enabled) continue;
         const ModInfo& m = it->second;
         std::string self = lower(trimmed(m.name));
-        if (m.contentState == 2) iss.push_back({2, "Mod files not found"});
+        if (m.contentState == 2) iss.push_back({2, tr("Mod files not found")});
         for (auto& d : m.deps) {
             std::string dn = lower(trimmed(d));
             if (dn.empty() || dn == self) continue;
             auto ep = enabledPos.find(dn);
             if (ep == enabledPos.end())
-                iss.push_back({2, installedNames.count(dn) ? "Needs \"" + d + "\" (installed, not enabled)" : "Needs \"" + d + "\" (not installed)"});
+                iss.push_back({2, installedNames.count(dn) ? trf("Needs \"{0}\" (installed, not enabled)", {d}) : trf("Needs \"{0}\" (not installed)", {d})});
             else if (ep->second > (int)i)
-                iss.push_back({1, "\"" + d + "\" should load before this mod (it is #" + std::to_string(ep->second + 1) + ")"});
+                iss.push_back({1, trf("\"{0}\" should load before this mod (it is #{1})", {d, ep->second + 1})});
         }
         auto sn = sameName.find(self);
         if (sn != sameName.end() && sn->second.size() > 1) {
             int other = sn->second[0] == (int)i ? sn->second[1] : sn->second[0];
-            iss.push_back({1, "Same name as enabled mod #" + std::to_string(other + 1)});
+            iss.push_back({1, trf("Same name as enabled mod #{0}", {other + 1})});
         }
         if (matchGameVersion(m.supported, gameVersion) == VerMatch::Mismatch)
-            iss.push_back({1, "Made for game " + m.supported + " (installed " + gameVersion + ")"});
+            iss.push_back({1, trf("Made for game {0} (installed {1})", {m.supported, gameVersion})});
         if (!m.replacePaths.empty()) {
             std::string l;
             for (size_t k = 0; k < m.replacePaths.size(); k++) l += (k ? ", " : "") + m.replacePaths[k];
-            iss.push_back({0, "Replaces vanilla folder(s): " + l});
+            iss.push_back({0, trf("Replaces vanilla folder(s): {0}", {l})});
         }
         std::stable_sort(iss.begin(), iss.end(), [](const ModIssue& a, const ModIssue& b) { return a.sev > b.sev; });
     }
@@ -655,7 +665,7 @@ inline std::string issueSummary(const std::vector<ModIssue>& v) {
     int shown = 0, worst = -1;
     for (size_t i = 0; i < v.size(); i++) if (v[i].sev >= 1) { shown++; if (worst < 0) worst = (int)i; }
     if (worst < 0) return "";
-    return v[(size_t)worst].text + (shown > 1 ? "  (+" + std::to_string(shown - 1) + " more)" : "");
+    return shown > 1 ? trf("{0}  (+{1} more)", {v[(size_t)worst].text, shown - 1}) : v[(size_t)worst].text;
 }
 inline int issueSeverity(const std::vector<ModIssue>& v) { int s = -1; for (auto& i : v) if (i.sev > s) s = i.sev; return s < 1 ? 0 : s; }
 
@@ -899,7 +909,7 @@ inline std::shared_ptr<VanillaIndex> loadOrIndexVanilla(const std::string& cache
 // How much a replaced file matters. A whole-file replacement drops everything the losing mod put in that file, so game rules and
 // events (common/, events/, history/, map_data/) are the serious ones; interface and text are in between; art and sound just look different.
 enum Sev : int { SEV_LOW = 0, SEV_MED = 1, SEV_HIGH = 2 };
-inline const char* sevName(int s) { return s >= SEV_HIGH ? "High" : s == SEV_MED ? "Medium" : "Low"; }
+inline std::string sevName(int s) { return s >= SEV_HIGH ? tr("High") : s == SEV_MED ? tr("Medium") : tr("Low"); }
 inline int areaSeverity(const std::string& area) {
     auto starts = [&](const char* p) { return area.rfind(p, 0) == 0; };
     if (starts("common/genes") || starts("common/ethnicities") || starts("common/bookmark_portraits") || starts("common/coat_of_arms") || starts("common/named_colors") ||
@@ -1034,24 +1044,24 @@ inline void addConflictIssues(std::vector<std::vector<ModIssue>>& issues, const 
     if (!cr.valid || issues.size() != ps.mods.size()) return;
     auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? ps.mods[(size_t)i].id : it->second.name; };
     for (auto& w : cr.wipes) {
-        issues[(size_t)w.replacer].push_back({1, "replace_path \"" + w.folder + "\" removes " + std::to_string(w.files) + " file(s) of \"" + nameOf(w.victim) + "\" (loaded earlier)"});
-        issues[(size_t)w.victim].push_back({1, std::to_string(w.files) + " file(s) in \"" + w.folder + "\" removed by \"" + nameOf(w.replacer) + "\" (replace_path)"});
+        issues[(size_t)w.replacer].push_back({1, trf("replace_path \"{0}\" removes {1} file(s) of \"{2}\" (loaded earlier)", {w.folder, w.files, nameOf(w.victim)})});
+        issues[(size_t)w.victim].push_back({1, trf("{0} file(s) in \"{1}\" removed by \"{2}\" (replace_path)", {w.files, w.folder, nameOf(w.replacer)})});
     }
     if (cr.vanillaChecked && cr.vanillaCount.size() == ps.mods.size()) {
         for (auto& w : cr.vanillaWipes)
-            issues[(size_t)w.mod].push_back({1, "replace_path \"" + w.folder + "\" removes " + std::to_string(w.files) + " file(s) of the base game"});
+            issues[(size_t)w.mod].push_back({1, trf("replace_path \"{0}\" removes {1} file(s) of the base game", {w.folder, w.files})});
         for (size_t i = 0; i < ps.mods.size(); i++) {
             if (cr.vanillaCount[i] <= 0) continue;
             auto it = info.find(ps.mods[i].id);
             bool old = it != info.end() && matchGameVersion(it->second.supported, gameVer) == VerMatch::Mismatch;
-            std::string t = "Replaces " + std::to_string(cr.vanillaCount[i]) + " file(s) of the base game";
-            if (old) t += " and was made for an older game version: changes the update made to those files are lost";
+            std::string t = old ? trf("Replaces {0} file(s) of the base game and was made for an older game version: changes the update made to those files are lost", {cr.vanillaCount[i]})
+                                : trf("Replaces {0} file(s) of the base game", {cr.vanillaCount[i]});
             issues[i].push_back({old ? 1 : 0, t});
         }
     }
     for (size_t i = 0; i < ps.mods.size(); i++) {
-        if (cr.wins[i] > 0) issues[i].push_back({0, "Overrides " + std::to_string(cr.wins[i]) + " file(s) from earlier mods"});
-        if (cr.loses[i] > 0) issues[i].push_back({0, std::to_string(cr.loses[i]) + " of its files are overridden by later mods"});
+        if (cr.wins[i] > 0) issues[i].push_back({0, trf("Overrides {0} file(s) from earlier mods", {cr.wins[i]})});
+        if (cr.loses[i] > 0) issues[i].push_back({0, trf("{0} of its files are overridden by later mods", {cr.loses[i]})});
         std::stable_sort(issues[i].begin(), issues[i].end(), [](const ModIssue& a, const ModIssue& b) { return a.sev > b.sev; });
     }
 }
@@ -1363,9 +1373,9 @@ struct ScriptReport {
     int modsRead = 0, modsMissing = 0;
     bool valid = false;
 };
-inline const char* defKindName(int k) {
-    static const char* n[DK_KINDS] = {"Definition", "Event ID", "Localization key", "Define", "On_action"};
-    return (k >= 0 && k < DK_KINDS) ? n[k] : "";
+inline std::string defKindName(int k) {
+    static const char* n[DK_KINDS] = {K("Definition"), K("Event ID"), K("Localization key"), K("Define"), K("On_action")};
+    return (k >= 0 && k < DK_KINDS) ? tr(n[k]) : std::string();
 }
 
 inline ScriptReport findScriptConflicts(const Playset& ps, const std::map<std::string, ModInfo>& info, const std::map<std::string, ModDefs>& index) {
@@ -1430,11 +1440,11 @@ inline ScriptReport findScriptConflicts(const Playset& ps, const std::map<std::s
                     int byLoad = sc.hits.back().mod, byName = sc.hits[0].mod;
                     std::string bestKey, bestFile;
                     for (auto& h : sc.hits) { std::string k = lower(baseName(h.file)) + "|" + lower(h.file); if (bestKey.empty() || k > bestKey) { bestKey = k; byName = h.mod; bestFile = baseName(h.file); } }
-                    if (byLoad == byName) { sc.winner = byLoad; sc.sev = 0; sc.note = "The later definition replaces the earlier ones"; }
-                    else { sc.winner = -1; sc.sev = 1; sc.note = "Unclear who wins: file name order favours \"" + bestFile + "\", load order favours the later mod"; }
-                } else if (sc.kind == DK_EVENT) { sc.sev = 1; sc.note = "Duplicate event ID: the game logs an error and ignores one of them"; }
-                else if (sc.kind == DK_ONACTION) { sc.sev = 1; sc.note = "Several mods set effect/trigger of this on_action: only one takes effect"; }
-                else { sc.sev = 0; sc.note = "Same text key defined by several mods"; }
+                    if (byLoad == byName) { sc.winner = byLoad; sc.sev = 0; sc.note = tr("The later definition replaces the earlier ones"); }
+                    else { sc.winner = -1; sc.sev = 1; sc.note = trf("Unclear who wins: file name order favours \"{0}\", load order favours the later mod", {bestFile}); }
+                } else if (sc.kind == DK_EVENT) { sc.sev = 1; sc.note = tr("Duplicate event ID: the game logs an error and ignores one of them"); }
+                else if (sc.kind == DK_ONACTION) { sc.sev = 1; sc.note = tr("Several mods set effect/trigger of this on_action: only one takes effect"); }
+                else { sc.sev = 0; sc.note = tr("Same text key defined by several mods"); }
                 std::set<int> seen;
                 for (auto& h : sc.hits) if (seen.insert(h.mod).second) { r.perMod[(size_t)h.mod][(size_t)sc.kind]++; if (sc.winner < 0 && sc.sev > 0) r.unclear[(size_t)h.mod]++; }
                 r.items.push_back(std::move(sc));
@@ -1458,15 +1468,15 @@ inline void addScriptIssues(std::vector<std::vector<ModIssue>>& issues, const Sc
     for (size_t i = 0; i < ps.mods.size(); i++) {
         const auto& c = sr.perMod[i];
         int ev = c[DK_EVENT], oa = c[DK_ONACTION], com = c[DK_COMMON] + c[DK_DEFINE], loc = c[DK_LOC];
-        if (ev > 0) issues[i].push_back({1, std::to_string(ev) + " event ID(s) are also used by other mods (duplicate event IDs)"});
+        if (ev > 0) issues[i].push_back({1, trf("{0} event ID(s) are also used by other mods (duplicate event IDs)", {ev})});
         // Only duplicate event IDs can really break something, so only they are a warning. Everything else
         // (on_action effects, definitions where the winner is unclear, plain overrides) is normal modding
         // practice - patches and compatibility mods do it on purpose - so it is information only.
         int other = sr.unclear[i] - ev - oa; if (other < 0) other = 0;
-        if (oa > 0) issues[i].push_back({0, std::to_string(oa) + " on_action(s) are also extended by other mods"});
-        if (other > 0) issues[i].push_back({0, std::to_string(other) + " definition(s) are also defined by other mods (see Conflicts > By definition)"});
-        if (com > 0 && other == 0) issues[i].push_back({0, std::to_string(com) + " script definition(s) are also defined by other mods"});
-        if (loc > 0) issues[i].push_back({0, std::to_string(loc) + " localization key(s) are also defined by other mods"});
+        if (oa > 0) issues[i].push_back({0, trf("{0} on_action(s) are also extended by other mods", {oa})});
+        if (other > 0) issues[i].push_back({0, trf("{0} definition(s) are also defined by other mods (see Conflicts > By definition)", {other})});
+        if (com > 0 && other == 0) issues[i].push_back({0, trf("{0} script definition(s) are also defined by other mods", {com})});
+        if (loc > 0) issues[i].push_back({0, trf("{0} localization key(s) are also defined by other mods", {loc})});
         std::stable_sort(issues[i].begin(), issues[i].end(), [](const ModIssue& a, const ModIssue& b) { return a.sev > b.sev; });
     }
 }
@@ -1489,13 +1499,13 @@ inline PlaysetDiff comparePlaysets(const Playset& a, const Playset& b, const std
     for (auto& m : a.mods) {
         auto it = mb.find(m.id);
         bool eb = it != mb.end() && it->second->enabled;
-        if (m.enabled && !eb) { (it == mb.end() ? d.onlyA : d.enabledDiffers).push_back(it == mb.end() ? nm(m) : nm(m) + " (on in " + a.name + ", off in " + b.name + ")"); }
+        if (m.enabled && !eb) { (it == mb.end() ? d.onlyA : d.enabledDiffers).push_back(it == mb.end() ? nm(m) : trf("{0} (on in {1}, off in {2})", {nm(m), a.name, b.name})); }
         else if (m.enabled && eb) oa.push_back(m.id);
     }
     for (auto& m : b.mods) {
         auto it = ma.find(m.id);
         bool ea = it != ma.end() && it->second->enabled;
-        if (m.enabled && !ea) { if (it == ma.end()) d.onlyB.push_back(nm(m)); else d.enabledDiffers.push_back(nm(m) + " (on in " + b.name + ", off in " + a.name + ")"); }
+        if (m.enabled && !ea) { if (it == ma.end()) d.onlyB.push_back(nm(m)); else d.enabledDiffers.push_back(trf("{0} (on in {1}, off in {2})", {nm(m), b.name, a.name})); }
         else if (m.enabled && ea) ob.push_back(m.id);
     }
     d.shared = (int)oa.size();
@@ -1540,7 +1550,7 @@ inline void addUpdateIssues(std::vector<std::vector<ModIssue>>& issues, const Pl
         if (!ps.mods[i].enabled) continue;
         auto s = seen.find(ps.mods[i].id), n = now.find(ps.mods[i].id);
         if (s == seen.end() || n == now.end() || !fingerprintChanged(s->second, n->second)) continue;
-        issues[i].push_back({1, "Updated since you last pressed Play (Workshop update or edited files)"});
+        issues[i].push_back({1, tr("Updated since you last pressed Play (Workshop update or edited files)")});
     }
     (void)info;
 }
@@ -1551,13 +1561,17 @@ inline void addUpdateIssues(std::vector<std::vector<ModIssue>>& issues, const Pl
 // (4) when two mods in a group overwrite the same files, the smaller, more targeted one loads last (so it wins),
 // (5) otherwise the current order is kept. Locked mods never move.
 enum Cat { CAT_LIBRARY = 0, CAT_OVERHAUL = 1, CAT_CONTENT = 2, CAT_GRAPHICS = 3, CAT_UI = 4, CAT_TRANSLATION = 5, CAT_PATCH = 6, CAT_COUNT = 7 };
-inline const char* catName(int c) {
-    static const char* n[CAT_COUNT] = {"Library", "Overhaul", "Content", "Graphics", "Interface", "Translation", "Patch"};
+// English name (for knownmods.json "type" values and the English sort report); catName() is the translated one for the screen.
+inline const char* catNameEn(int c) {
+    static const char* n[CAT_COUNT] = {K("Library"), K("Overhaul"), K("Content"), K("Graphics"), K("Interface"), K("Translation"), K("Patch")};
     return (c >= 0 && c < CAT_COUNT) ? n[c] : "Content";
 }
+inline std::string catName(int c) { return tr(catNameEn(c)); }
+// ModInfo.source is "Workshop" or "Local" (kept as data); this is the text shown for it.
+inline std::string sourceLabel(const std::string& s) { return s == "Workshop" ? tr("Workshop") : s == "Local" ? tr("Local") : s; }
 inline int catFromName(const std::string& s) {
     std::string l = lower(s);
-    for (int c = 0; c < CAT_COUNT; c++) if (l == lower(catName(c))) return c;
+    for (int c = 0; c < CAT_COUNT; c++) if (l == lower(catNameEn(c))) return c;
     return -1;
 }
 // whole-word match inside a lower-case string; prefix=true also accepts longer words ("compat" -> "compatibility")
@@ -1633,44 +1647,44 @@ struct KnownMod {
 // Only facts taken from the mods' own pages (author instructions) go in here. Everything else is left to the type rules.
 inline std::vector<KnownMod> builtinKnownMods() {
     std::vector<KnownMod> v;
-    { KnownMod k; k.names = {"rise and fall"}; k.ids = {"3554844335"}; k.pos = 1; k.note = "Rise and Fall: its author says to place it at the very bottom of the load order"; v.push_back(k); }
-    { KnownMod k; k.names = {"rui"}; k.after = {"rise and fall"}; k.note = "RUI: its page says to place it below Rise and Fall"; v.push_back(k); }
+    { KnownMod k; k.names = {"rise and fall"}; k.ids = {"3554844335"}; k.pos = 1; k.note = K("Rise and Fall: its author says to place it at the very bottom of the load order"); v.push_back(k); }
+    { KnownMod k; k.names = {"rui"}; k.after = {"rise and fall"}; k.note = K("RUI: its page says to place it below Rise and Fall"); v.push_back(k); }
     { KnownMod k; k.names = {"unofficial patch", "ck3 unofficial patch"}; k.ids = {"2871648329"}; k.pos = -1;
-      k.note = "Unofficial Patch: its page says it must be loaded at the very top of your mod list (only a total conversion goes above it)"; v.push_back(k); }
+      k.note = K("Unofficial Patch: its page says it must be loaded at the very top of your mod list (only a total conversion goes above it)"); v.push_back(k); }
     { KnownMod k; k.names = {"better barbershop", "better barbershop mod"}; k.ids = {"2220326926"}; k.cat = CAT_GRAPHICS; k.rank = 5;
-      k.after = {"community flavor pack", "ethnicities and portraits expanded", "a game of thrones", "agot"}; k.note = "Better Barbershop: its page says to put it below CFP, EPE and AGOT"; v.push_back(k); }
-    { KnownMod k; k.names = {"community flavor pack", "cfp"}; k.ids = {"2220098919"}; k.cat = CAT_CONTENT; k.note = "Community Flavor Pack (known mod)"; v.push_back(k); }
-    { KnownMod k; k.names = {"ethnicities and portraits expanded", "epe"}; k.ids = {"2507209632"}; k.cat = CAT_GRAPHICS; k.note = "Ethnicities & Portraits Expanded (known mod)"; v.push_back(k); }
-    { KnownMod k; k.names = {"better character ui"}; k.ids = {"2222540784"}; k.cat = CAT_UI; k.rank = 5; k.note = "Better Character UI: its page says it must be placed under other UI mods"; v.push_back(k); }
+      k.after = {"community flavor pack", "ethnicities and portraits expanded", "a game of thrones", "agot"}; k.note = K("Better Barbershop: its page says to put it below CFP, EPE and AGOT"); v.push_back(k); }
+    { KnownMod k; k.names = {"community flavor pack", "cfp"}; k.ids = {"2220098919"}; k.cat = CAT_CONTENT; k.note = K("Community Flavor Pack (known mod)"); v.push_back(k); }
+    { KnownMod k; k.names = {"ethnicities and portraits expanded", "epe"}; k.ids = {"2507209632"}; k.cat = CAT_GRAPHICS; k.note = K("Ethnicities & Portraits Expanded (known mod)"); v.push_back(k); }
+    { KnownMod k; k.names = {"better character ui"}; k.ids = {"2222540784"}; k.cat = CAT_UI; k.rank = 5; k.note = K("Better Character UI: its page says it must be placed under other UI mods"); v.push_back(k); }
     { KnownMod k; k.names = {"a game of thrones", "agot"}; k.ids = {"2962333032"}; k.cat = CAT_OVERHAUL; k.pos = -2;
-      k.note = "A Game of Thrones: the AGOT Submod Core page says it must remain at the top of the load order"; v.push_back(k); }
+      k.note = K("A Game of Thrones: the AGOT Submod Core page says it must remain at the top of the load order"); v.push_back(k); }
     // Total conversions replace the whole game setting, so they always go first. Their own Workshop pages give no load-order
     // sentence (checked), so this is the standard rule for total conversions rather than a quote.
     { KnownMod k; k.names = {"lotr realms in exile", "realms in exile"}; k.ids = {"2291024373"}; k.cat = CAT_OVERHAUL; k.pos = -2;
-      k.note = "LotR: Realms in Exile is a total conversion, so it goes first (standard rule for total conversions)"; v.push_back(k); }
+      k.note = K("LotR: Realms in Exile is a total conversion, so it goes first (standard rule for total conversions)"); v.push_back(k); }
     { KnownMod k; k.names = {"princes of darkness"}; k.ids = {"2216659254"}; k.cat = CAT_OVERHAUL; k.pos = -2;
-      k.note = "Princes of Darkness is a total conversion, so it goes first (standard rule for total conversions)"; v.push_back(k); }
+      k.note = K("Princes of Darkness is a total conversion, so it goes first (standard rule for total conversions)"); v.push_back(k); }
     { KnownMod k; k.names = {"elder kings 2"}; k.ids = {"2887120253"}; k.cat = CAT_OVERHAUL; k.pos = -2;
-      k.note = "Elder Kings 2 is a total conversion, so it goes first (standard rule for total conversions)"; v.push_back(k); }
+      k.note = K("Elder Kings 2 is a total conversion, so it goes first (standard rule for total conversions)"); v.push_back(k); }
     { KnownMod k; k.names = {"agot submod core"}; k.cat = CAT_LIBRARY; k.pos = -2; k.after = {"a game of thrones", "agot"};
-      k.note = "AGOT Submod Core: its page says to load it immediately after A Game of Thrones"; v.push_back(k); }
+      k.note = K("AGOT Submod Core: its page says to load it immediately after A Game of Thrones"); v.push_back(k); }
     for (const char* sub : {"agot crowns of westeros", "armor of the kingsguard", "legacy of the dragon", "valyrian steel", "agot plus", "the golden company", "agot brightboar westerosi house flavor"}) {
         KnownMod k; k.names = {sub}; k.after = {"agot submod core"};
-        k.note = "AGOT submod: the AGOT Submod Core page says participating submods must load after AGOT Submod Core"; v.push_back(k);
+        k.note = K("AGOT submod: the AGOT Submod Core page says participating submods must load after AGOT Submod Core"); v.push_back(k);
     }
     { KnownMod k; k.names = {"more interactive vassals", "miv"}; k.ids = {"2712590542"}; k.pos = 1; k.before = {"rise and fall"};
-      k.note = "More Interactive Vassals: its page says to place it at the bottom of the load order (Rise and Fall still goes below it)"; v.push_back(k); }
+      k.note = K("More Interactive Vassals: its page says to place it at the bottom of the load order (Rise and Fall still goes below it)"); v.push_back(k); }
     { KnownMod k; k.names = {"battle graphics"}; k.ids = {"3225355262"}; k.cat = CAT_GRAPHICS;
       k.after = {"community flavor pack", "ethnicities and portraits expanded"};
-      k.note = "Battle Graphics: its page lists the order: other mods, CFP, EPE, the CFP + EPE patch, then Battle Graphics, then its own compatibility patches"; v.push_back(k); }
+      k.note = K("Battle Graphics: its page lists the order: other mods, CFP, EPE, the CFP + EPE patch, then Battle Graphics, then its own compatibility patches"); v.push_back(k); }
     { KnownMod k; k.names = {"dynamic family portrait"}; k.ids = {"3608374693"}; k.cat = CAT_GRAPHICS;
-      k.after = {"ethnicities and portraits expanded"}; k.note = "Dynamic Family Portrait: its page says to load it below EPE (above EPE disables its brighter portraits)"; v.push_back(k); }
+      k.after = {"ethnicities and portraits expanded"}; k.note = K("Dynamic Family Portrait: its page says to load it below EPE (above EPE disables its brighter portraits)"); v.push_back(k); }
     { KnownMod k; k.names = {"visible disfigurement no more masks"}; k.ids = {"3245958435"}; k.after = {"community flavor pack", "ethnicities and portraits expanded"};
-      k.note = "Visible Disfigurement: its page says to load it after CFP / EPE"; v.push_back(k); }
+      k.note = K("Visible Disfigurement: its page says to load it after CFP / EPE"); v.push_back(k); }
     { KnownMod k; k.names = {"unique artifacts plus"}; k.ids = {"3718999968"};
-      k.note = "Unique Artifacts +: no load order is given, but its page warns that conflicts may occur with mods that modify adventure inspiration rewards, unique artifact generation, pilgrimage artifact rewards, legend-related artifact rewards or the same artifact creation effects; if another mod changes the same systems, a compatibility patch may be required"; v.push_back(k); }
+      k.note = K("Unique Artifacts +: no load order is given, but its page warns that conflicts may occur with mods that modify adventure inspiration rewards, unique artifact generation, pilgrimage artifact rewards, legend-related artifact rewards or the same artifact creation effects; if another mod changes the same systems, a compatibility patch may be required"); v.push_back(k); }
     { KnownMod k; k.names = {"more lifestyles"}; k.ids = {"3013259695"}; k.cat = CAT_CONTENT; k.rank = 5;
-      k.note = "More Lifestyles: its page says to put it lower in the load order"; v.push_back(k); }
+      k.note = K("More Lifestyles: its page says to put it lower in the load order"); v.push_back(k); }
     // names are compared in their normalised form (trailing version numbers dropped: "elder kings 2" is "elder kings")
     for (auto& k : v) { for (auto& n : k.names) n = normName(n); for (auto& n : k.after) n = normName(n); for (auto& n : k.before) n = normName(n); }
     return v;
@@ -1733,6 +1747,8 @@ inline std::vector<KnownMod> loadKnownMods(int* onlineRevision = nullptr) {
     if (readFile(P(dataDir()) / "knownmods.json", text)) applyKnownJson(v, text);
     return v;
 }
+// The note of a known-mod entry for display: the built-in notes are translatable (K() keys); notes from knownmods.json are shown as written.
+inline std::string knownNoteText(const KnownMod& k) { return k.note.empty() ? std::string() : tr(k.note.c_str()); }
 inline std::string steamIdOf(const std::string& id);
 inline int findKnown(const std::vector<KnownMod>& db, const ModInfo& m) {
     std::string sid = steamIdOf(m.id), nn = normName(m.name);
@@ -1743,7 +1759,9 @@ inline int findKnown(const std::vector<KnownMod>& db, const ModInfo& m) {
     return -1;
 }
 
-struct CatGuess { int cat = CAT_CONTENT; std::string why; };
+// why: "default" is a language-neutral marker (nothing specific said what the mod is); every other text is already translated.
+// shown() is the text for display (translates the marker).
+struct CatGuess { int cat = CAT_CONTENT; std::string why; std::string shown() const { return why == "default" ? tr("default") : why; } };
 inline CatGuess guessCategory(const ModInfo& m) {
     std::string n = lower(m.name);
     std::set<std::string> tags;
@@ -1752,21 +1770,21 @@ inline CatGuess guessCategory(const ModInfo& m) {
         for (const char* w : ws) if (hasWord(n, w, prefix)) return w;
         return nullptr;
     };
-    if (const char* w = name({"patch", "patches", "hotfix", "bridge", "submod", "sub-mod", "addon", "add-on"})) return {CAT_PATCH, std::string("name has \"") + w + "\""};
-    if (const char* w = name({"compat", "compatch", "compatibility"}, true)) return {CAT_PATCH, std::string("name has \"") + w + "\""};
-    if (tags.count("fixes")) return {CAT_PATCH, "tag Fixes"};
-    if (tags.count("translation")) return {CAT_TRANSLATION, "tag Translation"};
-    if (const char* w = name({"translation", "localization", "localisation", "l10n", "locale"})) return {CAT_TRANSLATION, std::string("name has \"") + w + "\""};
-    if (const char* w = name({"library", "framework", "api", "lib", "core", "dependency", "dependencies", "requirements"})) return {CAT_LIBRARY, std::string("name has \"") + w + "\""};
-    if (tags.count("total conversion")) return {CAT_OVERHAUL, "tag Total Conversion"};
-    if (const char* w = name({"overhaul", "total conversion"})) return {CAT_OVERHAUL, std::string("name has \"") + w + "\""};
-    if (m.replacePaths.size() >= 4) return {CAT_OVERHAUL, "replaces " + std::to_string(m.replacePaths.size()) + " vanilla folders"};
-    if (tags.count("interface")) return {CAT_UI, "tag Interface"};
-    if (const char* w = name({"ui", "gui", "hud", "interface", "tooltip", "tooltips"})) return {CAT_UI, std::string("name has \"") + w + "\""};
-    if (tags.count("graphics")) return {CAT_GRAPHICS, "tag Graphics"};
-    if (tags.count("character models")) return {CAT_GRAPHICS, "tag Character Models"};
-    if (tags.count("sound")) return {CAT_GRAPHICS, "tag Sound"};
-    if (const char* w = name({"portrait", "portraits", "clothing", "clothes", "hair", "hairstyle", "hairstyles", "beard", "beards", "texture", "textures", "skin", "skins", "ethnicity", "ethnicities", "visual", "visuals", "3d", "gfx", "models", "music", "soundtrack", "artwork", "icons"})) return {CAT_GRAPHICS, std::string("name has \"") + w + "\""};
+    if (const char* w = name({"patch", "patches", "hotfix", "bridge", "submod", "sub-mod", "addon", "add-on"})) return {CAT_PATCH, trf("name has \"{0}\"", {w})};
+    if (const char* w = name({"compat", "compatch", "compatibility"}, true)) return {CAT_PATCH, trf("name has \"{0}\"", {w})};
+    if (tags.count("fixes")) return {CAT_PATCH, tr("tag Fixes")};
+    if (tags.count("translation")) return {CAT_TRANSLATION, tr("tag Translation")};
+    if (const char* w = name({"translation", "localization", "localisation", "l10n", "locale"})) return {CAT_TRANSLATION, trf("name has \"{0}\"", {w})};
+    if (const char* w = name({"library", "framework", "api", "lib", "core", "dependency", "dependencies", "requirements"})) return {CAT_LIBRARY, trf("name has \"{0}\"", {w})};
+    if (tags.count("total conversion")) return {CAT_OVERHAUL, tr("tag Total Conversion")};
+    if (const char* w = name({"overhaul", "total conversion"})) return {CAT_OVERHAUL, trf("name has \"{0}\"", {w})};
+    if (m.replacePaths.size() >= 4) return {CAT_OVERHAUL, trf("replaces {0} vanilla folders", {m.replacePaths.size()})};
+    if (tags.count("interface")) return {CAT_UI, tr("tag Interface")};
+    if (const char* w = name({"ui", "gui", "hud", "interface", "tooltip", "tooltips"})) return {CAT_UI, trf("name has \"{0}\"", {w})};
+    if (tags.count("graphics")) return {CAT_GRAPHICS, tr("tag Graphics")};
+    if (tags.count("character models")) return {CAT_GRAPHICS, tr("tag Character Models")};
+    if (tags.count("sound")) return {CAT_GRAPHICS, tr("tag Sound")};
+    if (const char* w = name({"portrait", "portraits", "clothing", "clothes", "hair", "hairstyle", "hairstyles", "beard", "beards", "texture", "textures", "skin", "skins", "ethnicity", "ethnicities", "visual", "visuals", "3d", "gfx", "models", "music", "soundtrack", "artwork", "icons"})) return {CAT_GRAPHICS, trf("name has \"{0}\"", {w})};
     return {CAT_CONTENT, "default"};
 }
 // When names and tags say nothing, the files the mod ships say what it is.
@@ -1782,10 +1800,10 @@ inline CatGuess guessFromFiles(const ModFiles& mf) {
         else if (starts("map_data/") || starts("history/provinces/") || starts("history/titles/") || starts("common/landed_titles/") || starts("history/characters/") || starts("history/cultures/")) world++;
     }
     auto pct = [&](size_t x) { return x * 100 >= n * 85; };
-    if (pct(loc)) return {CAT_TRANSLATION, "files: mostly localization"};
-    if (pct(ui)) return {CAT_UI, "files: mostly interface"};
-    if (pct(vis)) return {CAT_GRAPHICS, "files: mostly graphics/audio"};
-    if (n >= 200 && world * 100 >= n * 40) return {CAT_OVERHAUL, "files: rewrites the map and history"};
+    if (pct(loc)) return {CAT_TRANSLATION, tr("files: mostly localization")};
+    if (pct(ui)) return {CAT_UI, tr("files: mostly interface")};
+    if (pct(vis)) return {CAT_GRAPHICS, tr("files: mostly graphics/audio")};
+    if (n >= 200 && world * 100 >= n * 40) return {CAT_OVERHAUL, tr("files: rewrites the map and history")};
     return {CAT_CONTENT, "default"};
 }
 
@@ -1816,7 +1834,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
     std::map<std::string, int> byName;                       // lower(name) -> first position (dependencies)
     for (int i = 0; i < n; i++) {
         auto it = info.find(ps.mods[(size_t)i].id);
-        if (it == info.end()) { plan.catWhy[(size_t)i] = "not installed"; continue; }
+        if (it == info.end()) { plan.catWhy[(size_t)i] = tr("not installed"); continue; }
         norm[(size_t)i] = normName(it->second.name);
         CatGuess g = guessCategory(it->second);
         if (g.why == "default" && index) { auto f = index->find(ps.mods[(size_t)i].id); if (f != index->end()) g = guessFromFiles(f->second); }
@@ -1824,23 +1842,23 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
             int k = findKnown(*db, it->second);
             if (k >= 0) {
                 const KnownMod& km = (*db)[(size_t)k];
-                kidx[(size_t)i] = k; plan.known[(size_t)i] = km.note; plan.knownCount++;
-                if (km.cat >= 0) g = {km.cat, km.note};
+                kidx[(size_t)i] = k; plan.known[(size_t)i] = knownNoteText(km); plan.knownCount++;   // built-in notes are K() keys; notes from knownmods.json stay as written
+                if (km.cat >= 0) g = {km.cat, plan.known[(size_t)i]};
                 tier[(size_t)i] = km.pos; rank[(size_t)i] = km.rank;
             }
         }
         auto ov = overrides.find(ps.mods[(size_t)i].id);
-        if (ov != overrides.end() && ov->second >= 0 && ov->second < CAT_COUNT) g = {ov->second, "set by you"};
+        if (ov != overrides.end() && ov->second >= 0 && ov->second < CAT_COUNT) g = {ov->second, tr("set by you")};
         plan.cat[(size_t)i] = g.cat; plan.catWhy[(size_t)i] = g.why;
         byName.emplace(lower(trimmed(it->second.name)), i);
     }
     auto isLocked = [&](int i) { return locked.count(ps.mods[(size_t)i].id) > 0; };
     auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? ps.mods[(size_t)i].id : it->second.name; };
 
-    struct Edge { int from, to, kind; std::string text; };   // from loads before to; kind 0 dependency, 1 conflict tie-break, 2 known-mod rule, 3 patch link
+    struct Edge { int from, to, kind; std::string text, note, other; bool after = false; };   // text: the reason shown for a move; note/other/after: what a known-mod rule says (for the locked-mod warning)   // from loads before to; kind 0 dependency, 1 conflict tie-break, 2 known-mod rule, 3 patch link
     std::vector<Edge> edges;
     std::vector<std::vector<int>> out((size_t)n);            // adjacency (edge indices)
-    auto addEdge = [&](int a, int b, int kind, const std::string& text) { out[(size_t)a].push_back((int)edges.size()); edges.push_back({a, b, kind, text}); };
+    auto addEdge = [&](int a, int b, int kind, const std::string& text, const std::string& note = "", const std::string& other = "", bool after = false) { out[(size_t)a].push_back((int)edges.size()); edges.push_back({a, b, kind, text, note, other, after}); };
     for (int i = 0; i < n; i++) {
         auto it = info.find(ps.mods[(size_t)i].id);
         if (it == info.end()) continue;
@@ -1848,7 +1866,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         for (auto& d : it->second.deps) {
             auto f = byName.find(lower(trimmed(d)));
             if (f == byName.end() || f->second == i || lower(trimmed(d)) == self) continue;
-            addEdge(f->second, i, 0, "needs \"" + nameOf(f->second) + "\" to load first");
+            addEdge(f->second, i, 0, trf("Needs \"{0}\" to load first", {nameOf(f->second)}));
         }
     }
     auto reaches = [&](int from, int target) {               // is there a path from -> target?
@@ -1875,8 +1893,10 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
                     if (!same && kidx[(size_t)j] >= 0) for (auto& kn : (*db)[(size_t)kidx[(size_t)j]].names) if (kn == other) same = true;   // recognised by Workshop id
                     if (!same) continue;
                     int a = iAfter ? j : i, b = iAfter ? i : j;
-                    if (reaches(b, a)) { plan.warnings.push_back("Could not put \"" + nameOf(i) + "\" " + (iAfter ? "below" : "above") + " \"" + nameOf(j) + "\" (it would contradict a dependency)."); continue; }
-                    addEdge(a, b, 2, km.note + (km.note.empty() ? "" : ": ") + "loads " + (iAfter ? "after \"" : "before \"") + nameOf(j) + "\"");
+                    if (reaches(b, a)) { plan.warnings.push_back(iAfter ? trf("Could not put \"{0}\" below \"{1}\" (it would contradict a dependency).", {nameOf(i), nameOf(j)}) : trf("Could not put \"{0}\" above \"{1}\" (it would contradict a dependency).", {nameOf(i), nameOf(j)})); continue; }
+                    std::string note = knownNoteText(km);
+                    addEdge(a, b, 2, iAfter ? (note.empty() ? trf("loads after \"{0}\"", {nameOf(j)}) : trf("{0}: loads after \"{1}\"", {note, nameOf(j)}))
+                                            : (note.empty() ? trf("loads before \"{0}\"", {nameOf(j)}) : trf("{0}: loads before \"{1}\"", {note, nameOf(j)})), note, nameOf(j), iAfter);
                 }
             };
             for (auto& o : km.after) link(o, true);
@@ -1896,7 +1916,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
                 if (padded.find(" " + norm[(size_t)j] + " ") != std::string::npos) hit = true;
                 else if (acr[(size_t)j].size() >= 3 && padded.find(" " + acr[(size_t)j] + " ") != std::string::npos) hit = true;
                 if (!hit || reaches(p, j)) continue;
-                addEdge(j, p, 3, "patch for \"" + nameOf(j) + "\", so it loads after it");
+                addEdge(j, p, 3, trf("Is a patch for \"{0}\", so it loads after it", {nameOf(j)}));
                 plan.patchLinks++;
             }
         }
@@ -1912,7 +1932,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
             size_t sa = sizeOf(a), sb = sizeOf(b);
             if (sb <= sa * 2 || sa == 0) continue;           // only act when b is clearly the bigger mod: it should load first
             if (reaches(a, b)) continue;                     // would contradict a dependency or an earlier choice
-            addEdge(b, a, 1, "loads after \"" + nameOf(b) + "\" (they overwrite " + std::to_string(p.count) + " of the same files; the smaller, more targeted mod goes last so it wins)");
+            addEdge(b, a, 1, /* never shown (the reason of a conflict tie-break is built below) */ "loads after \"" + nameOf(b) + "\" (they overwrite " + std::to_string(p.count) + " of the same files; the smaller, more targeted mod goes last so it wins)");
             plan.conflictChoices++;
         }
     }
@@ -1945,7 +1965,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
                 where[(size_t)u] = (int)path.size(); path.push_back(u);
                 u = waitsFor(u);
             }
-            if (!cycleWarned) { plan.warnings.push_back("Circular dependency around \"" + nameOf(pick) + "\"; the dependency was ignored."); cycleWarned = true; }
+            if (!cycleWarned) { plan.warnings.push_back(trf("Circular dependency around \"{0}\"; the dependency was ignored.", {nameOf(pick)})); cycleWarned = true; }
         }
         if (pick < 0 || done[(size_t)pick]) continue;
         done[(size_t)pick] = 1;
@@ -1963,7 +1983,13 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
     for (int p = 0; p < n; p++) newPos[(size_t)plan.order[(size_t)p]] = p;
     for (auto& e : edges) {
         if (e.kind == 1 || e.kind == 3 || newPos[(size_t)e.from] < newPos[(size_t)e.to]) continue;
-        if (isLocked(e.from) || isLocked(e.to)) plan.warnings.push_back("\"" + nameOf(e.to) + "\" " + e.text + ", but a locked mod prevents it.");
+        if (isLocked(e.from) || isLocked(e.to)) {
+            if (e.kind == 0) plan.warnings.push_back(trf("\"{0}\" needs \"{1}\" to load first, but a locked mod prevents it.", {nameOf(e.to), nameOf(e.from)}));
+            else if (e.note.empty()) plan.warnings.push_back(e.after ? trf("\"{0}\" loads after \"{1}\", but a locked mod prevents it.", {nameOf(e.to), e.other})
+                                                                    : trf("\"{0}\" loads before \"{1}\", but a locked mod prevents it.", {nameOf(e.to), e.other}));
+            else plan.warnings.push_back(e.after ? trf("\"{0}\" {1}: loads after \"{2}\", but a locked mod prevents it.", {nameOf(e.to), e.note, e.other})
+                                                 : trf("\"{0}\" {1}: loads before \"{2}\", but a locked mod prevents it.", {nameOf(e.to), e.note, e.other}));
+        }
     }
     for (int p = 0; p < n; p++) {
         int old = plan.order[(size_t)p];
@@ -1972,11 +1998,11 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         SortMove mv; mv.from = old; mv.to = p; mv.id = ps.mods[(size_t)old].id;
         std::string why;
         for (auto& e : edges)                                // an instruction or dependency that used to be violated is the strongest reason
-            if (e.to == old && e.kind != 1 && e.from > old && why.empty()) why = e.kind == 0 ? "Needs \"" + nameOf(e.from) + "\" to load first" : e.kind == 3 ? "Is a " + e.text : e.text;
+            if (e.to == old && e.kind != 1 && e.from > old && why.empty()) why = e.text;
         if (why.empty() && tier[(size_t)old] > 0) why = plan.known[(size_t)old];
         if (why.empty() && tier[(size_t)old] < 0) why = plan.known[(size_t)old];
-        if (why.empty()) for (auto& e : edges) if (e.to == old && e.kind == 1) { why = "Loads after \"" + nameOf(e.from) + "\" (they overwrite the same files; this is the smaller mod, so it wins)"; break; }
-        if (why.empty()) why = std::string(catName(plan.cat[(size_t)old])) + " group" + (plan.catWhy[(size_t)old].empty() || plan.catWhy[(size_t)old] == "default" ? "" : " (" + plan.catWhy[(size_t)old] + ")");
+        if (why.empty()) for (auto& e : edges) if (e.to == old && e.kind == 1) { why = trf("Loads after \"{0}\" (they overwrite the same files; this is the smaller mod, so it wins)", {nameOf(e.from)}); break; }
+        if (why.empty()) why = plan.catWhy[(size_t)old].empty() || plan.catWhy[(size_t)old] == "default" ? trf("{0} group", {catName(plan.cat[(size_t)old])}) : trf("{0} group ({1})", {catName(plan.cat[(size_t)old]), plan.catWhy[(size_t)old]});
         mv.reason = why;
         plan.moves.push_back(std::move(mv));
     }
@@ -2067,16 +2093,16 @@ inline const char* LOCAL_PREFIX = "local:";
 
 inline ImportResult parsePlaysetFile(const std::string& text, const std::vector<ModInfo>& installed) {
     ImportResult r;
-    if (text.size() > (5u << 20)) { r.error = "That file is too large to be a playset."; return r; }
+    if (text.size() > (5u << 20)) { r.error = tr("That file is too large to be a playset."); return r; }
     J root;
-    if (!parseJson(text, root) || root.t != J::Obj) { r.error = "That file is not valid JSON."; return r; }
+    if (!parseJson(text, root) || root.t != J::Obj) { r.error = tr("That file is not valid JSON."); return r; }
     if (J* g = root.get("game"); g && g->t == J::Str && !g->s.empty() && lower(g->s) != "ck3") {
-        r.error = "That playset is for \"" + g->s + "\", not Crusader Kings III.";
+        r.error = trf("That playset is for \"{0}\", not Crusader Kings III.", {g->s});
         return r;
     }
     J* ms = root.get("mods");
-    if (!ms || ms->t != J::Arr) { r.error = "That file is not a playset (no mod list found)."; return r; }
-    if (ms->a.size() > 5000) { r.error = "The playset file lists too many mods."; return r; }
+    if (!ms || ms->t != J::Arr) { r.error = tr("That file is not a playset (no mod list found)."); return r; }
+    if (ms->a.size() > 5000) { r.error = tr("The playset file lists too many mods."); return r; }
     if (J* n = root.get("name"); n && n->t == J::Str) r.playset.name = n->s.substr(0, 100);
 
     struct E { long pos; size_t order; ModRef m; };
@@ -2429,10 +2455,10 @@ inline int registerPendingMods(const std::string& dir, const Playset& ps, const 
         fs::path target = P(dir) / "mod" / m.id;
         if (fs::exists(target, ec)) continue;
         std::string text;
-        if (!readFile(P(it->second.contentDir) / "descriptor.mod", text, 1u << 20)) { if (err) *err = "Could not read the downloaded mod \"" + it->second.name + "\"."; continue; }
+        if (!readFile(P(it->second.contentDir) / "descriptor.mod", text, 1u << 20)) { if (err) *err = trf("Could not read the downloaded mod \"{0}\".", {it->second.name}); continue; }
         std::string wid = m.id.substr(4, m.id.size() - 8);
         if (writeFileAtomic(target, registeredDescriptorText(text, wid, it->second.contentDir))) n++;
-        else if (err) *err = "Could not write " + m.id + " into your mod folder.";
+        else if (err) *err = trf("Could not write {0} into your mod folder.", {m.id});
     }
     return n;
 }
@@ -2444,18 +2470,18 @@ struct ApplyResult { bool ok = false; std::string message; int written = 0, skip
 // The user's own file is kept once as dlc_load.json.rc-original before it is first changed.
 inline ApplyResult writeGameModList(const std::string& dir, const Playset& ps, const std::set<std::string>& installed) {
     ApplyResult r;
-    if (dir.empty()) { r.message = "The CK3 folder is not set."; return r; }
+    if (dir.empty()) { r.message = tr("The CK3 folder is not set."); return r; }
     fs::path path = P(dir) / "dlc_load.json";
     J doc = J::obj();
     std::string old;
     std::error_code ec0;
     if (fs::exists(path, ec0)) {
-        if (!readFile(path, old)) { r.message = "Could not read your existing dlc_load.json (it may be in use or unusually large), so it was left unchanged."; return r; }
+        if (!readFile(path, old)) { r.message = tr("Could not read your existing dlc_load.json (it may be in use or unusually large), so it was left unchanged."); return r; }
         J parsed;
         if (parseJson(old, parsed) && parsed.t == J::Obj) doc = std::move(parsed);
         fs::path keep = P(dir) / "dlc_load.json.rc-original";
         std::error_code ec;
-        if (!fs::exists(keep, ec) && !writeFile(keep, old)) { r.message = "Could not save a copy of your dlc_load.json, so nothing was changed."; return r; }
+        if (!fs::exists(keep, ec) && !writeFile(keep, old)) { r.message = tr("Could not save a copy of your dlc_load.json, so nothing was changed."); return r; }
     }
     if (!doc.get("disabled_dlcs")) doc.set("disabled_dlcs", J::arr());
     J list = J::arr();
@@ -2467,10 +2493,10 @@ inline ApplyResult writeGameModList(const std::string& dir, const Playset& ps, c
     }
     doc.set("enabled_mods", std::move(list));
     std::string out; dump(doc, out);
-    if (!writeFileAtomic(path, out)) { r.message = "Could not write dlc_load.json (is the CK3 folder writable?)."; return r; }
+    if (!writeFileAtomic(path, out)) { r.message = tr("Could not write dlc_load.json (is the CK3 folder writable?)."); return r; }
     r.ok = true;
-    r.message = "Loaded \"" + ps.name + "\": " + std::to_string(r.written) + " mods";
-    if (r.skipped) r.message += " (" + std::to_string(r.skipped) + " not installed, skipped)";
+    r.message = r.skipped ? trf("Loaded \"{0}\": {1} mods ({2} not installed, skipped)", {ps.name, r.written, r.skipped})
+                          : trf("Loaded \"{0}\": {1} mods", {ps.name, r.written});
     return r;
 }
 
@@ -2620,7 +2646,7 @@ inline std::string buildSortReport(const Playset& ps, const std::map<std::string
         o << (i + 1) << ". " << (m.enabled ? "[on] " : "[off] ") << name;
         std::string sid = steamIdOf(m.id);
         if (!sid.empty()) o << " (Steam " << sid << ")";
-        if (i < cats.size()) o << " | type " << catName(cats[i]);
+        if (i < cats.size()) o << " | type " << catNameEn(cats[i]);
         if (locked.count(m.id)) o << " | locked";
         if (it != info.end()) { int k = findKnown(db, it->second); if (k >= 0) o << " | known mod"; }
         if (it == info.end()) o << " | not installed";

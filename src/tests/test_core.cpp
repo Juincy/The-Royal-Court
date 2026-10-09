@@ -3,6 +3,7 @@
 #include <iostream>
 #include "../core.hpp"
 #include "../gamelog.hpp"
+#include "../crash.hpp"
 #include "../share.hpp"
 #include "../changes.hpp"
 using namespace rc;
@@ -1165,6 +1166,52 @@ int main() {
         saveSettings(st);
         Settings st2; loadSettings(st2);
         assert(st2.playTime == 2000 && st2.playGameVer == "1.21.0.1" && st2.playName == "P" && st2.playMods == st.playMods);
+    }
+    {   // crash helper: folder names, exception.txt, meta.yml, damaged input, scoring
+        CrashFolder cf;
+        assert(crashNameParse("ck3_20261009_172556", cf) && cf.y == 2026 && cf.mo == 10 && cf.d == 9 && cf.h == 17 && cf.mi == 25 && cf.s == 56);
+        assert(!crashNameParse("ck3_2026", cf) && !crashNameParse("ck3_20261309_172556", cf) && !crashNameParse("xyz_20261009_172556", cf) && !crashNameParse("ck3_2026100a_172556", cf));
+        CrashData d;
+        crashParseException("Exception: EXCEPTION_ACCESS_VIOLATION reading 0x0\r\n  ck3.exe!Foo::bar() + 0x12\n  0x7ff6 something\n", d);
+        assert(d.haveException && d.kind == CK_ACCESS && d.code == "EXCEPTION_ACCESS_VIOLATION" && d.frames.size() == 2);
+        CrashData d2; crashParseException("The process ran out of memory\n", d2); assert(d2.kind == CK_MEMORY && d2.code.find("memory") != std::string::npos);
+        CrashData d3; crashParseException("DXGI_ERROR_DEVICE_REMOVED", d3); assert(d3.kind == CK_GRAPHICS);
+        CrashData d4; crashParseException("", d4); assert(!d4.haveException && d4.kind == CK_UNKNOWN);
+        CrashData d5; crashParseMeta("version: 1.20.0.4\nbuild: abc\nfoo: bar\n\x01\x02 garbage\n  platform: win\n", d5); assert(d5.meta.size() == 3);
+        std::string junk(5000, '\x07'); CrashData d6; crashParseException(junk, d6); crashParseMeta(junk, d6);
+        // a folder on disk with logs in a subfolder, and a stray folder
+        fs::remove_all("/tmp/rc_crash_t"); fs::create_directories("/tmp/rc_crash_t/ck3_20261009_172556/logs"); fs::create_directories("/tmp/rc_crash_t/ck3_20250101_000000"); fs::create_directories("/tmp/rc_crash_t/misc");
+        { std::ofstream("/tmp/rc_crash_t/ck3_20261009_172556/exception.txt") << "EXCEPTION_STACK_OVERFLOW\n";
+          std::ofstream("/tmp/rc_crash_t/ck3_20261009_172556/logs/game.log") << "[08:41:13][E][modifier_instance.cpp:390]: Unknown modifier type 'x' at file: common/traits/a.txt line: 7 (t)\n"; }
+        auto cl = listCrashes("/tmp/rc_crash_t");
+        assert(cl.size() == 3 && cl[0].name == "ck3_20261009_172556" && cl[1].name == "ck3_20250101_000000" && cl[2].name == "misc");
+        CrashData dd = crashRead(cl[0].path);
+        assert(dd.kind == CK_STACK && dd.logsFromCrash && dd.gameLog.find("Unknown modifier") != std::string::npos);
+        assert(listCrashes("/tmp/rc_crash_t/none").empty() && !crashRead("/tmp/rc_crash_t/none").haveException);
+        LogParse lp = crashLastMessages(dd.gameLog); assert(lp.entries.size() == 1);
+        assert(std::string(crashKindName(CK_ACCESS)).size() > 5 && std::string(crashKindAdvice(CK_UNKNOWN)).size() > 5);
+    }
+    {   // languages: tables are complete, placeholders agree with the English text, lookups fall back to English
+        assert(LANG_COUNT == 11 && std::string(LANGS[0].code) == "en");
+        assert(langFromTag("de-DE") == langFromCode("de") && langFromTag("pt-PT") == langFromCode("pt-BR") && langFromTag("zh-Hans-CN") == langFromCode("zh"));
+        assert(langFromTag("zh-TW") == 0 && langFromTag("xx") == 0 && langFromTag("") == 0 && langFromCode("zz") == -1);
+        auto holes = [](const std::string& x) { std::string h; for (size_t i = 0; i + 2 < x.size(); i++) if (x[i] == '{' && x[i + 1] >= '0' && x[i + 1] <= '9' && x[i + 2] == '}') h += x[i + 1]; std::sort(h.begin(), h.end()); return h; };
+        int missing = 0;
+        for (int l = 1; l < LANG_COUNT; l++) for (int i = 0; i < LANG_N; i++) {
+            const char* v = LANG_VALUES[l][i];
+            if (!v || !v[0]) { missing++; continue; }
+            assert(holes(v) == holes(LANG_KEYS[i]));
+        }
+        assert(missing == 0);
+        setLanguage(langFromCode("de"));
+        assert(trText("Cancel") != "Cancel" || std::string(LANG_KEYS[0]).empty());
+        assert(trText("no such sentence xyz") == "no such sentence xyz");
+        assert(trf("{0} of {1}", {1, 2}).find('1') != std::string::npos);
+        setLanguage(0);
+        assert(trText("Cancel") == "Cancel");
+        Settings sl; sl.language = "ru"; setenv("RC_DATA_DIR", "/tmp/rc_lang_test", 1); saveSettings(sl);
+        Settings sl2; loadSettings(sl2); assert(sl2.language == "ru");
+        sl.language = "bogus"; saveSettings(sl); Settings sl3; loadSettings(sl3); assert(sl3.language == "auto");
     }
     std::cout << "ALL CORE TESTS PASSED\n";
 }

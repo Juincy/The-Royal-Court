@@ -6,6 +6,23 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.18.0] - 2026-10-09
+The program now speaks ten more languages, finds out why the game crashed, and greets new users with a quick tour.
+
+### Added
+- **Crash helper** (Advanced > "Crash helper: why did the game crash..."). Reads the folder the game writes when it crashes (`crashes/ck3_<date>_<time>` in your CK3 folder) and shows, in plain words: what kind of crash it was (access violation, out of memory, stack overflow, graphics driver and so on) with advice that fits that kind, the **likely suspect mods** (the mods that the last messages the game wrote before it stopped point at, newest weighing most), whether the playset at the time differs from the one you have now, the first lines of the call stack and the build information for bug reports, and a short list of what to try. With several crashes a small menu lets you pick one. It only reads; the crash files are never changed. The program cannot name the mod from the crash dump itself, so the list is "likely", not certain. When a new crash folder appears the status line says so the next time the program starts.
+- **Quick tour.** The first time the program starts, a window themed like the program (dark or light) walks through the features that save the most trouble: playsets and load order, Auto Sort, Conflicts, Play and backups, the three helpers (crash helper, game log, what changed since Play), and sharing, language and look. Back, Next and Skip, click a step on the left to jump, or use the arrow keys. The language can be chosen right in the tour (button at the bottom left); the tour rebuilds itself in the new language on the same page. Open it again from Advanced > "Show the quick tour again...".
+- **Languages.** Russian, Chinese (Simplified), German, Spanish, French, Polish, Portuguese (Brazil), Turkish, Korean and Japanese, besides English. All translations are built into the exe: no extra files, nothing to download. By default the program follows the Windows display language (Traditional Chinese and any other language not listed use English). The new language button in the top bar (next to Updates) opens a menu with **Automatic** and every language by its own name; the choice applies at once, with no restart, and is saved in `settings.json` (`"language"`).
+- Everything you read is translated: buttons, menus, column headers, tooltips, dialogs, the status line, the notes in the list, and the conflicts, game log, and "since you last pressed Play" windows. A text without a translation is shown in English, so nothing breaks.
+- The layout adapts: buttons are sized to their text, the window widens itself when a language needs more room, and Chinese, Japanese and Korean get a suitable font.
+- Tests for the crash helper (folder names, exception and meta files, damaged input, folders on disk) and for the language tables (every translation present, placeholders match the English text, fallback, language detection, saving the choice).
+
+### Kept in English on purpose
+The program name, mod names and file names, the sort report, the game log report meant to be sent to a mod author, share codes, this changelog, and notes from the online known-mods list.
+
+### Fixed
+- Buttons no longer clip the end of a long label.
+
 ## [0.17.0] - 2026-10-09
 Find out which mod causes the errors, share a playset as one line of text, and see what changed since you last played.
 
