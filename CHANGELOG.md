@@ -7,7 +7,7 @@ This file ships inside the EXE (Changelog button) and in the zip.
 - Nothing yet.
 
 ## [0.19.0] - 2026-10-09
-Turned-off mods sink to the bottom, unsubscribe from Steam in one click, and 24 more known mods, and a full audit of the core.
+Turned-off mods sink to the bottom, unsubscribe from Steam in one click, 24 more known mods, and a full audit of the core.
 
 ### Added
 - **Unsubscribe on Steam** (right-click a Workshop mod). The mod leaves your list and playsets at once; its leftover entry in the CK3 mod folder is cleared automatically a few seconds after Steam has deleted the files (also on the next start). If Steam has not removed the files after 15 minutes, the mod is shown again. Asks Steam to unsubscribe from the selected Workshop mods, so Steam removes their files and they stop loading in every playset. It uses Valve's own Steamworks library that ships with the game (`steam_api64.dll`) to talk to the running Steam client; nothing of the Paradox launcher is touched. It asks first, will not run while the game is running or Steam is closed, and saves a playset backup before. If the library cannot be used on your computer, the mod's Workshop page opens in Steam instead and you press Unsubscribe there. Once Steam has removed the files, "Delete mod permanently" clears the leftover entry.
