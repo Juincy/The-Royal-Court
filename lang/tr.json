@@ -242,7 +242,6 @@
  "Pick your Crusader Kings III folder": "Crusader Kings III klasörünüzü seçin",
  "Remember this folder": "Bu klasörü hatırla",
  "Rescan the mod folder (use after subscribing to a mod while the app is open)": "Mod klasörünü yeniden tara (uygulama açıkken bir moda abone olduktan sonra kullanın)",
- "Switch between dark and light": "Koyu ve açık tema arasında geçiş yap",
  "Move the selected mod(s) up in the load order": "Seçili modları yükleme sırasında yukarı taşı",
  "Move the selected mod(s) down in the load order": "Seçili modları yükleme sırasında aşağı taşı",
  "Language": "Dil",
@@ -644,5 +643,16 @@
  "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: sayfası Ethnicities & Portraits Expanded modunun gerekli olduğunu söylüyor ve onu altında yüklenmiş olarak gösteriyor",
  "Embers of Empire (known mod)": "Embers of Empire (bilinen mod)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: sayfası yükleme sırasını Embers of Empire, Renovatio, en son bu yama olarak belirtiyor",
- "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam'den {0} modun aboneliğini iptal etmesi istendi. Mod(lar) artık listenizden ve oyun setlerinizden çıkarıldı; dosyaları Steam kendisi siler."
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam'den {0} modun aboneliğini iptal etmesi istendi. Mod(lar) artık listenizden ve oyun setlerinizden çıkarıldı; dosyaları Steam kendisi siler.",
+ "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "Tema: balkabağı Cadılar Bayramı temasını açar, anahtar gündüz ve gece arasında geçiş yapar",
+ "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+: sayfası RICE, CFP, EPE, Culture Expanded ve Unified UI'dan sonra yüklenmesini, kendi uyumluluk yamalarının ise altında olmasını söylüyor",
+ "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "More Bookmarks+ uyumluluk yaması: sayfası More Bookmarks+'tan sonra yüklenmesini söylüyor",
+ "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE: RICE + EPE yaması sayfası RICE'ın EPE'den önce yüklendiğini söylüyor",
+ "RICE + EPE patch: its page says to load it after both RICE and EPE": "RICE + EPE yaması: sayfası RICE ve EPE'den sonra yüklenmesini söylüyor",
+ "Unit Packs Expanded: its page says to load it after CFP and EPE (it requires EPE)": "Unit Packs Expanded: sayfası CFP ve EPE'den sonra yüklenmesini söylüyor (EPE gerekli)",
+ "Fair Lords / Fair Ladies Expanded: the page says to load it below EPE": "Fair Lords / Fair Ladies Expanded: sayfa EPE'nin altında yüklenmesini söylüyor",
+ "Unified UI: its page lists mods that load before it (Catholic Trinity, Nameplates, Dynamic UI Themes and others) and a few that load after it": "Unified UI: sayfası ondan önce yüklenen modları (Catholic Trinity, Nameplates, Dynamic UI Themes ve diğerleri) ve sonra yüklenen birkaçını listeliyor",
+ "The Unified UI page says to load this below Unified UI": "Unified UI sayfası bu modun Unified UI'ın altında yüklenmesini söylüyor",
+ "Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE": "Muslim Enhancements: sayfası Culture Expanded, CFP ve EPE'den önce yüklenmesini söylüyor",
+ "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project: sayfası kültür ekleyen, konseyleri değiştiren veya başlangıç tarihlerini düzenleyen modların altında yüklenmesi gerektiğini söylüyor"
 }

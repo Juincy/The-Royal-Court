@@ -242,7 +242,6 @@
  "Pick your Crusader Kings III folder": "クルセイダーキングス3のフォルダーを選択",
  "Remember this folder": "このフォルダーを記憶",
  "Rescan the mod folder (use after subscribing to a mod while the app is open)": "MODフォルダーを再スキャン (アプリを開いたままMODを購読した後に使用)",
- "Switch between dark and light": "ダークとライトを切り替え",
  "Move the selected mod(s) up in the load order": "選択したMODをロード順で上へ移動",
  "Move the selected mod(s) down in the load order": "選択したMODをロード順で下へ移動",
  "Language": "言語",
@@ -644,5 +643,16 @@
  "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: ページに Ethnicities & Portraits Expanded が必要と記載されており、それより下にロードされています",
  "Embers of Empire (known mod)": "Embers of Empire (既知のMOD)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: ページに記載のロード順は Embers of Empire、Renovatio、最後にこのパッチです",
- "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam に {0} 件のMODのサブスクライブ解除を依頼しました。リストとプレイセットからはすでに外れており、ファイルは Steam が自動で削除します。"
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam に {0} 件のMODのサブスクライブ解除を依頼しました。リストとプレイセットからはすでに外れており、ファイルは Steam が自動で削除します。",
+ "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "テーマ:カボチャでハロウィン、スイッチで昼と夜を切り替えます",
+ "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+：ページでは RICE、CFP、EPE、Culture Expanded、Unified UI の後に読み込み、専用の互換パッチはその下に置くよう案内されています",
+ "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "More Bookmarks+ 互換パッチ：ページでは More Bookmarks+ の後に読み込むよう案内されています",
+ "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE：RICE + EPE パッチのページでは RICE は EPE より前に読み込むとされています",
+ "RICE + EPE patch: its page says to load it after both RICE and EPE": "RICE + EPE パッチ：ページでは RICE と EPE の両方の後に読み込むよう案内されています",
+ "Unit Packs Expanded: its page says to load it after CFP and EPE (it requires EPE)": "Unit Packs Expanded：ページでは CFP と EPE の後に読み込むよう案内されています（EPE が必要）",
+ "Fair Lords / Fair Ladies Expanded: the page says to load it below EPE": "Fair Lords / Fair Ladies Expanded：ページでは EPE の下に読み込むよう案内されています",
+ "Unified UI: its page lists mods that load before it (Catholic Trinity, Nameplates, Dynamic UI Themes and others) and a few that load after it": "Unified UI：ページには、前に読み込む Mod（Catholic Trinity、Nameplates、Dynamic UI Themes など）と、後に読み込む少数の Mod が載っています",
+ "The Unified UI page says to load this below Unified UI": "Unified UI のページでは、この Mod を Unified UI の下に読み込むよう案内されています",
+ "Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE": "Muslim Enhancements：ページでは Culture Expanded、CFP、EPE より前に読み込むよう案内されています",
+ "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project：ページでは、文化の追加・評議会の変更・ブックマークの編集を行う Mod はその下に読み込むよう案内されています"
 }

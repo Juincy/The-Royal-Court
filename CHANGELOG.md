@@ -6,6 +6,19 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.20.0] - 2026-10-10
+A third theme (Halloween), animated theme icons, and a much smoother interface, plus more load orders read from the mods' own pages.
+
+### Added
+- **Halloween theme.** The theme picker is now an upside-down T: the pumpkin on top turns Halloween on, the day/night switch below works as before (from Halloween it goes to night; the pumpkin takes you back to the day or night you had). Halloween has its own dark orange-and-purple palette and a drawn scene in the banner: a hazy moon behind drifting clouds, rising embers, a graveyard, bats flying across, a spider on a thread, a cobweb in the corner, and a gold line and crown jewels that glint and flicker.
+- **Animated theme icons.** The sun turns and breathes, the moon's stars twinkle, and the pumpkin's candle flickers. The knob and glow slide between themes.
+- **Author-stated load orders** (each read from the mod's own Workshop page): More Bookmarks+ and its three compatches, RICE, the RICE + EPE patch, Unit Packs Expanded, Fair Lords / Fair Ladies Expanded, Unified UI and the mods it lists, Muslim Enhancements, Community Title Project. Auto Sort follows them.
+
+### Changed
+- **Much smoother.** A theme change now fades from a picture of the old look instead of repainting in front of you; buttons fade in and out as the mouse moves over them; the banner is drawn off-screen and the controls are no longer repainted underneath it; all animation runs from one 60-per-second clock that sleeps while the window is minimised. This costs a little more CPU while the window is open and visible, which is a deliberate trade for smoothness.
+- Settings remember the Halloween theme.
+- **Workshop ledger** (`tools/workshop_ledger.json`, `tools/ledger.py`): a record of every Workshop page looked at for load-order rules (read, title only, blocked by Steam, unread), so the same page is never read twice. `ledger.py todo` lists what is left; `ledger.py check` confirms every id in the built-in database is logged.
+
 ## [0.19.0] - 2026-10-09
 Turned-off mods sink to the bottom, unsubscribe from Steam in one click, 24 more known mods, and a full audit of the core.
 

@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.19.0";
+inline const char* VERSION = "0.20.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -272,7 +272,7 @@ struct ModInfo {
     bool pending = false;                            // found in Steam's Workshop folder, but the Paradox launcher has not created its ugc_ descriptor yet
 };
 struct Settings {
-    std::string ck3Dir, active, gameExe, theme;                       // theme: "dark", "light" or "" (follow Windows)
+    std::string ck3Dir, active, gameExe, theme;                       // theme: "dark", "light", "halloween" or "" (follow Windows)
     std::map<std::string, std::set<std::string>> locks;               // playset name -> mod ids that Auto Sort never moves
     std::map<std::string, int> cats;                                  // mod id -> category chosen by the user (overrides the guess)
     std::set<std::string> hidden;                                     // mods the user removed from the list (never touched on disk)
@@ -383,7 +383,7 @@ inline void loadSettings(Settings& st) {
     if (J* d = root.get("ck3Dir"); d && d->t == J::Str) st.ck3Dir = d->s;
     if (J* a = root.get("active"); a && a->t == J::Str) st.active = a->s;
     if (J* g = root.get("gameExe"); g && g->t == J::Str) st.gameExe = g->s;
-    if (J* th = root.get("theme"); th && th->t == J::Str && (th->s == "dark" || th->s == "light")) st.theme = th->s;
+    if (J* th = root.get("theme"); th && th->t == J::Str && (th->s == "dark" || th->s == "light" || th->s == "halloween")) st.theme = th->s;
     if (J* cs = root.get("crashSeen"); cs && cs->t == J::Str && cs->s.size() < 100) st.crashSeen = cs->s;
     if (J* td = root.get("tutorialDone"); td && td->t == J::Bool) st.tutorialDone = td->b;
     if (J* lg = root.get("language"); lg && lg->t == J::Str && (lg->s == "auto" || langFromCode(lg->s) >= 0)) st.language = lg->s;
@@ -1738,6 +1738,37 @@ inline std::vector<KnownMod> builtinKnownMods() {
     { KnownMod k; k.names = {"embers of empire", "embers of empire a roman restoration"}; k.note = K("Embers of Empire (known mod)"); v.push_back(k); }
     { KnownMod k; k.names = {"eoe + renovatio", "eoe and renovatio"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"embers of empire", "renovatio"};
       k.note = K("EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last"); v.push_back(k); }
+    // Author-stated orders from the mods' own Workshop pages (read 2026-10-10). Only statements that the pages agree on are used.
+    { KnownMod k; k.names = {"more bookmarks plus", "mb plus", "more bookmarks plus mb plus"}; k.ids = {"2216670956"};
+      k.after = {"regional immersion and cultural enrichment", "community flavor pack", "ethnicities and portraits expanded", "unit packs expanded", "the catholic trinity", "culture expanded", "muslim enhancements", "unified ui", "rice plus epe compatibility patch"};
+      k.note = K("More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it"); v.push_back(k); }
+    { KnownMod k; k.names = {"mb plus epe cfp", "mb plus epecfp"}; k.ids = {"2543865921"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"more bookmarks plus", "mb plus"};
+      k.note = K("A More Bookmarks+ compatch: its page says to load it after More Bookmarks+"); v.push_back(k); }
+    { KnownMod k; k.names = {"mb plus ce"}; k.ids = {"2829541200"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"more bookmarks plus", "mb plus", "culture expanded"};
+      k.note = K("A More Bookmarks+ compatch: its page says to load it after More Bookmarks+"); v.push_back(k); }
+    { KnownMod k; k.names = {"mb plus no flavorized titles dont use with ctp", "mb plus no flavorized titles"}; k.ids = {"2457619527"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"more bookmarks plus", "mb plus"};
+      k.note = K("A More Bookmarks+ compatch: its page says to load it after More Bookmarks+"); v.push_back(k); }
+    { KnownMod k; k.names = {"regional immersion and cultural enrichment", "rice"}; k.ids = {"2273832430"}; k.before = {"ethnicities and portraits expanded", "epe"};
+      k.note = K("RICE: its RICE + EPE patch page says RICE loads before EPE"); v.push_back(k); }
+    { KnownMod k; k.names = {"rice plus epe compatibility patch", "rice plus epe compatch", "rice plus epe"}; k.ids = {"2553043828"}; k.cat = CAT_PATCH; k.rank = 9;
+      k.after = {"regional immersion and cultural enrichment", "rice", "ethnicities and portraits expanded", "epe"};
+      k.note = K("RICE + EPE patch: its page says to load it after both RICE and EPE"); v.push_back(k); }
+    { KnownMod k; k.names = {"unit packs expanded"}; k.ids = {"2818979385"}; k.after = {"community flavor pack", "ethnicities and portraits expanded"};
+      k.note = K("Unit Packs Expanded: its page says to load it after CFP and EPE (it requires EPE)"); v.push_back(k); }
+    { KnownMod k; k.names = {"fair lords expanded"}; k.ids = {"2783343921"}; k.after = {"ethnicities and portraits expanded"};
+      k.note = K("Fair Lords / Fair Ladies Expanded: the page says to load it below EPE"); v.push_back(k); }
+    { KnownMod k; k.names = {"fair ladies expanded"}; k.ids = {"2783349674"}; k.after = {"ethnicities and portraits expanded"};
+      k.note = K("Fair Lords / Fair Ladies Expanded: the page says to load it below EPE"); v.push_back(k); }
+    { KnownMod k; k.names = {"unified ui", "uniui"}; k.ids = {"2768734977"}; k.cat = CAT_UI;
+      k.after = {"the catholic trinity", "dynamic ui themes", "nameplates", "more tenets", "more religious doctrines", "more immersive doctrines", "show me your court", "show me your council", "factions explained", "stress bar for all", "classic laws", "enhanced dynasty viewer", "rename anyone", "show spoken language", "auction off artifact", "polytheism reborn"};
+      k.note = K("Unified UI: its page lists mods that load before it (Catholic Trinity, Nameplates, Dynamic UI Themes and others) and a few that load after it"); v.push_back(k); }
+    for (const char* sub : {"reassembled character window", "rank and file", "name packs expanded"}) {
+        KnownMod k; k.names = {sub}; k.after = {"unified ui"}; k.note = K("The Unified UI page says to load this below Unified UI"); v.push_back(k);
+    }
+    { KnownMod k; k.names = {"muslim enhancements"}; k.ids = {"2241658518"}; k.before = {"culture expanded", "community flavor pack", "ethnicities and portraits expanded"};
+      k.note = K("Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE"); v.push_back(k); }
+    { KnownMod k; k.names = {"community title project", "ctp"}; k.ids = {"2216919487"};
+      k.note = K("Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it"); v.push_back(k); }
     // names are compared in their normalised form (trailing version numbers dropped: "elder kings 2" is "elder kings")
     for (auto& k : v) { for (auto& n : k.names) n = normName(n); for (auto& n : k.after) n = normName(n); for (auto& n : k.before) n = normName(n); }
     return v;

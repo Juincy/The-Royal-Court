@@ -242,7 +242,6 @@
  "Pick your Crusader Kings III folder": "选择您的十字军之王3文件夹",
  "Remember this folder": "记住此文件夹",
  "Rescan the mod folder (use after subscribing to a mod while the app is open)": "重新扫描模组文件夹（在应用打开期间订阅了模组后使用）",
- "Switch between dark and light": "在深色和浅色之间切换",
  "Move the selected mod(s) up in the load order": "在加载顺序中上移所选模组",
  "Move the selected mod(s) down in the load order": "在加载顺序中下移所选模组",
  "Language": "语言",
@@ -644,5 +643,16 @@
  "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio：其页面说明需要 Ethnicities & Portraits Expanded，并且它加载在其下方",
  "Embers of Empire (known mod)": "Embers of Empire（已知模组）",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio：其页面列出的加载顺序为 Embers of Empire、Renovatio，此补丁最后加载",
- "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "已请求 Steam 取消订阅 {0} 个模组。它们现已从列表和播放集中移除；文件将由 Steam 自行删除。"
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "已请求 Steam 取消订阅 {0} 个模组。它们现已从列表和播放集中移除；文件将由 Steam 自行删除。",
+ "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "主题:南瓜开启万圣节主题,开关切换白天与夜晚",
+ "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+：其页面说明应加载在 RICE、CFP、EPE、Culture Expanded 和 Unified UI 之后，它自己的兼容补丁则排在其下",
+ "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "More Bookmarks+ 兼容补丁：其页面说明应加载在 More Bookmarks+ 之后",
+ "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE：RICE + EPE 补丁页面说明 RICE 加载在 EPE 之前",
+ "RICE + EPE patch: its page says to load it after both RICE and EPE": "RICE + EPE 补丁：其页面说明应加载在 RICE 和 EPE 之后",
+ "Unit Packs Expanded: its page says to load it after CFP and EPE (it requires EPE)": "Unit Packs Expanded：其页面说明应加载在 CFP 和 EPE 之后（需要 EPE）",
+ "Fair Lords / Fair Ladies Expanded: the page says to load it below EPE": "Fair Lords / Fair Ladies Expanded：其页面说明应加载在 EPE 之下",
+ "Unified UI: its page lists mods that load before it (Catholic Trinity, Nameplates, Dynamic UI Themes and others) and a few that load after it": "Unified UI：其页面列出了应在它之前加载的模组（Catholic Trinity、Nameplates、Dynamic UI Themes 等）以及少数应在它之后加载的模组",
+ "The Unified UI page says to load this below Unified UI": "Unified UI 页面说明此模组应加载在 Unified UI 之下",
+ "Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE": "Muslim Enhancements：其页面说明应加载在 Culture Expanded、CFP 和 EPE 之前",
+ "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project：其页面说明添加文化、修改议会或编辑开局的模组应加载在它之下"
 }

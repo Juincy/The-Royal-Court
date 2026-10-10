@@ -242,7 +242,6 @@
  "Pick your Crusader Kings III folder": "Escolha a pasta do seu Crusader Kings III",
  "Remember this folder": "Lembrar esta pasta",
  "Rescan the mod folder (use after subscribing to a mod while the app is open)": "Verificar a pasta de mods novamente (use após assinar um mod com o programa aberto)",
- "Switch between dark and light": "Alternar entre escuro e claro",
  "Move the selected mod(s) up in the load order": "Mover o(s) mod(s) selecionado(s) para cima na ordem de carregamento",
  "Move the selected mod(s) down in the load order": "Mover o(s) mod(s) selecionado(s) para baixo na ordem de carregamento",
  "Language": "Idioma",
@@ -644,5 +643,16 @@
  "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: a página dele diz que precisa do Ethnicities & Portraits Expanded e o mostra carregado abaixo dele",
  "Embers of Empire (known mod)": "Embers of Empire (mod conhecido)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: a página dele indica a ordem de carregamento Embers of Empire, Renovatio e, por último, este patch",
- "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "O Steam foi solicitado a cancelar a inscrição em {0} mod(s). Eles já saíram da sua lista e dos playsets; o Steam apaga os arquivos por conta própria."
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "O Steam foi solicitado a cancelar a inscrição em {0} mod(s). Eles já saíram da sua lista e dos playsets; o Steam apaga os arquivos por conta própria.",
+ "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "Tema: a abóbora ativa o Halloween, o interruptor alterna entre dia e noite",
+ "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+: a página diz para carregá-lo depois de RICE, CFP, EPE, Culture Expanded e Unified UI, com seus próprios patches de compatibilidade abaixo",
+ "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "Um patch de compatibilidade do More Bookmarks+: a página diz para carregá-lo depois do More Bookmarks+",
+ "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE: a página do patch RICE + EPE diz que o RICE carrega antes do EPE",
+ "RICE + EPE patch: its page says to load it after both RICE and EPE": "Patch RICE + EPE: a página diz para carregá-lo depois de RICE e EPE",
+ "Unit Packs Expanded: its page says to load it after CFP and EPE (it requires EPE)": "Unit Packs Expanded: a página diz para carregá-lo depois de CFP e EPE (requer EPE)",
+ "Fair Lords / Fair Ladies Expanded: the page says to load it below EPE": "Fair Lords / Fair Ladies Expanded: a página diz para carregá-lo abaixo do EPE",
+ "Unified UI: its page lists mods that load before it (Catholic Trinity, Nameplates, Dynamic UI Themes and others) and a few that load after it": "Unified UI: a página lista mods que carregam antes (Catholic Trinity, Nameplates, Dynamic UI Themes e outros) e alguns que carregam depois",
+ "The Unified UI page says to load this below Unified UI": "A página do Unified UI diz para carregar este mod abaixo do Unified UI",
+ "Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE": "Muslim Enhancements: a página diz para carregá-lo antes de Culture Expanded, CFP e EPE",
+ "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project: a página diz que mods que adicionam culturas, mudam conselhos ou editam bookmarks devem carregar abaixo dele"
 }

@@ -1,0 +1,1266 @@
+{
+ "format": 1,
+ "about": "Ledger of Workshop pages looked at for load-order rules. Never re-read a page marked read. status: read, known-from-user, title-only, blocked, collection, unread. found: order, note, incompat-only, none. inDatabase: the id is in builtinKnownMods().",
+ "items": [
+  {
+   "id": "2529769109",
+   "title": "(Obsolete due to Paradox implementation) Dynamic Character Backgrounds",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2821835496",
+   "title": "[Beta] Dynamic Trade Routes",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2828692797",
+   "title": "[NOT UPDATED YET] DTR Lite",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2906654841",
+   "title": "[OLD - Updated Mod in Desc] Ward Limit Based On Learning",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2859278694",
+   "title": "[UNSUPPORTED] More Legacies",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2800626299",
+   "title": "A Diplomatic Envoy - 1.12.1",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2752929426",
+   "title": "A New Sensible Family 2",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2822294961",
+   "title": "Ability to Read",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2552371897",
+   "title": "Africa Plus [NEEDS UPDATE]",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2545408987",
+   "title": "Alert when you can demand conversion",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2523700148",
+   "title": "Auto-Pause on council task complete",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2243137897",
+   "title": "Basic Nessassities - Happy Heraldry",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2753934263",
+   "title": "Better AI Education",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2766055258",
+   "title": "Better CoA Designer",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2429466948",
+   "title": "Better Executions Updated",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2702831494",
+   "title": "Border Disputes",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2523698136",
+   "title": "Can Assign Guardian Alert for all children in court",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2588989885",
+   "title": "Casus Belli - Demand Religious Conversion",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2405453030",
+   "title": "CK2 Style Brighter Attributes II",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2721974781",
+   "title": "Councillor's experience trait",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2264428428",
+   "title": "Debug Toggle (Less Invasive)",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2432176898",
+   "title": "Doctor Tweak - AI Will More Often Hire Court Physicians",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2854343196",
+   "title": "DTR PoW",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2219611817",
+   "title": "Extended Outliner",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2229532952",
+   "title": "Fervour Inversion - Winning Holy Wars Increases Fervor",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2249720608",
+   "title": "Fervour Midpoint Rebalance - Fervor Tends Towards 50%",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2870399421",
+   "title": "Fixed Dynasty Culture",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2688782754",
+   "title": "Great Empire Wars",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2824465219",
+   "title": "Holding Sprawl DTR",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2590650832",
+   "title": "Houses Traditions",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2788773553",
+   "title": "Improved Cursors",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2891641440",
+   "title": "Increased Zoom",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2829009590",
+   "title": "Inheritable Relations",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2265131712",
+   "title": "Less Old Wives - AI Men Marry Younger Fertile Women",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2229532691",
+   "title": "Less Sinful Priest Scandals - No More Fervour Collapse",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2875403237",
+   "title": "Local Artisan",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2259464577",
+   "title": "Lulu's Events",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2452585382",
+   "title": "Medieval Arts",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2265131889",
+   "title": "More Babies For Counts & Dukes",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2712590542",
+   "title": "More Interactive Vassals",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "2252354244",
+   "title": "More Regional Innovations",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2893793966",
+   "title": "More Traditions v2",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2844451442",
+   "title": "More_Traits_Commander_updated_2",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2756456587",
+   "title": "Multilingual Education",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2228403053",
+   "title": "NO MORE CHEATING",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2545408251",
+   "title": "Notification when any courtier wants to leave",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2218549875",
+   "title": "Primogeniture without Requirements",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2511247871",
+   "title": "Prisoners of War",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2818339011",
+   "title": "Quando Sumus - Decisions of CK3",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2844061409",
+   "title": "Razer's Cheat Menu",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2616283652",
+   "title": "Renaissance Era",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2629092890",
+   "title": "Rename Tribal Era to Late Antiquity",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2645043901",
+   "title": "Roman MaA",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2825977309",
+   "title": "Social Relations Expanded (SRE)",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2730456007",
+   "title": "The Catholic Trinity [Deprecated] - Play By God Alone!",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2234706894",
+   "title": "Title-Ranked Portrait Borders (Ironman)",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2447414615",
+   "title": "Unique Building Plus",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2256989379",
+   "title": "War Alerts - Customisable War Notifications",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "in collection 2911400451 (CK3+, 86 items)",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2519175282",
+   "title": "",
+   "status": "blocked",
+   "found": "",
+   "note": "Steam rate limit (429) twice; never read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "3425702995",
+   "title": "",
+   "status": "blocked",
+   "found": "",
+   "note": "Steam rate limit (429) twice; never read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2822791855",
+   "title": "",
+   "status": "blocked",
+   "found": "",
+   "note": "Steam rate limit (429) twice; never read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "3191935116",
+   "title": "",
+   "status": "blocked",
+   "found": "",
+   "note": "Steam rate limit (429) twice; never read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2875587269",
+   "title": "A Special World - Special Building Compatch (1.20 BETA)",
+   "status": "blocked",
+   "found": "",
+   "note": "Steam rate limit (429) when opened; never read",
+   "source": "Workshop",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "2871648329",
+   "title": "Unofficial Patch (CK3 Unofficial Patch)",
+   "status": "blocked",
+   "found": "",
+   "note": "Steam rate limit (429) twice; never read. Its order rule, if any, comes from other pages",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2911400451",
+   "title": "CK3+ (Highly Immersive playset with all the popular mods)",
+   "status": "collection",
+   "found": "",
+   "note": "a collection, not a mod; its statements were read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2775683808",
+   "title": "Collection (44 mods, Unofficial Patch first)",
+   "status": "collection",
+   "found": "",
+   "note": "a collection, not a mod; its statements were read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2926179648",
+   "title": "Collection (takuro, 19 items)",
+   "status": "collection",
+   "found": "",
+   "note": "a collection, not a mod; its statements were read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2658382503",
+   "title": "Nekro's CK3 100+ Modlist",
+   "status": "collection",
+   "found": "",
+   "note": "a collection, not a mod; its statements were read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2929347724",
+   "title": "The Fallen Eagle Extended Collection",
+   "status": "collection",
+   "found": "",
+   "note": "a collection, not a mod; its statements were read",
+   "source": "Workshop",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2747794056",
+   "title": "(USE LITE) Interaction Icon Project Full",
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "3149692324",
+   "title": "AGOT Bookmarked",
+   "status": "read",
+   "found": "none",
+   "note": "requires A Game of Thrones",
+   "source": "Workshop page (earlier round)",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2220326926",
+   "title": "Better Barbershop",
+   "status": "read",
+   "found": "order",
+   "note": "below CFP, EPE, AGOT",
+   "source": "Workshop page (earlier round)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2222540784",
+   "title": "Better Character UI",
+   "status": "read",
+   "found": "order",
+   "note": "below other UI mods",
+   "source": "Workshop page (earlier round)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2220098919",
+   "title": "Community Flavor Pack",
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "source": "Workshop page (earlier round)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2537667619",
+   "title": "Community Name Packs",
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "2216919487",
+   "title": "Community Title Project",
+   "status": "read",
+   "found": "note",
+   "note": "mods adding cultures/councils/bookmarks load below it",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2837748572",
+   "title": "Dynamic Holy Sites - Conquer, Sanctify, Exile",
+   "status": "read",
+   "found": "incompat-only",
+   "note": "no load order",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "2507209632",
+   "title": "Ethnicities & Portraits Expanded",
+   "status": "read",
+   "found": "none",
+   "note": "links a CFP compatibility patch and load order page, no sentence",
+   "source": "Workshop page (earlier round)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2783349674",
+   "title": "Fair Ladies Expanded",
+   "status": "read",
+   "found": "order",
+   "note": "below EPE",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2783343921",
+   "title": "Fair Lords Expanded",
+   "status": "read",
+   "found": "order",
+   "note": "below EPE",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2635869016",
+   "title": "Governments +",
+   "status": "read",
+   "found": "incompat-only",
+   "note": "no load order; breaks government mods and some CB files",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "2837398670",
+   "title": "Historic Invasions",
+   "status": "read",
+   "found": "none",
+   "note": "compatibility statements only",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "2829541200",
+   "title": "MB + CE",
+   "status": "read",
+   "found": "order",
+   "note": "after More Bookmarks+ and Culture Expanded",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2543865921",
+   "title": "MB + EPE/CFP",
+   "status": "read",
+   "found": "order",
+   "note": "after More Bookmarks+",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2457619527",
+   "title": "MB+ No Flavorized Titles (Don't use with CTP)",
+   "status": "read",
+   "found": "order",
+   "note": "after More Bookmarks+; incompatible with CTP",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2216670956",
+   "title": "More Bookmarks+ *BEING UPDATED*",
+   "status": "read",
+   "found": "order",
+   "note": "after RICE, CFP, EPE, Culture Expanded, Unified UI; compatches below",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2630872947",
+   "title": "More Bookmarks+ - More Cultural Names",
+   "status": "read",
+   "found": "none",
+   "note": "points to a Discussions thread only",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "2241658518",
+   "title": "Muslim Enhancements",
+   "status": "read",
+   "found": "order",
+   "note": "before Culture Expanded, CFP, EPE",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2273832430",
+   "title": "Regional Immersion and Cultural Enrichment (RICE)",
+   "status": "read",
+   "found": "order",
+   "note": "RICE loads before EPE (stated on the RICE + EPE patch page)",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2553043828",
+   "title": "RICE + EPE Compatibility Patch",
+   "status": "read",
+   "found": "order",
+   "note": "after RICE and EPE",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2768734977",
+   "title": "Unified UI",
+   "status": "read",
+   "found": "order",
+   "note": "full before/after list",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2818979385",
+   "title": "Unit Packs Expanded",
+   "status": "read",
+   "found": "order",
+   "note": "after CFP and EPE (requires EPE)",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": true
+  },
+  {
+   "id": "2622639789",
+   "title": "Visual Trait Overhaul",
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "source": "Workshop page, read in the browser",
+   "date": "2026-10-10",
+   "inDatabase": false
+  },
+  {
+   "id": "3011742690",
+   "title": "[DEPRECATED] Enhanced Dynasty Legacies",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2220762808",
+   "title": "[DEPRECATED] Nameplates",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2751980550",
+   "title": "[FSF] Browse the Bookstore",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2218867072",
+   "title": "Advanced Cheat Menu",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "3305890494",
+   "title": "Better Battle Window",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2749062980",
+   "title": "Better Battles - Robe Update (1.8+)",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2217509277",
+   "title": "Better UI Scaling",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open page flagged removed / incompatible, probably dead",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": false
+  },
+  {
+   "id": "2216789478",
+   "title": "Cities of Wonders 2",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2977969008",
+   "title": "Crusader Wars 'Warfare'",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2829397295",
+   "title": "Culture Expanded",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2216746850",
+   "title": "Daddy Pika's Cheat Menu",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2815382549",
+   "title": "Dynamic UI Themes",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "3197506469",
+   "title": "Game Master: A New Lifestyle Trait",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2697392271",
+   "title": "Hiraeth - Dynasty Legacies Overhaul",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2252368989",
+   "title": "Immortality (Updated and Revised)",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2588849555",
+   "title": "Inheritable Traits++",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2857204827",
+   "title": "More Tenet Slot And Doctriness",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2394747105",
+   "title": "Petty Inheritable Traits",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "3000855939",
+   "title": "Sawwhet's Legacies Mod Pack",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2750682003",
+   "title": "Seven More Traits - Commander",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2221307044",
+   "title": "Show More Traits",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2216525506",
+   "title": "The Bronze Age: Maryannu",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open total conversion; type only",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "2227658180",
+   "title": "VIET Events - A Flavor and Immersion Event Mod",
+   "status": "title-only",
+   "found": "",
+   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
+   "source": "Workshop (comments/changelog page)",
+   "date": "2026-10-09",
+   "inDatabase": true
+  },
+  {
+   "id": "3554844335",
+   "title": "rise and fall",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "2962333032",
+   "title": "a game of thrones",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "2291024373",
+   "title": "lotr realms in exile",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "2216659254",
+   "title": "princes of darkness",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "2887120253",
+   "title": "elder kings 2",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "3225355262",
+   "title": "battle graphics",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "3608374693",
+   "title": "dynamic family portrait",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "3245958435",
+   "title": "visible disfigurement no more masks",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "3718999968",
+   "title": "unique artifacts plus",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  },
+  {
+   "id": "3013259695",
+   "title": "more lifestyles",
+   "status": "known-from-user",
+   "found": "",
+   "note": "in the built-in database from an earlier round (your screenshots or earlier page reads); no page text kept here",
+   "source": "earlier rounds",
+   "date": "",
+   "inDatabase": true
+  }
+ ]
+}

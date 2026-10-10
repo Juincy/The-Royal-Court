@@ -143,26 +143,23 @@ static const Theme DARK_T = {RGB(0x14,0x12,0x1C), RGB(0x1C,0x19,0x28), RGB(0x19,
 static const Theme LIGHT_T = {RGB(0xF4,0xEF,0xE4), RGB(0xE9,0xE1,0xCF), RGB(0xFC,0xFA,0xF4), RGB(0xF6,0xF1,0xE6), RGB(0xCF,0xC4,0xA8), RGB(0x2A,0x24,0x33), RGB(0x77,0x6E,0x88),
                               RGB(0x4B,0x2E,0x83), RGB(0xFF,0xFF,0xFF), RGB(0xB0,0x84,0x10), RGB(0xE2,0xD9,0xC4), RGB(0xD6,0xCB,0xB0), RGB(0xCB,0xBE,0xA0), RGB(0xDD,0xD1,0xF0), RGB(0x1E,0x16,0x30),
                               RGB(0x2E,0x7D,0x4F), RGB(0xB0,0x62,0x06), RGB(0xB3,0x26,0x1E)};
-static bool g_dark = true;
-static Theme g_curTheme = DARK_T;   // the colours on screen right now: one of the two palettes, or a blend of them while the theme changes
+static const Theme HALLOWEEN_T = {RGB(0x0F,0x0A,0x13), RGB(0x1A,0x0E,0x1D), RGB(0x14,0x0C,0x17), RGB(0x1C,0x11,0x1F), RGB(0x4A,0x28,0x46), RGB(0xF6,0xE8,0xD6), RGB(0xB0,0x96,0xAA),
+                                  RGB(0xFF,0x7A,0x18), RGB(0x1A,0x0A,0x00), RGB(0xFF,0x8A,0x1F), RGB(0x2C,0x18,0x2E), RGB(0x46,0x24,0x42), RGB(0x24,0x14,0x26), RGB(0x4E,0x24,0x5C), RGB(0xFF,0xFF,0xFF),
+                                  RGB(0x7C,0xE6,0x5A), RGB(0xFF,0xB0,0x2E), RGB(0xFF,0x5C,0x5C)};
+enum { THEME_LIGHT = 0, THEME_DARK = 1, THEME_HALLOWEEN = 2 };
+static int g_theme = THEME_DARK;
+static bool g_dark = true;          // the dark-style controls (dark title bar, dark menus, dark list): true for night and Halloween
+static Theme g_curTheme = DARK_T;   // the colours on screen right now
 static const Theme& T() { return g_curTheme; }
-static Theme lerpTheme(const Theme& a, const Theme& b, float e) {
-    Theme o;
-    const COLORREF* pa = (const COLORREF*)&a; const COLORREF* pb = (const COLORREF*)&b; COLORREF* po = (COLORREF*)&o;
-    int pct = (int)(e * 100.0f + 0.5f);
-    for (size_t i = 0; i < sizeof(Theme) / sizeof(COLORREF); i++) {
-        COLORREF x = pa[i], y = pb[i];
-        po[i] = RGB((GetRValue(x) * (100 - pct) + GetRValue(y) * pct) / 100, (GetGValue(x) * (100 - pct) + GetGValue(y) * pct) / 100, (GetBValue(x) * (100 - pct) + GetBValue(y) * pct) / 100);
-    }
-    return o;
-}
+static const Theme& themeOf(int id) { return id == THEME_LIGHT ? LIGHT_T : id == THEME_HALLOWEEN ? HALLOWEEN_T : DARK_T; }
 static HBRUSH g_brBg, g_brBanner, g_brList;
 static HFONT g_fontSym, g_fontCrown, g_fontTitle, g_fontSub, g_fontBold, g_fontTiny;
 static HWND g_hot = nullptr;
+static std::map<HWND, float> g_hov;   // buttons whose hover glow is fading in or out: how far (0..1) it has got
+static float hoverAmt(HWND h) { auto it = g_hov.find(h); return it == g_hov.end() ? (g_hot == h ? 1.0f : 0.0f) : it->second; }
 static HWND g_tour = nullptr;   // the quick tour window
 static void languageMenu(const RECT* at);
 static void showTutorial();
-static int g_bannerH = 0;
 static RECT g_listFrame = {0, 0, 0, 0};
 static std::map<int, std::wstring> g_glyph;  // owner-drawn button id -> symbol shown before its label
 
@@ -205,19 +202,40 @@ static void roundedPath(Gdiplus::GraphicsPath& p, float x, float y, float w, flo
     p.CloseFigure();
 }
 
-static void drawSun(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c, int alpha = 255) {
-    float r0 = size * 0.15f;
+// ---------- animated theme icons and the theme picker ----------
+static double clockSec() { return (double)GetTickCount64() / 1000.0; }
+static float frand(unsigned n) {   // a fixed pseudo-random number 0..1 for a given n (the same scenery on every repaint)
+    n *= 2654435761u; n ^= n >> 15; n *= 2246822519u; n ^= n >> 13; n *= 3266489917u; n ^= n >> 16;
+    return (float)(n & 0xFFFF) / 65535.0f;
+}
+static COLORREF lerpF(COLORREF a, COLORREF b, float t) { return mix(a, b, (int)(t * 100.0f + 0.5f)); }
+
+static void drawStar4(Gdiplus::Graphics& g, float cx, float cy, float r, COLORREF c, int alpha) {
+    if (alpha <= 0) return;
+    Gdiplus::PointF p[8];
+    for (int i = 0; i < 8; i++) {
+        float a = (float)i * 3.14159265f / 4.0f - 1.5707963f, rr = (i & 1) ? r * 0.30f : r;
+        p[i] = Gdiplus::PointF(cx + cosf(a) * rr, cy + sinf(a) * rr);
+    }
+    Gdiplus::SolidBrush br(gc(c, alpha));
+    g.FillPolygon(&br, p, 8);
+}
+// sec >= 0 animates it: the rays turn slowly and breathe
+static void drawSun(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c, int alpha = 255, double sec = -1) {
+    float breathe = sec >= 0 ? 1.0f + 0.07f * sinf((float)sec * 2.2f) : 1.0f, rot = sec >= 0 ? (float)sec * 0.55f : 0.0f;
+    float r0 = size * 0.15f * breathe;
     Gdiplus::SolidBrush br(gc(c, alpha));
     g.FillEllipse(&br, cx - r0, cy - r0, r0 * 2, r0 * 2);
     Gdiplus::Pen pen(gc(c, alpha), size * 0.075f);
     pen.SetStartCap(Gdiplus::LineCapRound); pen.SetEndCap(Gdiplus::LineCapRound);
     for (int i = 0; i < 8; i++) {
-        float a = (float)i * 3.14159265f / 4.0f;
-        g.DrawLine(&pen, cx + cosf(a) * r0 * 1.9f, cy + sinf(a) * r0 * 1.9f, cx + cosf(a) * r0 * 2.6f, cy + sinf(a) * r0 * 2.6f);
+        float a = (float)i * 3.14159265f / 4.0f + rot;
+        float out = r0 * (2.6f + (sec >= 0 ? 0.28f * sinf((float)sec * 2.2f + (float)i * 0.8f) : 0.0f));
+        g.DrawLine(&pen, cx + cosf(a) * r0 * 1.9f, cy + sinf(a) * r0 * 1.9f, cx + cosf(a) * out, cy + sinf(a) * out);
     }
 }
-// A crescent: one disc with a second, offset disc cut out of it (so it works on any background, gradients included).
-static void drawMoon(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c, int alpha = 255) {
+// A crescent: one disc with a second, offset disc cut out of it (so it works on any background, gradients included). sec >= 0: stars twinkle beside it.
+static void drawMoon(Gdiplus::Graphics& g, float cx, float cy, float size, COLORREF c, int alpha = 255, double sec = -1) {
     float r = size * 0.30f;
     Gdiplus::GraphicsPath disc, bite;
     disc.AddEllipse(cx - r, cy - r, r * 2, r * 2);
@@ -227,41 +245,76 @@ static void drawMoon(Gdiplus::Graphics& g, float cx, float cy, float size, COLOR
     reg.Exclude(&bite);
     Gdiplus::SolidBrush br(gc(c, alpha));
     g.FillRegion(&br, &reg);
+    if (sec >= 0) {
+        struct St { float x, y, r, ph; };
+        static const St st[3] = {{0.40f, -0.20f, 0.085f, 0.0f}, {0.30f, 0.24f, 0.06f, 2.1f}, {-0.02f, -0.40f, 0.055f, 4.2f}};
+        for (const St& s0 : st) {
+            float tw = 0.5f + 0.5f * sinf((float)sec * 2.6f + s0.ph);
+            drawStar4(g, cx + size * s0.x, cy + size * s0.y, size * s0.r * (0.7f + 0.5f * tw), c, (int)((float)alpha * (0.25f + 0.75f * tw)));
+        }
+    }
+}
+// A jack-o'-lantern. lit 0..1: unlit it is a dim orange pumpkin with a dark face, lit the face glows and flickers like a candle.
+static void drawPumpkin(Gdiplus::Graphics& g, float cx, float cy, float size, float lit, double sec, int alpha = 255) {
+    using namespace Gdiplus;
+    float r = size * 0.5f;
+    float fl = 0.80f + 0.20f * sinf((float)sec * 9.0f + 1.3f) * sinf((float)sec * 3.7f + 0.4f);
+    float f = lit * fl;
+    if (lit > 0.02f) {
+        GraphicsPath hp; hp.AddEllipse(cx - r * 2.2f, cy - r * 2.2f, r * 4.4f, r * 4.4f);
+        PathGradientBrush pg(&hp);
+        pg.SetCenterColor(Color((BYTE)(105.0f * f * (float)alpha / 255.0f), 255, 140, 20));
+        Color sur(0, 255, 110, 0); int n = 1; pg.SetSurroundColors(&sur, &n);
+        g.FillPath(&pg, &hp);
+    }
+    COLORREF bodyA = lerpF(RGB(0x92,0x50,0x22), RGB(0xFF,0xA0,0x30), lit), bodyB = lerpF(RGB(0x5C,0x2C,0x14), RGB(0xE8,0x5A,0x0C), lit);
+    float lobe[3] = {-0.46f, 0.46f, 0.0f};
+    for (int i = 0; i < 3; i++) {
+        float w = r * (i == 2 ? 1.25f : 1.05f), h = r * 1.62f, x = cx + lobe[i] * r - w / 2, y = cy + r * 0.12f - h / 2;
+        LinearGradientBrush lg(PointF(x, y), PointF(x + w, y + h), gc(bodyA, alpha), gc(bodyB, alpha));
+        g.FillEllipse(&lg, x, y, w, h);
+    }
+    {   // stem, swaying a little
+        float sw = sinf((float)sec * 1.3f) * r * 0.06f;
+        Pen sp(gc(RGB(0x4E,0x7A,0x2E), alpha), r * 0.26f);
+        sp.SetStartCap(LineCapRound); sp.SetEndCap(LineCapRound);
+        g.DrawLine(&sp, cx, cy - r * 0.62f, cx + sw + r * 0.10f, cy - r * 0.98f);
+    }
+    COLORREF face = lerpF(RGB(0x2A,0x10,0x08), RGB(0xFF,0xE2,0x70), f > 1 ? 1 : f);
+    SolidBrush fb(gc(face, alpha));
+    PointF e1[] = {PointF(cx - r * 0.62f, cy - r * 0.06f), PointF(cx - r * 0.20f, cy - r * 0.06f), PointF(cx - r * 0.40f, cy - r * 0.44f)};
+    PointF e2[] = {PointF(cx + r * 0.20f, cy - r * 0.06f), PointF(cx + r * 0.62f, cy - r * 0.06f), PointF(cx + r * 0.40f, cy - r * 0.44f)};
+    g.FillPolygon(&fb, e1, 3); g.FillPolygon(&fb, e2, 3);
+    PointF m[] = {PointF(cx - r * 0.64f, cy + r * 0.28f), PointF(cx - r * 0.40f, cy + r * 0.20f), PointF(cx - r * 0.22f, cy + r * 0.42f), PointF(cx, cy + r * 0.22f), PointF(cx + r * 0.22f, cy + r * 0.42f),
+                  PointF(cx + r * 0.40f, cy + r * 0.20f), PointF(cx + r * 0.64f, cy + r * 0.28f), PointF(cx + r * 0.46f, cy + r * 0.62f), PointF(cx + r * 0.20f, cy + r * 0.52f), PointF(cx, cy + r * 0.66f),
+                  PointF(cx - r * 0.20f, cy + r * 0.52f), PointF(cx - r * 0.46f, cy + r * 0.62f)};
+    g.FillPolygon(&fb, m, 12);
 }
 
-// The theme switch: a raised 3D panel switch. Dark mode = blue night track with the moon on a glossy knob at the right,
-// light mode = warm sunrise track with the sun at the left. The other symbol stays faintly visible on the track.
-// 0 = light (sun, knob left) .. 1 = dark (moon, knob right); eased between the two while the switch slides
-static float g_togT = -1.0f, g_togFrom = 0, g_togTo = 0;
-static ULONGLONG g_togStart = 0;
-static const UINT TIMER_TOGGLE = 79;
-static const UINT TIMER_UNSUB = 80;   // watches for Steam finishing the removal of unsubscribed mods
-static const DWORD TOGGLE_MS = 320;
+// The theme picker is an upside-down T: the pumpkin (Halloween) sits on a short stalk above the day/night switch, which looks and works as before.
+// Day/night: a raised 3D panel switch. Night = blue track with the moon on a glossy knob at the right, day = warm sunrise track with the sun at the left.
+// When Halloween is on, the knob rests at the night end, ghosted, and the pumpkin above it lights up.
+// g_togT: 0 = day (knob left) .. 1 = night end; g_hwT: 0 = Halloween off .. 1 = on. Both are eased while the theme changes.
+static float g_togT = -1.0f, g_hwT = -1.0f;
+static float g_pkTogFrom = 0, g_pkTogTo = 0, g_pkHwFrom = 0, g_pkHwTo = 0;
+static ULONGLONG g_pkStart = 0;
+static bool g_pkAnim = false;
+static const UINT TIMER_TOGGLE = 79;   // the animation clock: icons, theme slide, snapshot fade, Halloween scenery
+static const UINT TIMER_UNSUB = 80;    // watches for Steam finishing the removal of unsubscribed mods
+static const DWORD TOGGLE_MS = 420;
+static const DWORD FADE_MS = 520;
 static float easeInOut(float p) { p = p < 0 ? 0 : p > 1 ? 1 : p; return p * p * (3.0f - 2.0f * p); }
-static COLORREF lerpC(COLORREF light, COLORREF dark, float t) { return mix(light, dark, (int)(t * 100.0f + 0.5f)); }
 
-static void drawToggle(const DRAWITEMSTRUCT* d, COLORREF around) {
+static void drawSwitchGfx(Gdiplus::Graphics& g, float x, float y, float W, float H, float tt, float hw, bool hot, bool down, float u, double sec) {
     using namespace Gdiplus;
-    if (g_togT < 0) g_togT = g_dark ? 1.0f : 0.0f;
-    const float tt = g_togT;
-    HDC dc = d->hDC;
-    RECT r = d->rcItem;
-    HBRUSH bg = CreateSolidBrush(around); FillRect(dc, &r, bg); DeleteObject(bg);
-    float W = (float)(r.right - r.left), H = (float)(r.bottom - r.top);
-    float x = (float)r.left, y = (float)r.top;
-    bool hot = g_hot == d->hwndItem, down = (d->itemState & ODS_SELECTED) != 0;
-    Graphics g(dc);
-    g.SetSmoothingMode(SmoothingModeAntiAlias);
-    float u = (float)g_dpi / 96.0f;
-    // colours blend between the two looks as the switch moves
-    COLORREF trackTop = lerpC(RGB(0xF2,0xD8,0xBC), RGB(0x07,0x0B,0x22), tt), trackBot = lerpC(RGB(0xFF,0xF1,0xDE), RGB(0x16,0x24,0x55), tt);
-    COLORREF rimA = lerpC(RGB(0xFF,0x9E,0x3D), RGB(0x2F,0xB4,0xFF), tt), rimB = lerpC(RGB(0xC2,0x3B,0x66), RGB(0x5B,0x4B,0xFF), tt);
-    COLORREF knA = lerpC(RGB(0xFF,0xC1,0x4A), RGB(0x3C,0xCB,0xFF), tt), knB = lerpC(RGB(0xF2,0x45,0x2B), RGB(0x5A,0x3C,0xF0), tt);
+    COLORREF trackTop = lerpF(lerpF(RGB(0xF2,0xD8,0xBC), RGB(0x07,0x0B,0x22), tt), RGB(0x2A,0x0C,0x30), hw), trackBot = lerpF(lerpF(RGB(0xFF,0xF1,0xDE), RGB(0x16,0x24,0x55), tt), RGB(0x5A,0x22,0x2C), hw);
+    COLORREF rimA = lerpF(lerpF(RGB(0xFF,0x9E,0x3D), RGB(0x2F,0xB4,0xFF), tt), RGB(0xFF,0x7A,0x18), hw), rimB = lerpF(lerpF(RGB(0xC2,0x3B,0x66), RGB(0x5B,0x4B,0xFF), tt), RGB(0x8B,0x4D,0xFF), hw);
+    COLORREF knA = lerpF(lerpF(RGB(0xFF,0xC1,0x4A), RGB(0x3C,0xCB,0xFF), tt), RGB(0xFF,0x96,0x28), hw), knB = lerpF(lerpF(RGB(0xF2,0x45,0x2B), RGB(0x5A,0x3C,0xF0), tt), RGB(0x9A,0x3C,0xC8), hw);
     if (hot) { rimA = mix(rimA, RGB(255,255,255), 22); rimB = mix(rimB, RGB(255,255,255), 22); }
-    // soft shadow under the whole switch
-    for (int i = 3; i >= 1; i--) {
+    float dark = tt > hw ? tt : hw;
+    for (int i = 3; i >= 1; i--) {   // soft shadow under the whole switch
         GraphicsPath sh; roundedPath(sh, x + 1.0f * u, y + (1.0f + (float)i * 0.8f) * u, W - 2.0f * u, H - 3.0f * u, H / 2);
-        SolidBrush sb(Color((BYTE)(22 + 4 * tt), 0, 0, 0));
+        SolidBrush sb(Color((BYTE)(22 + 4 * dark), 0, 0, 0));
         g.FillPath(&sb, &sh);
     }
     float tx = x + 1.0f * u, ty = y + 1.0f * u, tw = W - 2.0f * u, th = H - 4.0f * u;
@@ -273,7 +326,7 @@ static void drawToggle(const DRAWITEMSTRUCT* d, COLORREF around) {
         Region old; g.GetClip(&old);
         g.SetClip(&clipP, CombineModeIntersect);
         GraphicsPath inner; roundedPath(inner, tx, ty + 2.2f * u, tw, th, th / 2);
-        Pen ip(Color((BYTE)(70 + 50 * tt), 0, 0, 0), 3.2f * u);
+        Pen ip(Color((BYTE)(70 + 50 * dark), 0, 0, 0), 3.2f * u);
         g.DrawPath(&ip, &inner);
         g.SetClip(&old);
     }
@@ -282,7 +335,7 @@ static void drawToggle(const DRAWITEMSTRUCT* d, COLORREF around) {
     g.DrawPath(&rim, &track);
     {   // thin highlight just inside the rim: the raised bezel
         GraphicsPath hl; roundedPath(hl, tx + 1.0f * u, ty + 1.0f * u, tw - 2.0f * u, th - 2.0f * u, (th - 2.0f * u) / 2);
-        Pen hp(Color((BYTE)(90 - 50 * tt), 255, 255, 255), 1.0f * u);
+        Pen hp(Color((BYTE)(90 - 50 * dark), 255, 255, 255), 1.0f * u);
         g.DrawPath(&hp, &hl);
     }
     float k = th - 5.0f * u;
@@ -291,29 +344,101 @@ static void drawToggle(const DRAWITEMSTRUCT* d, COLORREF around) {
     float kx = kxL + (kxR - kxL) * tt;
     float ky = ty + pad + (down ? 0.8f * u : 0.0f);
     float sunX = kxL + k / 2, moonX = kxR + k / 2, cyT = ty + th / 2;
+    float ka = 1.0f - 0.72f * hw;   // the knob is ghosted while Halloween is on
     // the symbol of the side the knob is not on stays faintly visible in the track (drawn before the knob so the knob covers it)
-    drawSun(g, sunX, cyT, k, RGB(0xFF,0xB2,0x5A), (int)(95 * tt));
-    drawMoon(g, moonX, cyT, k * 1.05f, RGB(0x5A,0x3C,0xF0), (int)(85 * (1.0f - tt)));
+    drawSun(g, sunX, cyT, k, RGB(0xFF,0xB2,0x5A), (int)(95 * tt), sec);
+    drawMoon(g, moonX, cyT, k * 1.05f, RGB(0x5A,0x3C,0xF0), (int)(85 * (1.0f - tt) * (1.0f - hw)), sec);
     for (int i = 3; i >= 1; i--) {             // knob cast shadow
-        SolidBrush sb(Color((BYTE)(36 + 10 * tt), 0, 0, 0));
+        SolidBrush sb(Color((BYTE)((36 + 10 * dark) * ka), 0, 0, 0));
         g.FillEllipse(&sb, kx - (float)(i - 1) * 0.3f * u, ky + (1.0f + (float)i * 0.9f) * u, k + (float)(i - 1) * 0.6f * u, k);
     }
-    LinearGradientBrush kg(PointF(kx, ky), PointF(kx + k, ky + k), gc(knA), gc(knB));
+    LinearGradientBrush kg(PointF(kx, ky), PointF(kx + k, ky + k), gc(knA, (int)(255 * ka)), gc(knB, (int)(255 * ka)));
     g.FillEllipse(&kg, kx, ky, k, k);
     {   // bevel: light edge top-left, dark edge bottom-right
-        LinearGradientBrush bv(PointF(kx, ky), PointF(kx + k, ky + k), Color(150, 255, 255, 255), Color(120, 0, 0, 0));
+        LinearGradientBrush bv(PointF(kx, ky), PointF(kx + k, ky + k), Color((BYTE)(150 * ka), 255, 255, 255), Color((BYTE)(120 * ka), 0, 0, 0));
         Pen bp(&bv, 1.4f * u);
         g.DrawEllipse(&bp, kx + 0.7f * u, ky + 0.7f * u, k - 1.4f * u, k - 1.4f * u);
     }
     {   // gloss on the upper half
         GraphicsPath cap; cap.AddEllipse(kx + k * 0.10f, ky + k * 0.05f, k * 0.80f, k * 0.52f);
-        LinearGradientBrush gl(PointF(kx, ky + k * 0.05f), PointF(kx, ky + k * 0.57f), Color(120, 255, 255, 255), Color(6, 255, 255, 255));
+        LinearGradientBrush gl(PointF(kx, ky + k * 0.05f), PointF(kx, ky + k * 0.57f), Color((BYTE)(120 * ka), 255, 255, 255), Color((BYTE)(6 * ka), 255, 255, 255));
         g.FillPath(&gl, &cap);
     }
     // the symbol on the knob changes with it: the sun fades out as the moon fades in
     float kcx = kx + k / 2, kcy = ky + k / 2;
-    if (tt < 0.999f) drawSun(g, kcx, kcy, k, RGB(255,255,255), (int)(255 * (1.0f - tt)));
-    if (tt > 0.001f) drawMoon(g, kcx, kcy, k * 1.05f, RGB(255,255,255), (int)(255 * tt));
+    if (tt < 0.999f) drawSun(g, kcx, kcy, k, RGB(255,255,255), (int)(255 * (1.0f - tt) * ka), sec);
+    if (tt > 0.001f) drawMoon(g, kcx, kcy, k * 1.05f, RGB(255,255,255), (int)(255 * tt * ka), sec);
+}
+
+// the banner's off-screen picture (see bannerBlit); the picker copies its background from it so the Halloween scenery shows around it
+static HDC g_bbDC = nullptr; static HBITMAP g_bbBmp = nullptr; static HGDIOBJ g_bbOld = nullptr; static int g_bbW = 0, g_bbH = 0;
+static int g_bannerH = 0;
+static const int PICK_W = 80, PICK_H = 54;   // the picker's size at 96 dpi
+// 1 = the pumpkin (Halloween), 2 = the day/night switch
+static int pickerZone(int x, int y) {
+    float u = (float)g_dpi / 96.0f;
+    return (y < 25.0f * u && fabsf((float)x - (float)PICK_W * u / 2.0f) < 17.0f * u) ? 1 : 2;
+}
+static void drawPicker(const DRAWITEMSTRUCT* d, COLORREF around) {
+    using namespace Gdiplus;
+    if (g_togT < 0) g_togT = g_dark ? 1.0f : 0.0f;
+    if (g_hwT < 0) g_hwT = g_theme == THEME_HALLOWEEN ? 1.0f : 0.0f;
+    HDC dc = d->hDC;
+    RECT r = d->rcItem;
+    int W = r.right - r.left, H = r.bottom - r.top;
+    HDC mem = CreateCompatibleDC(dc);
+    HBITMAP bm = CreateCompatibleBitmap(dc, W, H);
+    HGDIOBJ ob = SelectObject(mem, bm);
+    RECT lr = {0, 0, W, H};
+    {
+        bool copied = false;
+        if (g_theme == THEME_HALLOWEEN && g_bbDC && g_bbH == g_bannerH && hMain) {
+            RECT wr; GetWindowRect(d->hwndItem, &wr);
+            POINT tl{wr.left, wr.top}; ScreenToClient(hMain, &tl);
+            if (tl.x >= 0 && tl.y >= 0 && tl.x + W <= g_bbW && tl.y + H <= g_bbH) copied = BitBlt(mem, 0, 0, W, H, g_bbDC, tl.x, tl.y, SRCCOPY) != 0;
+        }
+        if (!copied) { HBRUSH bg = CreateSolidBrush(around); FillRect(mem, &lr, bg); DeleteObject(bg); }
+    }
+    {
+        Graphics g(mem);
+        g.SetSmoothingMode(SmoothingModeAntiAlias);
+        float u = (float)g_dpi / 96.0f;
+        double sec = clockSec();
+        bool hot = g_hot == d->hwndItem, down = (d->itemState & ODS_SELECTED) != 0;
+        int zone = 0;
+        if (hot) { POINT cp; GetCursorPos(&cp); ScreenToClient(d->hwndItem, &cp); zone = pickerZone(cp.x, cp.y); }
+        float hw = g_hwT, cx = (float)W / 2.0f;
+        float od = 20.0f * u, oy = 1.5f * u;
+        // the stalk that joins the pumpkin to the switch (this is the stem of the T)
+        {
+            COLORREF sc = lerpF(lerpF(RGB(0xC2,0x3B,0x66), RGB(0x5B,0x4B,0xFF), g_togT), RGB(0xFF,0x7A,0x18), hw);
+            SolidBrush sb(gc(sc, 200));
+            GraphicsPath sp; roundedPath(sp, cx - 1.6f * u, oy + od - 1.0f * u, 3.2f * u, 5.5f * u, 1.2f * u);
+            g.FillPath(&sb, &sp);
+        }
+        // the pumpkin's orb
+        {
+            float oa = oy + (zone == 1 && down ? 0.8f * u : 0.0f);
+            if (hw > 0.02f) {   // glow behind it while it is on
+                GraphicsPath hp; hp.AddEllipse(cx - od * 1.25f, oa + od / 2 - od * 1.25f, od * 2.5f, od * 2.5f);
+                PathGradientBrush pg(&hp);
+                pg.SetCenterColor(Color((BYTE)(80.0f * hw * (0.85f + 0.15f * sinf((float)sec * 7.0f))), 255, 120, 20));
+                Color sur(0, 255, 100, 0); int n = 1; pg.SetSurroundColors(&sur, &n);
+                g.FillPath(&pg, &hp);
+            }
+            COLORREF top = lerpF(lerpF(RGB(0xF6,0xEA,0xD4), RGB(0x2E,0x24,0x42), g_togT), RGB(0x58,0x24,0x10), hw), bot = lerpF(lerpF(RGB(0xE2,0xD0,0xB0), RGB(0x16,0x12,0x26), g_togT), RGB(0x2A,0x10,0x20), hw);
+            LinearGradientBrush ob2(PointF(cx, oa), PointF(cx, oa + od), gc(top), gc(bot));
+            g.FillEllipse(&ob2, cx - od / 2, oa, od, od);
+            COLORREF rimC = lerpF(RGB(0x5A,0x4A,0x7A), RGB(0xFF,0x8A,0x1F), hw);
+            if (zone == 1) rimC = mix(rimC, RGB(255,255,255), 25);
+            Pen rp(gc(rimC), 1.4f * u);
+            g.DrawEllipse(&rp, cx - od / 2 + 0.7f * u, oa + 0.7f * u, od - 1.4f * u, od - 1.4f * u);
+            drawPumpkin(g, cx, oa + od / 2 + 0.5f * u, od * 0.72f, hw, sec, (int)(150 + 105 * hw));
+        }
+        drawSwitchGfx(g, 0.0f, 24.0f * u, (float)W, (float)H - 24.0f * u, g_togT, hw, zone == 2, zone == 2 && down, u, sec);
+    }
+    BitBlt(dc, r.left, r.top, W, H, mem, 0, 0, SRCCOPY);
+    SelectObject(mem, ob); DeleteObject(bm); DeleteDC(mem);
 }
 
 static std::wstring ctlText(HWND h) {
@@ -334,7 +459,7 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
     POINT p{wr.left, wr.top}; ScreenToClient(parent, &p);
     bool inBanner = parent == hMain && p.y < g_bannerH;
     COLORREF around = inBanner ? t.banner : t.bg;
-    if (id == ID_THEME) { drawToggle(d, around); return; }
+    if (id == ID_THEME) { drawPicker(d, around); return; }
     if (id == ID_GAMEVER) {   // "CK3 version: " in the muted colour, only the number in colour
         HBRUSH gb = CreateSolidBrush(t.bg); FillRect(dc, &r, gb); DeleteObject(gb);
         std::wstring all = ctlText(d->hwndItem);
@@ -363,10 +488,11 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
         return;
     }
     HBRUSH ab = CreateSolidBrush(around); FillRect(dc, &r, ab); DeleteObject(ab);
-    bool dis = (d->itemState & ODS_DISABLED) != 0, down = (d->itemState & ODS_SELECTED) != 0, hot = g_hot == d->hwndItem;
+    bool dis = (d->itemState & ODS_DISABLED) != 0, down = (d->itemState & ODS_SELECTED) != 0;
+    float ha = hoverAmt(d->hwndItem);   // 0..1: the hover colour fades in and out instead of snapping
     bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3) || (id == ID_RP_A && g_repViewForBtn == 0) || (id == ID_RP_B && g_repViewForBtn == 1);
-    COLORREF fill = primary ? (down ? mix(t.accent, RGB(0,0,0), 20) : hot ? mix(t.accent, RGB(255,255,255), 18) : t.accent) : (down ? t.btnDown : hot ? t.btnHot : t.btn);
-    COLORREF edge = primary ? mix(t.accent, RGB(0,0,0), 25) : (hot ? t.gold : t.border);
+    COLORREF fill = primary ? (down ? mix(t.accent, RGB(0,0,0), 20) : mix(t.accent, RGB(255,255,255), (int)(18.0f * ha))) : (down ? t.btnDown : mix(t.btn, t.btnHot, (int)(100.0f * ha + 0.5f)));
+    COLORREF edge = primary ? mix(t.accent, RGB(0,0,0), 25) : mix(t.border, t.gold, (int)(100.0f * ha + 0.5f));
     {
         Gdiplus::Graphics g(dc);
         g.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
@@ -413,7 +539,8 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
 static LRESULT CALLBACK BtnSub(HWND h, UINT m, WPARAM w, LPARAM l, UINT_PTR, DWORD_PTR) {
     if (m == WM_MOUSEMOVE && g_hot != h) {
         HWND old = g_hot; g_hot = h;
-        if (old) InvalidateRect(old, nullptr, FALSE);
+        g_hov.emplace(h, 0.0f);                    // the fade starts from where it is now
+        if (old) { g_hov.emplace(old, 1.0f); InvalidateRect(old, nullptr, FALSE); }
         InvalidateRect(h, nullptr, FALSE);
         TRACKMOUSEEVENT te{sizeof te, TME_LEAVE, h, 0};
         TrackMouseEvent(&te);
@@ -421,6 +548,7 @@ static LRESULT CALLBACK BtnSub(HWND h, UINT m, WPARAM w, LPARAM l, UINT_PTR, DWO
         if (g_hot == h) { g_hot = nullptr; InvalidateRect(h, nullptr, FALSE); }
     } else if (m == WM_NCDESTROY) {
         if (g_hot == h) g_hot = nullptr;
+        g_hov.erase(h);
         RemoveWindowSubclass(h, BtnSub, 1);
     }
     return DefSubclassProc(h, m, w, l);
@@ -541,36 +669,185 @@ static void drawMenuItem(const DRAWITEMSTRUCT* d) {
     SelectObject(dc, of);
 }
 
-static void paintBackdrop(HDC dc, const RECT& rc, bool banner) {
-    const Theme& t = T();
-    FillRect(dc, &rc, g_brBg);
-    if (!banner) return;
-    RECT b = {0, 0, rc.right, g_bannerH};
-    FillRect(dc, &b, g_brBanner);
-    HBRUSH gold = CreateSolidBrush(t.gold);
-    RECT ln = {0, g_bannerH - S(2), rc.right, g_bannerH};
-    FillRect(dc, &ln, gold);
-    DeleteObject(gold);
-    if (g_listFrame.right > g_listFrame.left) {
-        HBRUSH fb = CreateSolidBrush(t.border);
-        FrameRect(dc, &g_listFrame, fb);
-        DeleteObject(fb);
+// ---------- the banner, and the Halloween scenery that lives in it ----------
+static int g_artR = 0;   // right end of the free space in the banner (the left edge of its first button); set by layout()
+
+static void drawBat(Gdiplus::Graphics& g, float cx, float cy, float s, float flap, int alpha) {
+    using namespace Gdiplus;
+    SolidBrush br(Color((BYTE)alpha, 8, 3, 12));
+    g.FillEllipse(&br, cx - s * 0.15f, cy - s * 0.18f, s * 0.30f, s * 0.40f);
+    PointF ears[] = {PointF(cx - s * 0.13f, cy - s * 0.10f), PointF(cx - s * 0.10f, cy - s * 0.32f), PointF(cx - s * 0.01f, cy - s * 0.16f)};
+    PointF ears2[] = {PointF(cx + s * 0.13f, cy - s * 0.10f), PointF(cx + s * 0.10f, cy - s * 0.32f), PointF(cx + s * 0.01f, cy - s * 0.16f)};
+    g.FillPolygon(&br, ears, 3); g.FillPolygon(&br, ears2, 3);
+    for (int side = -1; side <= 1; side += 2) {
+        float sd = (float)side;
+        PointF w[] = {PointF(cx + sd * s * 0.10f, cy - s * 0.12f), PointF(cx + sd * s * 0.55f, cy - s * 0.30f - flap * s * 0.35f), PointF(cx + sd * s * 1.00f, cy - flap * s * 0.62f),
+                      PointF(cx + sd * s * 0.80f, cy + s * 0.10f - flap * s * 0.22f), PointF(cx + sd * s * 0.58f, cy + s * 0.02f - flap * s * 0.10f), PointF(cx + sd * s * 0.42f, cy + s * 0.22f - flap * s * 0.06f),
+                      PointF(cx + sd * s * 0.24f, cy + s * 0.10f), PointF(cx + sd * s * 0.10f, cy + s * 0.18f)};
+        g.FillPolygon(&br, w, 8);
     }
+}
+static void drawSpider(Gdiplus::Graphics& g, float sx, float len, float u, double sec) {
+    using namespace Gdiplus;
+    Pen th(Color(120, 226, 216, 238), 0.8f * u);
+    g.DrawLine(&th, sx, 0.0f, sx, len);
+    SolidBrush body(Color(255, 14, 8, 22));
+    Pen leg(Color(255, 14, 8, 22), 1.0f * u);
+    float wig = sinf((float)sec * 6.0f) * 0.8f * u;
+    for (int i = 0; i < 4; i++) {
+        float dy = (float)(i - 1.5f) * 1.5f * u;
+        g.DrawLine(&leg, sx - 1.5f * u, len + 2.8f * u + dy * 0.4f, sx - 5.4f * u, len + 1.2f * u + dy + wig);
+        g.DrawLine(&leg, sx + 1.5f * u, len + 2.8f * u + dy * 0.4f, sx + 5.4f * u, len + 1.2f * u + dy - wig);
+    }
+    g.FillEllipse(&body, sx - 2.6f * u, len + 1.0f * u, 5.2f * u, 5.6f * u);
+    g.FillEllipse(&body, sx - 1.7f * u, len - 0.8f * u, 3.4f * u, 3.0f * u);
+    SolidBrush eye(Color(255, 255, 70, 70));
+    g.FillEllipse(&eye, sx - 1.2f * u, len - 0.2f * u, 0.9f * u, 0.9f * u);
+    g.FillEllipse(&eye, sx + 0.3f * u, len - 0.2f * u, 0.9f * u, 0.9f * u);
+}
+static void drawCobweb(Gdiplus::Graphics& g, float u) {
+    using namespace Gdiplus;
+    Pen wp(Color(70, 210, 198, 226), 0.8f * u);
+    const int N = 5;
+    float ang[N];
+    for (int i = 0; i < N; i++) ang[i] = (float)i * 1.5707963f / (N - 1);
+    float R = 26.0f * u;
+    for (int i = 0; i < N; i++) g.DrawLine(&wp, 0.0f, 0.0f, cosf(ang[i]) * R, sinf(ang[i]) * R);
+    for (int ring = 1; ring <= 3; ring++) {
+        float rr = R * (float)ring / 3.0f;
+        for (int i = 0; i + 1 < N; i++) {
+            float am = (ang[i] + ang[i + 1]) / 2;
+            PointF pts[3] = {PointF(cosf(ang[i]) * rr, sinf(ang[i]) * rr), PointF(cosf(am) * rr * 0.86f, sinf(am) * rr * 0.86f), PointF(cosf(ang[i + 1]) * rr, sinf(ang[i + 1]) * rr)};
+            g.DrawCurve(&wp, pts, 3);
+        }
+    }
+}
+// Everything alive in the banner, drawn behind the controls: haze, embers, the moon and its clouds, the graveyard, bats, a spider on its thread.
+static void drawHalloweenScene(Gdiplus::Graphics& g, int W, int H, double sec, int artL, int artR) {
+    using namespace Gdiplus;
+    float u = (float)g_dpi / 96.0f, Hf = (float)H, Wf = (float)W, base = Hf - 2.0f * u;
+    {   // a warm haze rising from the gold line
+        LinearGradientBrush hz(PointF(0, Hf * 0.30f), PointF(0, base), Color(0, 255, 110, 20), Color(80, 255, 96, 20));
+        g.FillRectangle(&hz, 0.0f, Hf * 0.30f, Wf, base - Hf * 0.30f);
+    }
+    float zoneW = (float)(artR - artL);
+    if (zoneW > 110.0f * u) {   // the moon, with clouds sliding over it
+        float mx = (float)artL + zoneW * 0.58f, my = Hf * 0.46f, r = 14.0f * u;
+        GraphicsPath hp; hp.AddEllipse(mx - r * 3.6f, my - r * 3.6f, r * 7.2f, r * 7.2f);
+        PathGradientBrush pg(&hp);
+        pg.SetCenterColor(Color(125, 255, 170, 60));
+        Color sur(0, 255, 110, 20); int n = 1; pg.SetSurroundColors(&sur, &n);
+        g.FillPath(&pg, &hp);
+        SolidBrush disc(Color(255, 255, 228, 164));
+        g.FillEllipse(&disc, mx - r, my - r, r * 2, r * 2);
+        SolidBrush cr(Color(48, 196, 146, 78));
+        g.FillEllipse(&cr, mx - r * 0.55f, my - r * 0.45f, r * 0.55f, r * 0.5f);
+        g.FillEllipse(&cr, mx + r * 0.10f, my + r * 0.15f, r * 0.62f, r * 0.55f);
+        g.FillEllipse(&cr, mx - r * 0.20f, my + r * 0.40f, r * 0.30f, r * 0.28f);
+        for (int k = 0; k < 2; k++) {
+            float cw = (52.0f + 26.0f * (float)k) * u;
+            float x = (float)artL - cw + fmodf((float)sec * (5.0f + 3.5f * (float)k) * u + (float)k * 80.0f * u, zoneW + cw * 2);
+            SolidBrush cb(Color(170, 26, 12, 34));
+            g.FillEllipse(&cb, x, my + (k ? 5.0f : -9.0f) * u, cw, 7.0f * u);
+            g.FillEllipse(&cb, x + cw * 0.2f, my + (k ? 2.0f : -12.0f) * u, cw * 0.5f, 6.0f * u);
+        }
+    }
+    for (int i = 0; i < 16; i++) {   // embers drifting up
+        float sp = 7.0f + 9.0f * frand((unsigned)i * 3 + 1), ph = frand((unsigned)i * 3 + 2), cyc = Hf * 1.5f;
+        float pos = fmodf((float)sec * sp * u + ph * cyc, cyc);
+        float x = frand((unsigned)i * 3) * Wf + sinf((float)sec * 0.8f + (float)i) * 5.0f * u, y = base - pos;
+        float tw = 0.55f + 0.45f * sinf((float)sec * 5.0f + (float)i * 1.7f);
+        int a = (int)(190.0f * (1.0f - pos / cyc) * tw);
+        if (a <= 4) continue;
+        float rr = (0.8f + 1.3f * frand((unsigned)i * 7 + 5)) * u;
+        SolidBrush eb(Color((BYTE)a, 255, (BYTE)(150 + 80 * frand((unsigned)i + 40)), 40));
+        g.FillEllipse(&eb, x - rr, y - rr, rr * 2, rr * 2);
+    }
+    {   // the graveyard along the bottom
+        SolidBrush sil(Color(255, 11, 5, 15));
+        Pen tp(Color(255, 11, 5, 15), 1.3f * u);
+        tp.SetStartCap(LineCapRound); tp.SetEndCap(LineCapRound);
+        float step = 15.0f * u;
+        for (int i = 0; (float)i * step < Wf + step; i++) {
+            float x = (float)i * step + frand((unsigned)i + 900) * 6.0f * u, h0 = frand((unsigned)i + 500);
+            float lim = (x < (float)artL ? 6.5f : 10.5f) * u * (0.65f + 0.35f * frand((unsigned)i + 700));
+            if (h0 < 0.28f) {   // gravestone
+                g.FillRectangle(&sil, x - 2.6f * u, base - lim * 0.75f, 5.2f * u, lim * 0.75f);
+                g.FillEllipse(&sil, x - 2.6f * u, base - lim, 5.2f * u, lim * 0.5f);
+            } else if (h0 < 0.42f) {   // cross
+                g.FillRectangle(&sil, x - 0.9f * u, base - lim, 1.8f * u, lim);
+                g.FillRectangle(&sil, x - 2.6f * u, base - lim * 0.72f, 5.2f * u, 1.7f * u);
+            } else if (h0 < 0.56f) {   // a dead tree
+                g.DrawLine(&tp, x, base, x, base - lim);
+                g.DrawLine(&tp, x, base - lim * 0.55f, x - 3.6f * u, base - lim * 0.95f);
+                g.DrawLine(&tp, x, base - lim * 0.72f, x + 3.4f * u, base - lim * 1.05f);
+            } else if (h0 < 0.68f && (i & 1) == 0) {   // a small jack-o'-lantern with a flickering face
+                float fl = 0.6f + 0.4f * sinf((float)sec * 8.0f + (float)i * 2.3f) * sinf((float)sec * 2.9f + (float)i);
+                SolidBrush pb(Color(255, 150, 60, 10));
+                g.FillEllipse(&pb, x - 3.2f * u, base - 5.4f * u, 6.4f * u, 5.4f * u);
+                SolidBrush fb(Color((BYTE)(120 + 135 * fl), 255, 220, 90));
+                g.FillEllipse(&fb, x - 1.9f * u, base - 3.9f * u, 1.3f * u, 1.3f * u);
+                g.FillEllipse(&fb, x + 0.6f * u, base - 3.9f * u, 1.3f * u, 1.3f * u);
+            }
+        }
+    }
+    for (int k = 0; k < 3; k++) {   // bats crossing the banner
+        float speed = (36.0f + 15.0f * (float)k) * u, s = (8.5f + 2.0f * (float)k) * u;
+        float x = fmodf((float)sec * speed + (float)k * Wf * 0.37f, Wf + 70.0f * u) - 35.0f * u;
+        float y = Hf * (0.26f + 0.17f * (float)k) + sinf((float)sec * 1.7f + (float)k * 2.0f) * 4.5f * u;
+        drawBat(g, x, y, s, sinf((float)sec * 13.0f + (float)k * 1.7f), 240);
+    }
+    if (zoneW > 150.0f * u) {   // a spider bobbing on its thread
+        float len = 9.0f * u + 11.0f * u * (0.5f + 0.5f * sinf((float)sec * 0.8f));
+        drawSpider(g, (float)artR - 40.0f * u, len, u, sec);
+    }
+    drawCobweb(g, u);
+}
+
+static void drawBannerGfx(HDC dc, int W) {
+    const Theme& t = T();
+    int H = g_bannerH;
+    RECT b = {0, 0, W, H};
+    FillRect(dc, &b, g_brBanner);
     SetBkMode(dc, TRANSPARENT);
-    int cy = (g_bannerH - S(2)) / 2;
+    int cy = (H - S(2)) / 2;
+    const wchar_t* title = L"The Royal Court";   // the program name stays as it is
     HGDIOBJ of = SelectObject(dc, g_fontTitle);
+    SIZE ts{0, 0}; GetTextExtentPoint32W(dc, title, (int)wcslen(title), &ts);
+    RECT tr = {S(58), cy - ts.cy / 2 - S(1), S(58) + ts.cx + S(4), cy + ts.cy / 2 + S(2)};
+    std::wstring sub = TLF(L"CK3 MOD MANAGER  ·  v{0}", {VERSION});
+    SelectObject(dc, g_fontSub);
+    SetTextCharacterExtra(dc, S(2) / 1);
+    SIZE ss{0, 0}; GetTextExtentPoint32W(dc, sub.c_str(), (int)sub.size(), &ss);
+    SetTextCharacterExtra(dc, 0);
+    RECT sr = {tr.right + S(10), cy - S(6) + S(5), tr.right + S(400), cy + S(16)};
+    bool hw = g_theme == THEME_HALLOWEEN;
+    double sec = clockSec();
     {
         using namespace Gdiplus;
         Graphics g(dc);
         g.SetSmoothingMode(SmoothingModeAntiAlias);
+        if (hw) drawHalloweenScene(g, W, H, sec, sr.left + ss.cx + S(40), g_artR > 0 ? g_artR : W);
+        float u = (float)g_dpi / 96.0f, base = (float)H - 2.0f * u;
+        SolidBrush line(gc(t.gold));
+        g.FillRectangle(&line, 0.0f, base, (float)W, 2.0f * u);
+        if (hw) {   // a glint travelling along the line
+            float sw = 190.0f * u, x = fmodf((float)sec * 170.0f * u, (float)W + sw * 2) - sw;
+            LinearGradientBrush sh(PointF(x, 0), PointF(x + sw, 0), Color(0, 255, 232, 160), Color(0, 255, 232, 160));
+            Color cols[3] = {Color(0, 255, 232, 160), Color(240, 255, 232, 160), Color(0, 255, 232, 160)};
+            REAL pos[3] = {0.0f, 0.5f, 1.0f};
+            sh.SetInterpolationColors(cols, pos, 3);
+            g.FillRectangle(&sh, x, base, sw, 2.0f * u);
+        }
         float w = (float)S(40), h = (float)S(30);
         float x0 = (float)S(10), y0 = (float)cy - h / 2;
-        auto P = [&](float u, float v) { return PointF(x0 + u * w, y0 + v * h); };
+        auto P = [&](float a, float c) { return PointF(x0 + a * w, y0 + c * h); };
         PointF pts[] = { P(0.04f, 0.86f), P(0.0f, 0.18f), P(0.26f, 0.50f), P(0.50f, 0.0f), P(0.74f, 0.50f), P(1.0f, 0.18f), P(0.96f, 0.86f) };
         SolidBrush gb(Color(255, GetRValue(t.gold), GetGValue(t.gold), GetBValue(t.gold)));
         g.FillPolygon(&gb, pts, 7);
         g.FillRectangle(&gb, x0 + 0.04f * w, y0 + 0.86f * h, 0.92f * w, 0.14f * h);
-        SolidBrush jb(Color(255, 176, 40, 60));
+        float fl = hw ? 0.5f + 0.5f * sinf((float)sec * 8.0f) * sinf((float)sec * 3.1f + 0.7f) : 0.0f;   // the jewels glow like candle flames
+        SolidBrush jb(hw ? Color(255, (BYTE)(235 + 20 * fl), (BYTE)(110 + 100 * fl), 20) : Color(255, 176, 40, 60));
         float r = 0.07f * w;
         g.FillEllipse(&jb, x0 + 0.50f * w - r, y0 + 0.62f * h - r, 2 * r, 2 * r);
         g.FillEllipse(&jb, x0 + 0.25f * w - r * 0.8f, y0 + 0.70f * h - r * 0.8f, 1.6f * r, 1.6f * r);
@@ -578,15 +855,10 @@ static void paintBackdrop(HDC dc, const RECT& rc, bool banner) {
     }
     SelectObject(dc, g_fontTitle);
     SetTextColor(dc, t.text);
-    const wchar_t* title = L"The Royal Court";   // the program name stays as it is
-    SIZE ts{0, 0}; GetTextExtentPoint32W(dc, title, (int)wcslen(title), &ts);
-    RECT tr = {S(58), cy - ts.cy / 2 - S(1), S(58) + ts.cx + S(4), cy + ts.cy / 2 + S(2)};
     DrawTextW(dc, title, -1, &tr, DT_SINGLELINE | DT_VCENTER | DT_LEFT | DT_NOPREFIX);
     SelectObject(dc, g_fontSub);
     SetTextColor(dc, t.muted);
     SetTextCharacterExtra(dc, S(2) / 1);
-    std::wstring sub = TLF(L"CK3 MOD MANAGER  ·  v{0}", {VERSION});
-    RECT sr = {tr.right + S(10), cy - S(6) + S(5), tr.right + S(400), cy + S(16)};
     DrawTextW(dc, sub.c_str(), -1, &sr, DT_SINGLELINE | DT_LEFT | DT_NOPREFIX);
     SetTextCharacterExtra(dc, 0);
     {   // small author line under the subtitle
@@ -596,6 +868,32 @@ static void paintBackdrop(HDC dc, const RECT& rc, bool banner) {
         DrawTextW(dc, TLF(L"Author: {0}", {"Juincy"}).c_str(), -1, &ar, DT_SINGLELINE | DT_LEFT | DT_TOP | DT_NOPREFIX);
     }
     SelectObject(dc, of);
+}
+// The banner is drawn off screen and copied in one go, so it never flickers (also when it is redrawn 30 times a second behind the controls).
+static void bannerBlit(HDC target, int W) {
+    int H = g_bannerH;
+    if (W <= 0 || H <= 0) return;
+    if (!g_bbDC || g_bbW != W || g_bbH != H) {
+        if (g_bbDC) { SelectObject(g_bbDC, g_bbOld); DeleteObject(g_bbBmp); DeleteDC(g_bbDC); }
+        g_bbDC = CreateCompatibleDC(target);
+        g_bbBmp = CreateCompatibleBitmap(target, W, H);
+        g_bbOld = SelectObject(g_bbDC, g_bbBmp);
+        g_bbW = W; g_bbH = H;
+    }
+    drawBannerGfx(g_bbDC, W);
+    BitBlt(target, 0, 0, W, H, g_bbDC, 0, 0, SRCCOPY);
+}
+
+static void paintBackdrop(HDC dc, const RECT& rc, bool banner) {
+    const Theme& t = T();
+    FillRect(dc, &rc, g_brBg);
+    if (!banner) return;
+    bannerBlit(dc, rc.right);
+    if (g_listFrame.right > g_listFrame.left) {
+        HBRUSH fb = CreateSolidBrush(t.border);
+        FrameRect(dc, &g_listFrame, fb);
+        DeleteObject(fb);
+    }
 }
 
 static LRESULT drawHeader(NMCUSTOMDRAW* cd) {
@@ -709,55 +1007,139 @@ static void applyThemeColors(bool otherWindows, bool caption = true, bool frame 
         if (g_tour) SendMessageW(g_tour, WM_APP + 1, 0, 0);
     }
 }
+// ---------- smooth theme change ----------
+// A theme change is done in two parts that never cost more than one repaint:
+// 1) a picture of the window as it is now is laid over it as a see-through window (DWM composes it, so changing its opacity is free), the new theme
+//    is painted underneath in one go, and the picture then fades away. Every frame of the fade is a single opacity update, nothing is repainted;
+// 2) the picker's knob and glow slide on their own, and the icons and the Halloween scenery keep moving from the animation clock below.
+static HWND g_fade = nullptr;
+static ULONGLONG g_fadeStart = 0;
+static bool g_periodOn = false;
+static bool win11() {
+    using F = LONG (WINAPI*)(OSVERSIONINFOW*);
+    HMODULE n = GetModuleHandleW(L"ntdll.dll");
+    F f = n ? (F)(void*)GetProcAddress(n, "RtlGetVersion") : nullptr;
+    OSVERSIONINFOW vi{}; vi.dwOSVersionInfoSize = sizeof vi;
+    return f && f(&vi) == 0 && vi.dwBuildNumber >= 22000;
+}
+static void endFade() {
+    if (g_fade) { DestroyWindow(g_fade); g_fade = nullptr; }
+    if (g_periodOn) { timeEndPeriod(1); g_periodOn = false; }
+}
+static bool beginFade() {
+    endFade();
+    if (!hMain || IsIconic(hMain) || !IsWindowVisible(hMain)) return false;
+    RECT wr; GetWindowRect(hMain, &wr);
+    int w = wr.right - wr.left, h = wr.bottom - wr.top;
+    if (w < 80 || h < 80 || w > 8000 || h > 5000) return false;
+    HDC scr = GetDC(nullptr);
+    HDC mem = CreateCompatibleDC(scr);
+    BITMAPINFO bi{};
+    bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER); bi.bmiHeader.biWidth = w; bi.bmiHeader.biHeight = -h; bi.bmiHeader.biPlanes = 1; bi.bmiHeader.biBitCount = 32; bi.bmiHeader.biCompression = BI_RGB;
+    void* bits = nullptr;
+    HBITMAP bm = CreateDIBSection(scr, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    bool ok = false;
+    if (bm) {
+        HGDIOBJ ob = SelectObject(mem, bm);
+        ok = BitBlt(mem, 0, 0, w, h, scr, wr.left, wr.top, SRCCOPY | CAPTUREBLT) != 0;
+        if (ok) {
+            static bool reg = false;
+            if (!reg) { WNDCLASSW wc{}; wc.lpfnWndProc = DefWindowProcW; wc.hInstance = g_inst; wc.lpszClassName = L"RCFade"; RegisterClassW(&wc); reg = true; }
+            g_fade = CreateWindowExW(WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW, L"RCFade", L"", WS_POPUP, wr.left, wr.top, w, h, hMain, nullptr, g_inst, nullptr);
+            if (g_fade) {
+                if (win11()) { HRGN rr = CreateRoundRectRgn(0, 0, w + 1, h + 1, S(16), S(16)); SetWindowRgn(g_fade, rr, FALSE); }   // follow the rounded window corners
+                POINT pos{wr.left, wr.top}, src{0, 0}; SIZE sz{w, h};
+                BLENDFUNCTION bf{AC_SRC_OVER, 0, 255, 0};
+                if (UpdateLayeredWindow(g_fade, nullptr, &pos, &sz, mem, &src, 0, &bf, ULW_ALPHA)) ShowWindow(g_fade, SW_SHOWNOACTIVATE);
+                else { DestroyWindow(g_fade); g_fade = nullptr; }
+            }
+        }
+        SelectObject(mem, ob);
+        DeleteObject(bm);
+    }
+    DeleteDC(mem);
+    ReleaseDC(nullptr, scr);
+    if (g_fade && !g_periodOn) { timeBeginPeriod(1); g_periodOn = true; }
+    return g_fade != nullptr;
+}
 static void applyTheme() {   // immediate (start-up)
-    g_curTheme = g_dark ? DARK_T : LIGHT_T;
+    g_curTheme = themeOf(g_theme);
     applyThemeControls();
     applyThemeColors(true);
 }
-
-// ---------- smooth theme change ----------
-// The colours of the whole window are blended from the old palette to the new one over a third of a second, frame by frame,
-// while the theme switch slides. Everything is drawn with the blended colours, so nothing depends on screenshots or overlay windows.
-static Theme g_themeFrom = DARK_T, g_themeTo = DARK_T;
-static int g_animFrames = 0;
-static bool g_animating = false, g_periodOn = false;
-static double g_paintSum = 0, g_paintMax = 0;           // milliseconds spent painting, for the log
-static double nowMs() { LARGE_INTEGER f, c; QueryPerformanceFrequency(&f); QueryPerformanceCounter(&c); return (double)c.QuadPart * 1000.0 / (double)f.QuadPart; }
-static void stepThemeAnim() {
-    float p = (float)(GetTickCount64() - g_togStart) / (float)TOGGLE_MS;
-    bool done = p >= 1.0f;
-    float e = done ? 1.0f : easeInOut(p);
-    g_togT = g_togFrom + (g_togTo - g_togFrom) * e;
-    g_curTheme = done ? g_themeTo : lerpTheme(g_themeFrom, g_themeTo, e);
-    g_animFrames++;
-    double t0 = nowMs();
-    applyThemeColors(done, done || (g_animFrames & 1) == 0, done, done, true);   // title bar colour every other frame; frame repaint only at the end
-    double ms = nowMs() - t0;
-    g_paintSum += ms; if (ms > g_paintMax) g_paintMax = ms;
-    if (done) {
-        KillTimer(hMain, TIMER_TOGGLE);
-        g_animating = false;
-        if (g_periodOn) { timeEndPeriod(1); g_periodOn = false; }
-#ifdef RC_PROF
-        logLine("prof totals ms: brushes " + std::to_string((int)g_pf[0]) + ", caption " + std::to_string((int)g_pf[1]) + ", listview setters " + std::to_string((int)g_pf[2]) + ", per-child redraw " + std::to_string((int)g_pf[3]) + ", whole-window redraw after " + std::to_string((int)g_pf[4]) + " | slow children: " + g_pfChild);
-        for (double& v : g_pf) v = 0; g_pfChild.clear();
-#endif
-        logLine("theme change: " + std::to_string(g_animFrames) + " frames in " + std::to_string((unsigned long long)(GetTickCount64() - g_togStart)) + " ms, painting " +
-                std::to_string((int)(g_paintSum / g_animFrames + 0.5)) + " ms per frame (slowest " + std::to_string((int)(g_paintMax + 0.5)) + " ms)");
-    }
+static void drawBannerLive() {   // the Halloween scenery: only the banner is redrawn, behind the controls (the window clips them out)
+    if (!hMain) return;
+    RECT rc; GetClientRect(hMain, &rc);
+    HDC dc = GetDC(hMain);
+    if (dc) { bannerBlit(dc, rc.right); ReleaseDC(hMain, dc); }
 }
-static void startThemeAnim() {   // call after g_dark was flipped
-    if (g_togT < 0) g_togT = g_dark ? 0.0f : 1.0f;
-    g_themeFrom = g_curTheme;
-    g_themeTo = g_dark ? DARK_T : LIGHT_T;
-    g_togFrom = g_togT; g_togTo = g_dark ? 1.0f : 0.0f;
-    g_animFrames = 0; g_paintSum = 0; g_paintMax = 0;
-    g_animating = true;
-    if (!g_periodOn) { timeBeginPeriod(1); g_periodOn = true; }   // without this a 20 ms timer fires only every 31 ms
+static ULONGLONG g_lastAmbient = 0;
+static void animTick() {   // the animation clock, 60 times a second; does nothing while the window is minimised
+    if (!hMain || IsIconic(hMain) || !IsWindowVisible(hMain)) return;
+    ULONGLONG now = GetTickCount64();
+    bool busy = false;
+    {   // hover glow of the buttons: about a tenth of a second in, a little slower out
+        static ULONGLONG lastHov = 0;
+        float dt = lastHov ? (float)(now - lastHov) : 16.0f; lastHov = now;
+        if (dt > 60.0f) dt = 60.0f;
+        for (auto it = g_hov.begin(); it != g_hov.end();) {
+            HWND hb = it->first;
+            if (!IsWindow(hb)) { it = g_hov.erase(it); continue; }
+            float tgt = g_hot == hb ? 1.0f : 0.0f, a = it->second;
+            if (a != tgt) {
+                a += (tgt > a ? 1.0f : -1.0f) * dt / (tgt > a ? 100.0f : 150.0f);
+                if ((tgt > it->second && a > tgt) || (tgt < it->second && a < tgt)) a = tgt;
+                it->second = a;
+                RedrawWindow(hb, nullptr, nullptr, RDW_INVALIDATE | RDW_NOERASE | RDW_UPDATENOW);
+                busy = true;
+            }
+            if (a == tgt && tgt == 0.0f) it = g_hov.erase(it); else ++it;
+        }
+    }
+    if (g_pkAnim) {
+        float p = (float)(now - g_pkStart) / (float)TOGGLE_MS, e = p >= 1.0f ? 1.0f : easeInOut(p);
+        g_togT = g_pkTogFrom + (g_pkTogTo - g_pkTogFrom) * e;
+        g_hwT = g_pkHwFrom + (g_pkHwTo - g_pkHwFrom) * e;
+        if (p >= 1.0f) g_pkAnim = false;
+        busy = true;
+    }
+    if (g_fade) {
+        float p = (float)(now - g_fadeStart) / (float)FADE_MS;
+        if (p >= 1.0f) endFade();
+        else {
+            BLENDFUNCTION bf{AC_SRC_OVER, 0, (BYTE)(255.0f * (1.0f - easeInOut(p)) + 0.5f), 0};
+            UpdateLayeredWindow(g_fade, nullptr, nullptr, nullptr, nullptr, nullptr, 0, &bf, ULW_ALPHA);
+        }
+        busy = true;
+    }
+    bool ambient = now - g_lastAmbient >= 33;   // icons and scenery at about 30 frames a second
+    if (!busy && !ambient) return;
+    if (ambient) g_lastAmbient = now;
+    if (hTheme && IsWindowVisible(hTheme)) RedrawWindow(hTheme, nullptr, nullptr, RDW_INVALIDATE | RDW_NOERASE | RDW_UPDATENOW);
+    if (ambient && g_theme == THEME_HALLOWEEN && !g_fade) drawBannerLive();
+}
+static void saveSettingsNow();
+static const char* themeName(int id) { return id == THEME_LIGHT ? "light" : id == THEME_HALLOWEEN ? "halloween" : "dark"; }
+static int g_lastBase = THEME_DARK;   // the day or night theme to come back to from Halloween
+static void setTheme(int id) {
+    if (id == g_theme) return;
+    ULONGLONG t0 = GetTickCount64();
+    bool faded = beginFade();   // the picture of the old look goes up first, so the repaint below is never seen
+    if (g_theme != THEME_HALLOWEEN) g_lastBase = g_theme;
+    g_theme = id; g_dark = id != THEME_LIGHT;
+    g_settings.theme = themeName(id);
+    saveSettingsNow();
+    g_curTheme = themeOf(id);
     applyThemeControls();
-    g_togStart = GetTickCount64();     // the slow part above is not counted against the animation
-    stepThemeAnim();
-    if (g_animating) SetTimer(hMain, TIMER_TOGGLE, 4, nullptr);
+    applyThemeColors(true);
+    if (g_togT < 0) g_togT = (g_theme != THEME_LIGHT) ? 0.0f : 1.0f;
+    if (g_hwT < 0) g_hwT = 0.0f;
+    g_pkTogFrom = g_togT; g_pkTogTo = id == THEME_LIGHT ? 0.0f : 1.0f;
+    g_pkHwFrom = g_hwT; g_pkHwTo = id == THEME_HALLOWEEN ? 1.0f : 0.0f;
+    g_pkAnim = true;
+    g_pkStart = GetTickCount64();
+    g_fadeStart = g_pkStart;
+    logLine(std::string("theme change to ") + themeName(id) + ": repaint " + std::to_string((unsigned long long)(g_pkStart - t0)) + " ms" + (faded ? ", faded from a picture" : ", no picture (instant)"));
 }
 
 
@@ -3420,17 +3802,18 @@ static void layout() {
     int Wd = rc.right, Ht = rc.bottom;
     g_dwp = BeginDeferWindowPos(40);
     int m = S(12), rowH = S(30), gap = S(6);
-    g_bannerH = S(60);
+    g_bannerH = S(64);
     // banner: icon buttons and the theme switch on the right
     int by = (g_bannerH - S(2) - S(32)) / 2;
     int rx = Wd - m;
-    place(hTheme, rx - S(78), by - S(1), S(78), S(34)); rx -= S(78) + S(14);
+    place(hTheme, rx - S(PICK_W), (g_bannerH - S(2) - S(PICK_H)) / 2, S(PICK_W), S(PICK_H)); rx -= S(PICK_W) + S(14);
     int wLog = btnW(hLog, 126), wAdv = btnW(hAdv, 116), wUpd = btnW(hUpd, 104), wLang = btnW(hLang, 76);
     place(hLog, rx - wLog, by, wLog, S(32)); rx -= wLog + gap;
     place(hAdv, rx - wAdv, by, wAdv, S(32)); rx -= wAdv + gap;
     place(hUpd, rx - wUpd, by, wUpd, S(32)); rx -= wUpd + gap;
     place(hLang, rx - wLang, by, wLang, S(32)); rx -= wLang + gap;
     place(hResync, rx - S(36), by, S(36), S(32));
+    g_artR = rx - S(36) - S(8);
 
     int y = g_bannerH + m, x = m;
     int wL1 = labelW(hL1, 52);
@@ -3564,7 +3947,7 @@ static void applyUiText() {
     setTip(hBrowse, TL(L"Pick your Crusader Kings III folder"));
     setTip(hSaveDir, TL(L"Remember this folder"));
     setTip(hResync, TL(L"Rescan the mod folder (use after subscribing to a mod while the app is open)"));
-    setTip(hTheme, TL(L"Switch between dark and light"));
+    setTip(hTheme, TL(L"Theme: the pumpkin turns Halloween on, the switch changes between day and night"));
     setTip(hUp, TL(L"Move the selected mod(s) up in the load order"));
     setTip(hDown, TL(L"Move the selected mod(s) down in the load order"));
     setTip(hLang, TL(L"Language"));
@@ -4557,12 +4940,17 @@ static void onCommand(int id, int code) {
             break;
         }
 
-        case ID_THEME:
-            g_dark = !g_dark;
-            g_settings.theme = g_dark ? "dark" : "light";
-            saveSettingsNow();
-            startThemeAnim();
+        case ID_THEME: {
+            POINT cp; GetCursorPos(&cp); ScreenToClient(hTheme, &cp);
+            RECT tr; GetClientRect(hTheme, &tr);
+            bool onPad = cp.x >= 0 && cp.y >= 0 && cp.x < tr.right && cp.y < tr.bottom;   // a click with the mouse (not the keyboard) tells which part was hit
+            int zone = onPad ? pickerZone(cp.x, cp.y) : 2;
+            int target;
+            if (zone == 1) target = g_theme == THEME_HALLOWEEN ? g_lastBase : THEME_HALLOWEEN;   // the pumpkin: Halloween on, or back to where you were
+            else target = g_theme == THEME_DARK ? THEME_LIGHT : THEME_DARK;                     // the switch: day <-> night (from Halloween: night)
+            setTheme(target);
             break;
+        }
         case ID_BROWSE: browseFolder(); break;
         case ID_SAVEDIR: {
             g_settings.ck3Dir = U(getText(hDir));
@@ -4778,7 +5166,7 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             }
             return 0;
         case WM_TIMER:
-            if (w == TIMER_TOGGLE) { stepThemeAnim(); return 0; }
+            if (w == TIMER_TOGGLE) { animTick(); return 0; }
             if (w == 78) {
                 KillTimer(h, 78);
                 std::wstring old = W(exePath()) + L".old";
@@ -4836,9 +5224,10 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         }
         case WM_CLOSE: saveWindowState(h); DestroyWindow(h); return 0;
         case WM_ENDSESSION: if (w) saveWindowState(h); return 0;
-        case WM_ENTERSIZEMOVE: g_inSizeMove = true; return 0;
+        case WM_ENTERSIZEMOVE: g_inSizeMove = true; endFade(); return 0;
         case WM_EXITSIZEMOVE: g_inSizeMove = false; saveWindowState(h); return 0;
         case WM_SIZE:
+            endFade();   // the picture laid over the window for a theme change would no longer fit
             if (w != SIZE_MINIMIZED) { layout(); if (w == SIZE_RESTORED) ensureWide(); }
             if (g_windowReady && (w == SIZE_MAXIMIZED || w == SIZE_RESTORED)) saveWindowState(h);   // maximize / restore buttons (a drag-resize saves when the drag ends)
             return 0;
@@ -4925,7 +5314,10 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     loadSettings(g_settings);
     initLanguage();
     createFonts();
-    g_dark = g_settings.theme.empty() ? systemPrefersDark() : g_settings.theme == "dark";
+    g_theme = g_settings.theme.empty() ? (systemPrefersDark() ? THEME_DARK : THEME_LIGHT) : g_settings.theme == "halloween" ? THEME_HALLOWEEN : g_settings.theme == "light" ? THEME_LIGHT : THEME_DARK;
+    g_dark = g_theme != THEME_LIGHT;
+    g_lastBase = g_theme == THEME_LIGHT ? THEME_LIGHT : THEME_DARK;
+    g_curTheme = themeOf(g_theme);
     rebuildBrushes();
 
     PWSTR docs = nullptr;
@@ -4964,6 +5356,7 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int show) {
     UpdateWindow(win);
     g_windowReady = true;
     if (!g_settings.tutorialDone) PostMessageW(win, WM_APP + 12, 0, 0);   // first start: the quick tour
+    SetTimer(win, TIMER_TOGGLE, 16, nullptr);   // the animation clock (icons, theme change, Halloween scenery)
     SetTimer(win, 78, 20000, nullptr);   // the old program file from an update is removed only once this version has run for a while (until then it is the way back)
     if (g_settings.checkUpdates) startUpdateCheck(true);
 

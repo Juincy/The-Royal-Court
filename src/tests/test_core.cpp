@@ -1233,6 +1233,11 @@ int main() {
         assert(b.unsubbed.size() == 1 && b.unsubbed["ugc_9.mod"] == 1760000000 && b.hidden.count("ugc_9.mod"));
         a.unsubbed.clear(); a.hidden.clear(); saveSettings(a);
     }
+    {   // the three themes survive a settings round trip; an unknown name is ignored
+        for (const char* th : {"dark", "light", "halloween"}) { Settings a; a.theme = th; assert(saveSettings(a)); Settings b; loadSettings(b); assert(b.theme == th); }
+        Settings a; a.theme = "pumpkin"; assert(saveSettings(a)); Settings b; loadSettings(b); assert(b.theme.empty());
+        a.theme.clear(); saveSettings(a);
+    }
 
     std::cout << "ALL CORE TESTS PASSED\n";
 }
