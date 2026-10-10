@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.18.0
+# The Royal Court | CK3 Mod Manager  v0.19.0
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -12,6 +12,7 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - Conflicts finds mods that overwrite the same files (by mod pair or by file) and mods that define the same trait, event ID, define, on_action or localization key (By definition). The mod loaded last usually wins; where that is unclear, the app says so. Every conflict has a severity (High, Medium, Low), the Base game view lists game files that mods replace (and replace_path folders that remove game files), double-click shows who wins, and right-click moves one mod next to the other so the one you prefer wins (Undo order goes back).
 - Your playset is backed up automatically at startup and before Auto Sort (Advanced menu: Back up now, Restore, Open backups folder).
 - Auto Sort proposes a better load order (dependencies first, then Library, Overhaul, Content, Graphics, Interface, Translation, Patch; smaller targeted mods win file conflicts) and shows a preview before anything changes. Undo order restores the old order. Right-click a mod to lock its position or set its type.
+- Mods you turn off sink below the ones that are on. Right-click a Workshop mod to **unsubscribe on Steam** (it leaves your list at once and Steam removes the files; the Workshop page opens instead if that is not possible).
 - Right-click a mod to remove it from the list (nothing is deleted; Advanced > Show removed mods undoes it) or delete it permanently from disk (for a Workshop mod you unsubscribed from, this clears the leftover entry).
 - **Game log** (Advanced menu) reads the game's own log and shows which mod each error and warning comes from, by mod or as a full list, with a filter and a copy button for sending a mod's messages to its author.
 - **Crash helper** (Advanced menu) reads the folder the game writes when it crashes and says what kind of crash it was, which of your mods the last log messages point at, whether the playset changed since, and what to try. It only reads.

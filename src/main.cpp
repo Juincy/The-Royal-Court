@@ -88,7 +88,7 @@ static std::wstring TLF(const wchar_t* key, std::initializer_list<WA> args) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
     ID_TREE, ID_EXPAND, ID_COLLAPSE,
     ID_LANG, ID_LANG_BASE = 7100   // ID_LANG_BASE: the language menu uses ID_LANG_BASE .. ID_LANG_BASE + LANG_COUNT
 };
@@ -235,6 +235,7 @@ static void drawMoon(Gdiplus::Graphics& g, float cx, float cy, float size, COLOR
 static float g_togT = -1.0f, g_togFrom = 0, g_togTo = 0;
 static ULONGLONG g_togStart = 0;
 static const UINT TIMER_TOGGLE = 79;
+static const UINT TIMER_UNSUB = 80;   // watches for Steam finishing the removal of unsubscribed mods
 static const DWORD TOGGLE_MS = 320;
 static float easeInOut(float p) { p = p < 0 ? 0 : p > 1 ? 1 : p; return p * p * (3.0f - 2.0f * p); }
 static COLORREF lerpC(COLORREF light, COLORREF dark, float t) { return mix(light, dark, (int)(t * 100.0f + 0.5f)); }
@@ -1243,7 +1244,7 @@ static long long modDirStamp() {
         auto tw = fs::last_write_time(P(wd), e2);
         if (e2) continue;
         best = std::max(best, (long long)tw.time_since_epoch().count());
-        for (auto& e : fs::directory_iterator(P(wd), e2)) {
+        for (auto& e : listDir(P(wd))) {
             auto tc = fs::last_write_time(e.path(), e2);
             if (!e2) best = std::max(best, (long long)tc.time_since_epoch().count());
             e2.clear();
@@ -1253,6 +1254,48 @@ static long long modDirStamp() {
 }
 static long long g_modStamp = 0;
 static int g_hiddenPresent = 0;   // installed mods that are not shown because they were removed from the list
+
+// Takes mods out of the program's own state (playsets, list, caches) after they were removed, deleted or unsubscribed from. Nothing on disk is touched here.
+// purge: they are gone for good, so everything remembered about them is forgotten too.
+static void dropMods(const std::vector<std::string>& done, bool purge) {
+    if (done.empty()) return;
+    confQuiesce();   // the conflict worker reads the file index
+    std::set<std::string> gone(done.begin(), done.end());
+    g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& m) { return gone.count(m.id) != 0; }), g_mods.end());
+    g_info = infoMap(g_mods); g_fpNow.clear(); g_confSig.clear();
+    for (auto& pl : g_playsets) { pl.mods.erase(std::remove_if(pl.mods.begin(), pl.mods.end(), [&](const ModRef& m) { return gone.count(m.id) != 0; }), pl.mods.end()); savePlayset(pl, g_info); }
+    for (const std::string& mid : done) {
+        g_fileIndex.erase(mid); g_defIndex.erase(mid);
+        if (purge) { g_settings.seen.erase(mid); g_settings.hidden.erase(mid); g_settings.unsubbed.erase(mid); g_settings.cats.erase(mid); for (auto& lk : g_settings.locks) lk.second.erase(mid); }
+    }
+}
+
+// Mods the user unsubscribed from are already out of the list. Once Steam has deleted their files, the leftover descriptor (ugc_<id>.mod) in the CK3 mod folder
+// is cleared here too, so they do not come back as "files not found" entries. Runs on every scan, before the hidden mods are filtered out.
+static void clearUnsubscribed() {
+    if (g_settings.unsubbed.empty()) return;
+    std::string dir = effectiveDir();
+    long long now = (long long)std::time(nullptr);
+    std::vector<std::string> cleared;
+    for (auto it = g_settings.unsubbed.begin(); it != g_settings.unsubbed.end();) {
+        const std::string id = it->first;
+        auto m = std::find_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& x) { return x.id == id; });
+        bool fin = false, unhide = false;
+        if (m == g_mods.end() || steamIdOf(id).empty()) fin = true;                                   // nothing left to clear
+        else if (!m->pending && m->contentState == 2 && !dir.empty()) {                               // Steam has removed the files: clear the leftover entry
+            std::error_code e;
+            fs::remove(P(dir) / "mod" / id, e);
+            if (!e && !fs::exists(P(dir) / "mod" / id, e)) { logLine("cleared unsubscribed mod " + id); fin = true; }
+        } else if (now - it->second > 900) { logLine("unsubscribed mod " + id + " still has files after 15 minutes: shown again"); fin = true; unhide = true; }   // Steam did not do it (offline?)
+        if (!fin) { ++it; continue; }
+        if (unhide) g_settings.hidden.erase(id);
+        else cleared.push_back(id);
+        it = g_settings.unsubbed.erase(it);
+    }
+    if (cleared.empty()) return;
+    for (const std::string& id : cleared) { g_settings.seen.erase(id); g_settings.hidden.erase(id); g_settings.cats.erase(id); for (auto& lk : g_settings.locks) lk.second.erase(id); }
+    g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& m) { return std::find(cleared.begin(), cleared.end(), m.id) != cleared.end(); }), g_mods.end());
+}
 
 static void reload() {
     std::error_code gec;
@@ -1266,6 +1309,7 @@ static void reload() {
         for (auto& m : pend) g_mods.push_back(std::move(m));
         if (!g_mods.empty()) std::sort(g_mods.begin(), g_mods.end(), [](const ModInfo& a, const ModInfo& b) { return lower(a.name) < lower(b.name); });
     }
+    clearUnsubscribed();
     g_hiddenPresent = 0;
     for (auto& m : g_mods) if (g_settings.hidden.count(m.id)) g_hiddenPresent++;
     if (!g_settings.hidden.empty()) g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [](const ModInfo& m) { return g_settings.hidden.count(m.id) > 0; }), g_mods.end());
@@ -1288,6 +1332,7 @@ static void reload() {
     { static bool startupDone = false; if (!startupDone) { startupDone = true; if (Playset* a = active()) backupPlayset(*a, g_info, "startup"); } }
     SetWindowTextW(hDir, W(dir).c_str());
     g_modStamp = modDirStamp();
+    if (!g_settings.unsubbed.empty() && hMain) SetTimer(hMain, TIMER_UNSUB, 3000, nullptr);   // watch for Steam finishing the removal
     fillCombo();
     populate();
     PostMessageW(hMain, WM_APP + 4, 1, 0);
@@ -3160,6 +3205,54 @@ static std::string findGameExeInSteam() {
     return "";
 }
 
+static bool processRunning(const wchar_t* exeName);
+
+// ---------- unsubscribe from Steam Workshop mods ----------
+// Steam has no command line for this. The only supported way is Valve's Steamworks library (steam_api64.dll, which ships with the game):
+// started with the game's app id it talks to the running Steam client and asks it to unsubscribe. Everything is optional: when the library,
+// Steam or the functions are not there, the Workshop page of the mod is opened in Steam instead and the user presses Unsubscribe there.
+// The program never touches the Paradox launcher or its data.
+static std::string steamDllPath() {
+    std::string exe = !g_settings.gameExe.empty() ? g_settings.gameExe : g_gameExeUsed;
+    if (exe.empty()) exe = findGameExeInSteam();
+    if (exe.empty()) return "";
+    std::error_code ec;
+    fs::path d = P(exe).parent_path();
+    for (fs::path c : {d / "steam_api64.dll", d.parent_path() / "steam_api64.dll", d.parent_path() / "binaries" / "steam_api64.dll"})
+        if (fs::is_regular_file(c, ec)) return c.u8string();
+    return "";
+}
+// Returns how many unsubscribe requests were handed to Steam; -1 when it could not be done this way (why: a short English reason for the log).
+template <class F> static F sym(HMODULE m, const char* n) { return reinterpret_cast<F>(reinterpret_cast<void*>(GetProcAddress(m, n))); }
+static int steamUnsubscribe(const std::vector<std::string>& workshopIds, std::string& why) {
+    std::string dll = steamDllPath();
+    if (dll.empty()) { why = "steam_api64.dll not found"; return -1; }
+    SetEnvironmentVariableW(L"SteamAppId", W(CK3_APPID).c_str());
+    SetEnvironmentVariableW(L"SteamGameId", W(CK3_APPID).c_str());
+    HMODULE m = LoadLibraryW(W(dll).c_str());
+    if (!m) { why = "steam_api64.dll could not be loaded"; return -1; }
+    using FInit = bool (*)(); using FInitFlat = int (*)(char*); using FVoid = void (*)(); using FUgc = void* (*)(); using FUnsub = unsigned long long (*)(void*, unsigned long long);
+    FInit init = sym<FInit>(m, "SteamAPI_Init");
+    FInitFlat initFlat = sym<FInitFlat>(m, "SteamAPI_InitFlat");
+    FVoid shutdown = sym<FVoid>(m, "SteamAPI_Shutdown"), run = sym<FVoid>(m, "SteamAPI_RunCallbacks");
+    FUnsub unsub = sym<FUnsub>(m, "SteamAPI_ISteamUGC_UnsubscribeItem");
+    FUgc ugcOf = nullptr;
+    for (int v = 40; v >= 8 && !ugcOf; v--) { char nm[64]; snprintf(nm, sizeof nm, "SteamAPI_SteamUGC_v%03d", v); ugcOf = sym<FUgc>(m, nm); }
+    if (!ugcOf) ugcOf = sym<FUgc>(m, "SteamAPI_SteamUGC");
+    if ((!init && !initFlat) || !shutdown || !run || !unsub || !ugcOf) { why = "the Steamworks functions were not found"; return -1; }
+    bool ok = false;
+    if (initFlat) { char msg[1024] = {0}; ok = initFlat(msg) == 0; if (!ok) why = std::string("Steam refused: ") + msg; }
+    else ok = init();
+    if (!ok) { if (why.empty()) why = "Steam did not accept the connection (is Steam running and signed in?)"; return -1; }
+    void* ugc = ugcOf();
+    int sent = 0;
+    if (ugc) for (const std::string& id : workshopIds) { unsub(ugc, std::strtoull(id.c_str(), nullptr, 10)); sent++; }
+    else why = "Steam's workshop service is not available";
+    for (int i = 0; i < 30; i++) { run(); Sleep(80); }   // let Steam take the requests before the connection closes
+    shutdown();
+    return ugc ? sent : -1;
+}
+
 static bool processRunning(const wchar_t* exeName) {
     HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (snap == INVALID_HANDLE_VALUE) return false;
@@ -4077,6 +4170,16 @@ static bool addPendingMod(const std::string& mid, std::wstring& err) {
     return true;
 }
 
+// Mods that are turned off are not used at all, so they sit below the ones that are on (the order inside each group is kept).
+// A mod you just turned off goes to the top of the off group; one you just turned on goes to the end of the on group.
+static bool sinkDisabled(Playset& ps) {
+    std::vector<std::string> before; before.reserve(ps.mods.size());
+    for (auto& m : ps.mods) before.push_back(m.id);
+    std::stable_partition(ps.mods.begin(), ps.mods.end(), [](const ModRef& m) { return m.enabled; });
+    for (size_t i = 0; i < ps.mods.size(); i++) if (ps.mods[i].id != before[i]) return true;
+    return false;
+}
+
 static void setShown(bool on) {
     Playset* ps = active();
     if (!ps) return;
@@ -4085,6 +4188,7 @@ static void setShown(bool on) {
         if (on && !addPendingMod(ps->mods[(size_t)idx].id, err)) continue;   // could not be added: stays off
         ps->mods[(size_t)idx].enabled = on;
     }
+    sinkDisabled(*ps);
     saveActive();
     populate();
     if (!err.empty()) say(err);
@@ -4303,6 +4407,48 @@ static void onCommand(int id, int code) {
             saveSettingsNow(); populate();
             break;
         }
+        case ID_CTX_UNSUB: {
+            if (!ps) break;
+            std::vector<std::string> wids, names;
+            for (int i : g_ctxSel) {
+                if (i < 0 || i >= (int)ps->mods.size()) continue;
+                std::string sid = steamIdOf(ps->mods[(size_t)i].id);
+                if (sid.empty()) continue;
+                wids.push_back(sid);
+                auto it = g_info.find(ps->mods[(size_t)i].id);
+                names.push_back(it != g_info.end() ? it->second.name : ps->mods[(size_t)i].id);
+            }
+            if (wids.empty()) break;
+            std::wstring q;
+            if (wids.size() == 1) q = TLF(L"Unsubscribe from \"{0}\" on Steam?", {W(names[0])});
+            else { q = TLF(L"Unsubscribe from these {0} Workshop mods on Steam?", {wids.size()}); for (size_t k = 0; k < names.size() && k < 8; k++) q += L"\n  • " + W(names[k]); if (names.size() > 8) q += L"\n  " + TLF(L"... and {0} more", {names.size() - 8}); }
+            q += L"\n\n" + std::wstring(TL(L"Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time."));
+            if (MessageBoxW(hMain, q.c_str(), L"The Royal Court", MB_YESNO | MB_ICONQUESTION) != IDYES) break;
+            if (processRunning(L"ck3.exe")) { info(TL(L"Crusader Kings III is running. Close the game first, then try again.")); break; }
+            if (!processRunning(L"steam.exe")) { info(TL(L"Steam is not running. Start Steam and sign in, then try again.")); break; }
+            backupAffected([&] { std::vector<std::string> v; for (int i : g_ctxSel) if (i >= 0 && i < (int)ps->mods.size() && !steamIdOf(ps->mods[(size_t)i].id).empty()) v.push_back(ps->mods[(size_t)i].id); return v; }(), "before unsubscribing");
+            std::string why;
+            HCURSOR oc = SetCursor(LoadCursor(nullptr, IDC_WAIT));
+            int sent = steamUnsubscribe(wids, why);
+            SetCursor(oc);
+            if (sent > 0) {
+                logLine("unsubscribe requested for " + std::to_string(sent) + " mod(s)");
+                std::vector<std::string> uids;
+                for (int i : g_ctxSel) if (i >= 0 && i < (int)ps->mods.size() && !steamIdOf(ps->mods[(size_t)i].id).empty()) uids.push_back(ps->mods[(size_t)i].id);
+                long long now = (long long)std::time(nullptr);
+                for (auto& u : uids) { g_settings.unsubbed[u] = now; g_settings.hidden.insert(u); }   // out of the list now; the leftover entry is cleared once Steam has deleted the files
+                saveSettingsNow();
+                dropMods(uids, false);
+                SetTimer(hMain, TIMER_UNSUB, 3000, nullptr);
+                populate();
+                say(TLF(L"Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.", {sent}));
+            } else {
+                logLine("unsubscribe through Steamworks failed: " + why);
+                for (size_t k = 0; k < wids.size() && k < 5; k++) ShellExecuteW(hMain, L"open", W("steam://url/CommunityFilePage/" + wids[k]).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+                info(TL(L"The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there."));
+            }
+            break;
+        }
         case ID_CTX_REMOVE:
         case ID_CTX_DELFILES: {
             if (!ps) break;
@@ -4311,7 +4457,7 @@ static void onCommand(int id, int code) {
             for (int i : g_ctxSel) {
                 if (i < 0 || i >= (int)ps->mods.size()) continue;
                 const std::string& mid = ps->mods[(size_t)i].id;
-                if (files && !g_info.count(mid)) continue;   // nothing on disk to delete
+                if (files) { auto gi = g_info.find(mid); if (gi == g_info.end() || gi->second.pending) continue; }   // nothing of ours on disk to delete (a download Steam has not registered yet has no entry)
                 ids.push_back(mid);
             }
             if (ids.empty()) break;
@@ -4368,14 +4514,7 @@ static void onCommand(int id, int code) {
             }
             if (files) g_modStamp = modDirStamp();   // our own deletions are not a change made by someone else
             if (!done.empty()) {
-                std::set<std::string> gone(done.begin(), done.end());
-                for (auto& pl : g_playsets) { pl.mods.erase(std::remove_if(pl.mods.begin(), pl.mods.end(), [&](const ModRef& m) { return gone.count(m.id) != 0; }), pl.mods.end()); savePlayset(pl, g_info); }
-                g_mods.erase(std::remove_if(g_mods.begin(), g_mods.end(), [&](const ModInfo& m) { return gone.count(m.id) != 0; }), g_mods.end());
-                g_info = infoMap(g_mods); g_fpNow.clear(); g_confSig.clear();
-                for (const std::string& mid : done) {
-                    g_fileIndex.erase(mid); g_defIndex.erase(mid);
-                    if (files) { g_settings.seen.erase(mid); g_settings.hidden.erase(mid); g_settings.cats.erase(mid); for (auto& lk : g_settings.locks) lk.second.erase(mid); }
-                }
+                dropMods(done, files);
                 if (files) saveSettingsNow();
                 populate();
             }
@@ -4489,9 +4628,11 @@ static LRESULT onNotify(LPARAM l) {
                     return 0;
                 }
                 ps->mods[(size_t)g_shown[(size_t)nm->iItem]].enabled = on;
+                bool moved = sinkDisabled(*ps);
                 saveActive();
                 refreshNotes();
                 PostMessageW(hMain, WM_APP + 4, 0, 0);
+                if (moved) PostMessageW(hMain, WM_APP + 13, 0, 0);   // redraw the list in the new order (not from inside this notification)
             }
         }
     } else if (h->code == LVN_COLUMNCLICK) {
@@ -4623,6 +4764,7 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             return 0;
         case WM_APP + 4: try { maybeScan(w != 0); } catch (...) {} return 0;
         case WM_APP + 12: if (!g_settings.tutorialDone) showTutorial(); return 0;
+        case WM_APP + 13: try { populate(); } catch (...) {} return 0;
         case WM_ACTIVATE:
             // Never rescan from inside this message: it is also sent while a message box or dialog is closing, in the middle of a handler
             // that still holds pointers into the playset data. Look again from the main loop, and only when no dialog is open.
@@ -4641,6 +4783,15 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 KillTimer(h, 78);
                 std::wstring old = W(exePath()) + L".old";
                 DeleteFileW(old.c_str());
+                return 0;
+            }
+            if (w == TIMER_UNSUB) {   // Steam is removing unsubscribed mods: refresh as soon as its folders change (also when this window stays in front)
+                if (g_settings.unsubbed.empty()) { KillTimer(h, TIMER_UNSUB); return 0; }
+                if (!IsWindowEnabled(h) || g_resyncing) return 0;
+                long long now = (long long)std::time(nullptr);
+                bool due = g_modStamp && modDirStamp() != g_modStamp;
+                for (auto& kv : g_settings.unsubbed) if (now - kv.second > 900) due = true;
+                if (due) { try { resync(true); } catch (...) { g_resyncing = false; } }
                 return 0;
             }
             if (w == 77) {   // messages that arrived while a dialog was open are handled once it is closed
@@ -4674,9 +4825,11 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             for (int c = 0; c < CAT_COUNT; c++) AppendMenuW(menu, MF_STRING | (nsel == 1 && ovr && cur == c ? MF_CHECKED : 0), ID_CTX_CAT + c, (nsel > 1 ? TLF(L"Type for all: {0}", {catName(c)}) : TLF(L"Type: {0}", {catName(c)})).c_str());
             AppendMenuW(menu, MF_STRING | (nsel == 1 && !ovr ? MF_CHECKED : 0), ID_CTX_CAT + CAT_COUNT, nsel > 1 ? TL(L"Type for all: automatic") : TL(L"Type: automatic"));
             AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
+            bool anyWs = false; for (int i : g_ctxSel) if (i >= 0 && i < (int)ps->mods.size() && !steamIdOf(ps->mods[(size_t)i].id).empty()) anyWs = true;
+            if (anyWs) AppendMenuW(menu, MF_STRING, ID_CTX_UNSUB, nsel > 1 ? TLF(L"Unsubscribe from {0} mods on Steam...", {nsel}).c_str() : TL(L"Unsubscribe on Steam..."));
             AppendMenuW(menu, MF_STRING, ID_CTX_REMOVE, nsel > 1 ? TLF(L"Remove {0} mods from list...", {nsel}).c_str() : TL(L"Remove from list..."));
-            auto cit = g_info.find(mr.id);
-            if (cit != g_info.end()) AppendMenuW(menu, MF_STRING, ID_CTX_DELFILES, nsel > 1 ? TLF(L"Delete {0} mods permanently...", {nsel}).c_str() : TL(L"Delete mod permanently..."));
+            bool anyDel = false; for (int i : g_ctxSel) if (i >= 0 && i < (int)ps->mods.size()) { auto gi = g_info.find(ps->mods[(size_t)i].id); if (gi != g_info.end() && !gi->second.pending) anyDel = true; }
+            if (anyDel) AppendMenuW(menu, MF_STRING, ID_CTX_DELFILES, nsel > 1 ? TLF(L"Delete {0} mods permanently...", {nsel}).c_str() : TL(L"Delete mod permanently..."));
             trackMenu(menu, TPM_RIGHTBUTTON, pt.x, pt.y, h);
             DestroyMenu(menu);
             return 0;

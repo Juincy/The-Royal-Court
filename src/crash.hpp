@@ -32,7 +32,7 @@ inline std::vector<CrashFolder> listCrashes(const std::string& crashesDir, size_
     std::vector<CrashFolder> v;
     std::error_code ec;
     if (crashesDir.empty() || !fs::is_directory(P(crashesDir), ec)) return v;
-    for (fs::directory_iterator it(P(crashesDir), fs::directory_options::skip_permission_denied, ec), end; !ec && it != end && v.size() < maxN * 4; it.increment(ec)) {
+    for (fs::directory_iterator it(P(crashesDir), fs::directory_options::skip_permission_denied, ec), end; !ec && it != end && v.size() < 20000; it.increment(ec)) {   // everything is read before sorting: the newest folders come last in NTFS order
         std::error_code e2;
         if (!it->is_directory(e2)) continue;
         CrashFolder f;

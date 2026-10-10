@@ -633,5 +633,16 @@
  "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.": "游戏发现了不合理的数据。通常的原因是某个模组不适用于当前游戏版本。",
  "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.": "这通常意味着游戏文件损坏或超频不稳定。请在 Steam 中验证游戏文件。",
  "A mod gave the game a value of zero where it must not. Check the suspects below.": "某个模组在不允许为零的地方给了游戏一个零值。请查看下方的可疑模组。",
- "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "崩溃文件没有说明出了什么问题。下方的可疑模组来自游戏在停止前不久写入日志的内容。"
+ "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "崩溃文件没有说明出了什么问题。下方的可疑模组来自游戏在停止前不久写入日志的内容。",
+ "Unsubscribe from \"{0}\" on Steam?": "要在 Steam 上取消订阅“{0}”吗？",
+ "Unsubscribe from these {0} Workshop mods on Steam?": "要在 Steam 上取消订阅这 {0} 个创意工坊模组吗？",
+ "Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time.": "Steam 会从您的电脑中删除这些模组的文件，它们将不再在任何播放集中加载。您随时可以在 Steam 创意工坊重新订阅。",
+ "Steam is not running. Start Steam and sign in, then try again.": "Steam 未运行。请启动 Steam 并登录，然后重试。",
+ "The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there.": "程序无法直接通过 Steam 取消订阅，因此改为在 Steam 中打开该模组的创意工坊页面。请在那里点击“取消订阅”。",
+ "Unsubscribe from {0} mods on Steam...": "在 Steam 上取消订阅 {0} 个模组...",
+ "Unsubscribe on Steam...": "在 Steam 上取消订阅...",
+ "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio：其页面说明需要 Ethnicities & Portraits Expanded，并且它加载在其下方",
+ "Embers of Empire (known mod)": "Embers of Empire（已知模组）",
+ "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio：其页面列出的加载顺序为 Embers of Empire、Renovatio，此补丁最后加载",
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "已请求 Steam 取消订阅 {0} 个模组。它们现已从列表和播放集中移除；文件将由 Steam 自行删除。"
 }

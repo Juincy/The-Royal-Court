@@ -16,6 +16,8 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <thread>
+#include <chrono>
 #include <tuple>
 #include <string_view>
 #include <unordered_map>
@@ -27,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.18.0";
+inline const char* VERSION = "0.19.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -43,6 +45,14 @@ inline bool readFile(const fs::path& p, std::string& out, std::uintmax_t maxByte
     ss << f.rdbuf();
     out = ss.str();
     return true;
+}
+// The entries of a folder, read with explicit increments: a range-for over directory_iterator throws when the folder vanishes mid-scan
+// (Steam rewriting the Workshop folder, a mod being deleted), and the error code given to the constructor does not cover that.
+inline std::vector<fs::directory_entry> listDir(const fs::path& d) {
+    std::vector<fs::directory_entry> v;
+    std::error_code ec;
+    for (fs::directory_iterator it(d, fs::directory_options::skip_permission_denied, ec), end; !ec && it != end; it.increment(ec)) v.push_back(*it);
+    return v;
 }
 inline bool writeFile(const fs::path& p, const std::string& data) {
     std::ofstream f(p, std::ios::binary | std::ios::trunc);
@@ -266,6 +276,7 @@ struct Settings {
     std::map<std::string, std::set<std::string>> locks;               // playset name -> mod ids that Auto Sort never moves
     std::map<std::string, int> cats;                                  // mod id -> category chosen by the user (overrides the guess)
     std::set<std::string> hidden;                                     // mods the user removed from the list (never touched on disk)
+    std::map<std::string, long long> unsubbed;                        // Workshop mods the user unsubscribed from -> when (seconds since 1970); their leftover entry is cleared once Steam has removed the files
     std::map<std::string, std::string> launch;                        // playset name -> extra command line options for the game
     std::map<std::string, std::string> seen;                          // mod id -> fingerprint when Play was last pressed (update detection)
     int winX = 0, winY = 0, winW = 0, winH = 0; bool winMax = false;  // remembered window position and size (winW == 0: none)
@@ -330,6 +341,8 @@ inline fs::path settingsPath() { return P(dataDir()) / "settings.json"; }
 inline int clampInt(double d) { return !(d == d) ? 0 : d > 1e8 ? 100000000 : d < -1e8 ? -100000000 : (int)d; }
 inline void loadSettingsExtra(Settings& st, J& root) {
     if (J* h = root.get("hidden"); h && h->t == J::Arr) for (auto& e : h->a) if (e.t == J::Str) st.hidden.insert(e.s);
+    if (J* u = root.get("unsubbed"); u && u->t == J::Obj)
+        for (size_t i = 0; i < u->keys.size() && st.unsubbed.size() < 5000; i++) if (u->vals[i].t == J::Num && u->vals[i].n >= 0 && u->vals[i].n < 4e10) st.unsubbed[u->keys[i]] = (long long)u->vals[i].n;
     if (J* l = root.get("launch"); l && l->t == J::Obj)
         for (size_t i = 0; i < l->keys.size(); i++) if (l->vals[i].t == J::Str && !l->vals[i].s.empty()) st.launch[l->keys[i]] = l->vals[i].s;
     if (J* l = root.get("seen"); l && l->t == J::Obj)
@@ -348,10 +361,18 @@ inline void loadSettingsExtra(Settings& st, J& root) {
         if (J* c = w->get("cols"); c && c->t == J::Arr) for (auto& e : c->a) st.colW.push_back(e.t == J::Num ? clampInt(e.n) : 0);
     }
 }
+inline bool g_settingsUnreadable = false;   // settings.json exists but could not be read: saving is refused so the user's real settings survive
 inline void loadSettings(Settings& st) {
     st = Settings{};
     std::string text; J root;
-    if (!readFile(settingsPath(), text)) return;
+    g_settingsUnreadable = false;
+    {
+        std::error_code ec;
+        bool there = fs::exists(settingsPath(), ec);
+        bool ok = false;
+        for (int t = 0; t < 4 && there && !ok; t++) { ok = readFile(settingsPath(), text); if (!ok) std::this_thread::sleep_for(std::chrono::milliseconds(150)); }   // an antivirus scan can hold the file for a moment
+        if (!ok) { g_settingsUnreadable = there; return; }   // present but unreadable: the real file must not be overwritten with defaults
+    }
     if (!parseJson(text, root) || root.t != J::Obj) {
         // A damaged settings file is replaced on the next save: keep what was there so it can be recovered by hand.
         std::error_code ec;
@@ -375,6 +396,7 @@ inline void loadSettings(Settings& st) {
     loadSettingsExtra(st, root);
 }
 inline bool saveSettings(const Settings& st) {
+    if (g_settingsUnreadable) return false;
     J root = J::obj();
     root.set("ck3Dir", J::str(st.ck3Dir));
     root.set("active", J::str(st.active));
@@ -395,6 +417,7 @@ inline bool saveSettings(const Settings& st) {
     for (auto& kv : st.cats) ct.set(kv.first, J::num(kv.second));
     if (!ct.keys.empty()) root.set("categories", ct);
     if (!st.hidden.empty()) { J a = J::arr(); for (auto& id : st.hidden) a.a.push_back(J::str(id)); root.set("hidden", a); }
+    if (!st.unsubbed.empty()) { J o = J::obj(); for (auto& kv : st.unsubbed) o.set(kv.first, J::num((double)kv.second)); root.set("unsubbed", o); }
     if (!st.launch.empty()) { J o = J::obj(); for (auto& kv : st.launch) o.set(kv.first, J::str(kv.second)); root.set("launch", o); }
     if (!st.seen.empty()) { J o = J::obj(); for (auto& kv : st.seen) o.set(kv.first, J::str(kv.second)); root.set("seen", o); }
     if (st.checkUpdates) root.set("checkUpdates", J::boolean(true));
@@ -442,7 +465,8 @@ inline std::map<std::string, std::vector<std::string>> parseDescriptor(const std
         if (c == '"') {
             std::string v; i++;
             while (i < n && text[i] != '"' && text[i] != '\n') {
-                if (text[i] == '\\' && i + 1 < n && (text[i + 1] == '"' || text[i + 1] == '\\')) { v += text[i + 1]; i += 2; }
+                // \" is an escaped quote only if the string goes on after it; a path that ends in a backslash ("C:\\mods\\x\\") closes there, and \\ stays as written (UNC paths)
+                if (text[i] == '\\' && i + 1 < n && text[i + 1] == '"' && text.find('"', i + 2) < text.find('\n', i + 2)) { v += '"'; i += 2; }
                 else v += text[i++];
             }
             if (i < n && text[i] == '"') i++;
@@ -482,7 +506,7 @@ inline std::vector<ModInfo> scanMods(const std::string& dir) {
     std::error_code ec;
     fs::path md = P(dir) / "mod";
     if (!fs::is_directory(md, ec)) return out;
-    for (auto& e : fs::directory_iterator(md, ec)) {
+    for (auto& e : listDir(md)) {
         if (!e.is_regular_file(ec)) continue;
         std::string ext = lower(e.path().extension().u8string());
         if (ext != ".mod") continue;
@@ -585,7 +609,7 @@ inline SaveScan scanSaves(const std::string& ck3Dir) {
     r.folder = P(ck3Dir) / "save games";
     std::error_code ec;
     if (!fs::is_directory(r.folder, ec)) return r;
-    for (auto& e : fs::directory_iterator(r.folder, ec)) {
+    for (auto& e : listDir(r.folder)) {
         r.entries.push_back(e.path());
         std::error_code e2;
         if (e.is_regular_file(e2)) { r.files++; auto sz = e.file_size(e2); if (!e2) r.bytes += sz; }
@@ -1685,6 +1709,35 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.note = K("Unique Artifacts +: no load order is given, but its page warns that conflicts may occur with mods that modify adventure inspiration rewards, unique artifact generation, pilgrimage artifact rewards, legend-related artifact rewards or the same artifact creation effects; if another mod changes the same systems, a compatibility patch may be required"); v.push_back(k); }
     { KnownMod k; k.names = {"more lifestyles"}; k.ids = {"3013259695"}; k.cat = CAT_CONTENT; k.rank = 5;
       k.note = K("More Lifestyles: its page says to put it lower in the load order"); v.push_back(k); }
+    // More recognised mods: the Workshop id and title were read from each mod's own Workshop page; the type is the one the mod's title and summary state.
+    // No load-order sentence is recorded for these (none could be read), so only the type (and, for the total conversion, the standard first place) is set.
+    { KnownMod k; k.names = {"the bronze age maryannu", "bronze age maryannu"}; k.ids = {"2216525506"}; k.cat = CAT_OVERHAUL; k.pos = -2; v.push_back(k); }
+    { KnownMod k; k.names = {"cities of wonders 2", "cities of wonders"}; k.ids = {"2216789478"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"viet events", "very immersive events and tales", "viet"}; k.ids = {"2227658180"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"nameplates"}; k.ids = {"2220762808"}; k.cat = CAT_UI; v.push_back(k); }
+    { KnownMod k; k.names = {"culture expanded"}; k.ids = {"2829397295"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"daddy pikas cheat menu", "daddy pika's cheat menu"}; k.ids = {"2216746850"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"advanced cheat menu"}; k.ids = {"2218867072"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"immortality updated and revised", "immortality"}; k.ids = {"2252368989"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"seven more traits commander"}; k.ids = {"2750682003"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"petty inheritable traits"}; k.ids = {"2394747105"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"inheritable traits++", "inheritable traits"}; k.ids = {"2588849555"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"game master a new lifestyle trait", "game master"}; k.ids = {"3197506469"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"sawwhets legacies mod pack", "sawwhet's legacies mod pack"}; k.ids = {"3000855939"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"hiraeth dynasty legacies overhaul", "hiraeth"}; k.ids = {"2697392271"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"better battle window"}; k.ids = {"3305890494"}; k.cat = CAT_UI; v.push_back(k); }
+    { KnownMod k; k.names = {"better battles"}; k.ids = {"2749062980"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"crusader wars warfare"}; k.ids = {"2977969008"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"more tenet slot and doctriness"}; k.ids = {"2857204827"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"dynamic ui themes"}; k.ids = {"2815382549"}; k.cat = CAT_UI; v.push_back(k); }
+    { KnownMod k; k.names = {"show more traits"}; k.ids = {"2221307044"}; k.cat = CAT_UI; v.push_back(k); }
+    { KnownMod k; k.names = {"browse the bookstore"}; k.ids = {"2751980550"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    // From the mods' own Workshop pages (read and sent by the user): Renovatio requires EPE; the compatibility page lists Embers of Empire, Renovatio, then the patch.
+    { KnownMod k; k.names = {"renovatio"}; k.cat = CAT_GRAPHICS; k.after = {"ethnicities and portraits expanded", "embers of empire"};
+      k.note = K("Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it"); v.push_back(k); }
+    { KnownMod k; k.names = {"embers of empire", "embers of empire a roman restoration"}; k.note = K("Embers of Empire (known mod)"); v.push_back(k); }
+    { KnownMod k; k.names = {"eoe + renovatio", "eoe and renovatio"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"embers of empire", "renovatio"};
+      k.note = K("EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last"); v.push_back(k); }
     // names are compared in their normalised form (trailing version numbers dropped: "elder kings 2" is "elder kings")
     for (auto& k : v) { for (auto& n : k.names) n = normName(n); for (auto& n : k.after) n = normName(n); for (auto& n : k.before) n = normName(n); }
     return v;
@@ -2071,7 +2124,7 @@ inline std::string exportLauncherPlayset(const Playset& ps, const std::map<std::
         mo.set("position", J::num(pos++));
         std::string sid = steamIdOf(m.id);
         if (!sid.empty()) mo.set("steamId", J::str(sid));
-        else if (installed && validID(m.id)) mo.set("gameRegistryId", J::str("mod/" + m.id));   // local mods are tied to their file, not to a display name that can change or repeat
+        else if (validID(m.id)) mo.set("gameRegistryId", J::str("mod/" + m.id));   // local mods are tied to their file, not to a display name that can change or repeat
         ms.a.push_back(std::move(mo));
     }
     root.set("mods", std::move(ms));
@@ -2127,7 +2180,10 @@ inline ImportResult parsePlaysetFile(const std::string& text, const std::vector<
             if (id.empty()) { id = LOCAL_PREFIX + display; r.unmatched++; }
         }
         if (id.empty()) { r.invalid++; continue; }
-        if (!seen.insert(id).second) continue;
+        if (!seen.insert(id).second) {   // listed twice: it counts as enabled if either entry is
+            if (J* e = mo.get("enabled"); e && e->t == J::Bool && e->b) for (auto& x : es) if (x.m.id == id) x.m.enabled = true;
+            continue;
+        }
         ModRef m; m.id = id; m.name = display; m.enabled = true;
         if (J* e = mo.get("enabled"); e && e->t == J::Bool) m.enabled = e->b;
         long pos = 1L << 30;
@@ -2225,7 +2281,7 @@ inline std::vector<fs::path> listBackups(const std::string& playsetName) {     /
     std::error_code ec;
     fs::path d = P(dataDir()) / "Backups" / P(sanitizeFileName(playsetName));
     if (!fs::is_directory(d, ec)) return v;
-    for (auto& e : fs::directory_iterator(d, ec)) if (e.is_regular_file(ec) && lower(e.path().extension().u8string()) == ".json") v.push_back(e.path());
+    for (auto& e : listDir(d)) if (e.is_regular_file(ec) && lower(e.path().extension().u8string()) == ".json") v.push_back(e.path());
     std::sort(v.begin(), v.end(), [](const fs::path& a, const fs::path& b) { return a.filename().u8string() > b.filename().u8string(); });
     return v;
 }
@@ -2294,7 +2350,7 @@ inline bool renamePlayset(Playset& ps, const std::string& newName, const std::ma
             if (!fs::exists(nb, bec)) fs::rename(ob, nb, bec);
             else {
                 fs::create_directories(nb, bec);
-                for (auto& f : fs::directory_iterator(ob, bec)) { std::error_code mec; fs::path t = nb / f.path().filename(); if (!fs::exists(t, mec)) fs::rename(f.path(), t, mec); }
+                for (auto& f : listDir(ob)) { std::error_code mec; fs::path t = nb / f.path().filename(); if (!fs::exists(t, mec)) fs::rename(f.path(), t, mec); }
                 fs::remove_all(ob, bec);
             }
         }
@@ -2305,7 +2361,7 @@ inline bool renamePlayset(Playset& ps, const std::string& newName, const std::ma
 inline std::vector<Playset> loadPlaysets(const std::vector<ModInfo>& installed) {
     std::vector<Playset> out;
     std::error_code ec;
-    for (auto& e : fs::directory_iterator(playsetsDir(), ec)) {
+    for (auto& e : listDir(playsetsDir())) {
         if (!e.is_regular_file(ec) || lower(e.path().extension().u8string()) != ".json") continue;
         std::string text;
         if (!readFile(e.path(), text, 5u << 20)) continue;
@@ -2318,6 +2374,16 @@ inline std::vector<Playset> loadPlaysets(const std::vector<ModInfo>& installed) 
             std::error_code rec;
             fs::path target = playsetPath(clean);
             if (!fs::exists(target, rec)) { fs::rename(e.path(), target, rec); if (!rec) p.name = clean; }
+            else {   // another playset already has that file name: this one gets its own, so saving one never overwrites the other
+                for (int k = 2; k < 100; k++) {
+                    std::string alt = clean.substr(0, 70) + " (" + std::to_string(k) + ")";
+                    fs::path t2 = playsetPath(alt);
+                    if (fs::exists(t2, rec)) continue;
+                    fs::rename(e.path(), t2, rec);
+                    if (!rec) p.name = alt;
+                    break;
+                }
+            }
         }
         syncPlayset(p, installed);
         out.push_back(std::move(p));
@@ -2332,7 +2398,7 @@ inline int migrateLegacyStore(const std::vector<ModInfo>& installed, Settings& s
     fs::path old = P(dataDir()) / "playsets.json";
     std::error_code ec;
     if (!fs::exists(old, ec)) return 0;
-    for (auto& e : fs::directory_iterator(playsetsDir(), ec))
+    for (auto& e : listDir(playsetsDir()))
         if (lower(e.path().extension().u8string()) == ".json") return 0;  // already using files; leave the old file alone
     std::string text; J root;
     if (!readFile(old, text) || !parseJson(text, root) || root.t != J::Obj) return 0;
@@ -2401,7 +2467,7 @@ inline std::vector<ModInfo> scanWorkshopFolders(const std::vector<std::string>& 
     std::error_code ec;
     for (auto& cd : contentDirs) {
         if (!fs::is_directory(P(cd), ec)) continue;
-        for (auto& e : fs::directory_iterator(P(cd), ec)) {
+        for (auto& e : listDir(P(cd))) {
             if (!e.is_directory(ec)) continue;
             std::string num = e.path().filename().u8string();
             if (num.empty() || num.size() > 20 || num.find_first_not_of("0123456789") != std::string::npos) continue;

@@ -633,5 +633,16 @@
  "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.": "Oyun anlamsız bir veri buldu. Genellikle nedeni, bu oyun sürümü için güncel olmayan bir moddur.",
  "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.": "Bu genellikle hasarlı oyun dosyaları veya kararsız bir hız aşırtma anlamına gelir. Steam'de oyun dosyalarını doğrulayın.",
  "A mod gave the game a value of zero where it must not. Check the suspects below.": "Bir mod, oyuna olmaması gereken yerde sıfır değeri verdi. Aşağıdaki şüphelileri kontrol edin.",
- "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Çökme dosyaları neyin ters gittiğini söylemiyor. Aşağıdaki şüpheliler, oyunun durmadan hemen önce günlüğüne yazdıklarından çıkarılmıştır."
+ "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Çökme dosyaları neyin ters gittiğini söylemiyor. Aşağıdaki şüpheliler, oyunun durmadan hemen önce günlüğüne yazdıklarından çıkarılmıştır.",
+ "Unsubscribe from \"{0}\" on Steam?": "\"{0}\" modunun Steam aboneliği bırakılsın mı?",
+ "Unsubscribe from these {0} Workshop mods on Steam?": "Atölye'deki bu {0} modun Steam aboneliği bırakılsın mı?",
+ "Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time.": "Steam, modların dosyalarını bilgisayarınızdan kaldırır ve mod hiçbir oynatma listesinde yüklenmez. Steam Atölye'den istediğiniz zaman yeniden abone olabilirsiniz.",
+ "Steam is not running. Start Steam and sign in, then try again.": "Steam çalışmıyor. Steam'i başlatıp oturum açın, sonra yeniden deneyin.",
+ "The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there.": "Program aboneliği doğrudan Steam üzerinden bırakamadı, bu yüzden bunun yerine modun Atölye sayfası Steam'de açılıyor. Orada Abonelikten çık düğmesine basın.",
+ "Unsubscribe from {0} mods on Steam...": "Steam'de {0} modun aboneliğini bırak...",
+ "Unsubscribe on Steam...": "Steam'de aboneliği bırak...",
+ "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: sayfası Ethnicities & Portraits Expanded modunun gerekli olduğunu söylüyor ve onu altında yüklenmiş olarak gösteriyor",
+ "Embers of Empire (known mod)": "Embers of Empire (bilinen mod)",
+ "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: sayfası yükleme sırasını Embers of Empire, Renovatio, en son bu yama olarak belirtiyor",
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam'den {0} modun aboneliğini iptal etmesi istendi. Mod(lar) artık listenizden ve oyun setlerinizden çıkarıldı; dosyaları Steam kendisi siler."
 }

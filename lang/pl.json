@@ -633,5 +633,16 @@
  "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.": "Gra natrafiła na dane, które nie mają sensu. Zwykle przyczyną jest mod nieaktualny dla tej wersji gry.",
  "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.": "Zwykle oznacza to uszkodzone pliki gry lub niestabilne podkręcanie. Zweryfikuj pliki gry w Steam.",
  "A mod gave the game a value of zero where it must not. Check the suspects below.": "Mod przekazał grze wartość zero tam, gdzie nie może jej być. Sprawdź podejrzane mody poniżej.",
- "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Pliki awarii nie mówią, co poszło nie tak. Podejrzane mody poniżej wynikają z tego, co gra zapisała w dzienniku tuż przed zatrzymaniem."
+ "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Pliki awarii nie mówią, co poszło nie tak. Podejrzane mody poniżej wynikają z tego, co gra zapisała w dzienniku tuż przed zatrzymaniem.",
+ "Unsubscribe from \"{0}\" on Steam?": "Anulować subskrypcję \"{0}\" w Steam?",
+ "Unsubscribe from these {0} Workshop mods on Steam?": "Anulować subskrypcję tych modów z Warsztatu ({0}) w Steam?",
+ "Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time.": "Steam usunie pliki modów z Twojego komputera i przestaną się one ładować w każdym zestawie modów. Możesz ponownie zasubskrybować je w Warsztacie Steam w dowolnej chwili.",
+ "Steam is not running. Start Steam and sign in, then try again.": "Steam nie jest uruchomiony. Uruchom Steam, zaloguj się i spróbuj ponownie.",
+ "The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there.": "Program nie mógł anulować subskrypcji bezpośrednio przez Steam, więc zamiast tego w Steam otwarto stronę modu w Warsztacie. Naciśnij tam przycisk anulowania subskrypcji.",
+ "Unsubscribe from {0} mods on Steam...": "Anuluj subskrypcję modów w Steam: {0}...",
+ "Unsubscribe on Steam...": "Anuluj subskrypcję w Steam...",
+ "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: jego strona podaje, że wymaga Ethnicities & Portraits Expanded, i pokazuje go załadowanego poniżej",
+ "Embers of Empire (known mod)": "Embers of Empire (znany mod)",
+ "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: jego strona podaje kolejność ładowania Embers of Empire, Renovatio, a na końcu ta łatka",
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Poproszono Steam o anulowanie subskrypcji modów: {0}. Zniknęły już z listy i playsetów; pliki usunie sam Steam."
 }

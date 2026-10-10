@@ -633,5 +633,16 @@
  "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.": "게임이 이해할 수 없는 데이터를 발견했어요. 보통 이 게임 버전에 맞지 않는 오래된 모드가 원인이에요.",
  "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.": "대개 게임 파일이 손상되었거나 오버클럭이 불안정하다는 뜻이에요. Steam에서 게임 파일 무결성을 확인하세요.",
  "A mod gave the game a value of zero where it must not. Check the suspects below.": "어떤 모드가 게임에 0이면 안 되는 곳에 0 값을 전달했어요. 아래 의심되는 모드를 확인하세요.",
- "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "충돌 파일에는 무엇이 잘못됐는지 나와 있지 않아요. 아래 의심되는 모드는 게임이 멈추기 직전에 로그에 기록한 내용을 바탕으로 해요."
+ "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "충돌 파일에는 무엇이 잘못됐는지 나와 있지 않아요. 아래 의심되는 모드는 게임이 멈추기 직전에 로그에 기록한 내용을 바탕으로 해요.",
+ "Unsubscribe from \"{0}\" on Steam?": "Steam에서 \"{0}\"의 구독을 취소할까요?",
+ "Unsubscribe from these {0} Workshop mods on Steam?": "Steam에서 이 창작마당 모드 {0}개의 구독을 취소할까요?",
+ "Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time.": "Steam이 모드 파일을 컴퓨터에서 삭제하고, 모드는 모든 플레이셋에서 더 이상 로드되지 않아요. 언제든 Steam 창작마당에서 다시 구독할 수 있어요.",
+ "Steam is not running. Start Steam and sign in, then try again.": "Steam이 실행 중이 아니에요. Steam을 실행하고 로그인한 다음 다시 시도하세요.",
+ "The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there.": "프로그램이 Steam을 통해 직접 구독을 취소하지 못해서, 대신 Steam에서 해당 모드의 창작마당 페이지를 열었어요. 거기서 '구독 취소'를 누르세요.",
+ "Unsubscribe from {0} mods on Steam...": "Steam에서 모드 {0}개 구독 취소...",
+ "Unsubscribe on Steam...": "Steam에서 구독 취소...",
+ "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: 페이지에 Ethnicities & Portraits Expanded가 필요하다고 나와 있고, 그 아래에 로드돼 있어요",
+ "Embers of Empire (known mod)": "Embers of Empire (알려진 모드)",
+ "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: 페이지에 나온 로드 순서는 Embers of Empire, Renovatio, 그다음 이 패치가 마지막이에요",
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam에 모드 {0}개의 구독 취소를 요청했습니다. 이제 목록과 플레이셋에서 제거되었으며, 파일은 Steam이 직접 삭제합니다."
 }

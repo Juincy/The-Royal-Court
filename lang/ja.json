@@ -633,5 +633,16 @@
  "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.": "ゲームが意味の通らないデータを見つけました。多くの場合、このゲームのバージョンに対応していない古いMODが原因です。",
  "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.": "ゲームファイルの破損、または不安定なオーバークロックを意味することがほとんどです。Steamでゲームファイルの整合性を確認してください。",
  "A mod gave the game a value of zero where it must not. Check the suspects below.": "MODが、ゼロであってはならない場所にゼロの値をゲームに渡しました。下の候補を確認してください。",
- "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "クラッシュファイルには、何が問題だったかが書かれていません。下の候補は、ゲームが停止する直前にログへ書き込んだ内容から割り出したものです。"
+ "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "クラッシュファイルには、何が問題だったかが書かれていません。下の候補は、ゲームが停止する直前にログへ書き込んだ内容から割り出したものです。",
+ "Unsubscribe from \"{0}\" on Steam?": "Steamで「{0}」の購読を解除しますか?",
+ "Unsubscribe from these {0} Workshop mods on Steam?": "これらのワークショップMOD {0}個の購読をSteamで解除しますか?",
+ "Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time.": "SteamがMODのファイルをパソコンから削除し、すべてのプレイセットで読み込まれなくなります。ワークショップからいつでも再度購読できます。",
+ "Steam is not running. Start Steam and sign in, then try again.": "Steamが起動していません。Steamを起動してサインインし、もう一度お試しください。",
+ "The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there.": "プログラムからSteam経由で直接購読を解除できなかったため、代わりにSteamでそのMODのワークショップページを開きました。そこで「購読解除」を押してください。",
+ "Unsubscribe from {0} mods on Steam...": "Steamで{0}個のMODの購読を解除...",
+ "Unsubscribe on Steam...": "Steamで購読を解除...",
+ "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: ページに Ethnicities & Portraits Expanded が必要と記載されており、それより下にロードされています",
+ "Embers of Empire (known mod)": "Embers of Empire (既知のMOD)",
+ "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: ページに記載のロード順は Embers of Empire、Renovatio、最後にこのパッチです",
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam に {0} 件のMODのサブスクライブ解除を依頼しました。リストとプレイセットからはすでに外れており、ファイルは Steam が自動で削除します。"
 }

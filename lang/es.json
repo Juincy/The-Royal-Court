@@ -633,5 +633,16 @@
  "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.": "El juego encontró datos que no tienen sentido. Lo habitual es que se deba a un mod desactualizado para esta versión del juego.",
  "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.": "Normalmente significa archivos del juego dañados o un overclock inestable. Verifique los archivos del juego en Steam.",
  "A mod gave the game a value of zero where it must not. Check the suspects below.": "Un mod dio al juego un valor de cero donde no debe haberlo. Revise los sospechosos de abajo.",
- "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Los archivos del fallo no dicen qué salió mal. Los sospechosos de abajo salen de lo que el juego escribió en su registro justo antes de detenerse."
+ "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Los archivos del fallo no dicen qué salió mal. Los sospechosos de abajo salen de lo que el juego escribió en su registro justo antes de detenerse.",
+ "Unsubscribe from \"{0}\" on Steam?": "¿Cancelar la suscripción a \"{0}\" en Steam?",
+ "Unsubscribe from these {0} Workshop mods on Steam?": "¿Cancelar la suscripción a estos {0} mods del Workshop en Steam?",
+ "Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time.": "Steam elimina los archivos de los mods de su equipo y dejan de cargarse en todos los playsets. Puede volver a suscribirse en el Steam Workshop cuando quiera.",
+ "Steam is not running. Start Steam and sign in, then try again.": "Steam no está en ejecución. Inicie Steam e inicie sesión, y vuelva a intentarlo.",
+ "The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there.": "El programa no pudo cancelar la suscripción directamente a través de Steam, así que se abre en su lugar la página del mod en el Workshop, dentro de Steam. Pulse Cancelar suscripción allí.",
+ "Unsubscribe from {0} mods on Steam...": "Cancelar suscripción a {0} mods en Steam...",
+ "Unsubscribe on Steam...": "Cancelar suscripción en Steam...",
+ "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: su página indica que necesita Ethnicities & Portraits Expanded, y lo muestra cargado por debajo de él",
+ "Embers of Empire (known mod)": "Embers of Empire (mod conocido)",
+ "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: su página indica el orden de carga Embers of Empire, Renovatio y, por último, este parche",
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Se ha pedido a Steam que cancele la suscripción a {0} mod(s). Ya no están en tu lista ni en tus playsets; Steam borra los archivos por sí mismo."
 }

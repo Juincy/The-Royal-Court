@@ -137,7 +137,7 @@ int main() {
     assert(ms2.active == "Imported" && !fs::exists(T / "data/playsets.json") && fs::exists(T / "data/playsets.json.migrated"));
     auto mig = loadPlaysets(mods);
     assert(mig.size() == 2 && mig[0].name == "Bad_Name" && mig[1].name == "Imported");
-    assert(mig[1].mods[0].id == "ugc_222.mod" && mig[1].mods[1].id == "ugc_111.mod" && mig[1].mods[2].id == "local:gone.mod" && mig[1].mods[2].enabled);   // uninstalled local mod: kept by name (launcher files have no id for local mods)
+    assert(mig[1].mods[0].id == "ugc_222.mod" && mig[1].mods[1].id == "ugc_111.mod" && mig[1].mods[2].id == "gone.mod" && mig[1].mods[2].enabled);   // uninstalled local mod: its file id is kept, so it matches again when it is reinstalled
     assert(migrateLegacyStore(mods, ms2) == 0);                    // never runs twice
 
     // ---- v0.5.0: starting the game without the launcher ----
@@ -1213,5 +1213,26 @@ int main() {
         Settings sl2; loadSettings(sl2); assert(sl2.language == "ru");
         sl.language = "bogus"; saveSettings(sl); Settings sl3; loadSettings(sl3); assert(sl3.language == "auto");
     }
+    // ---- audit fixes ----
+    {   // a descriptor path that ends in a backslash still closes its string; UNC paths keep both slashes
+        auto kv = parseDescriptor("name=\"X\"\npath=\"C:\\mods\\foo\\\"\nversion=\"1\"\n");
+        assert(kv["path"].size() == 1 && kv["path"][0] == "C:\\mods\\foo\\" && kv["version"][0] == "1");
+        auto kv2 = parseDescriptor("name=\"A \\\"quoted\\\" name\"\n");
+        assert(kv2["name"][0] == "A \"quoted\" name");
+    }
+    {   // duplicates in a playset file: enabled if either entry is
+        std::vector<ModInfo> none;
+        std::string js = "{\"game\":\"ck3\",\"name\":\"d\",\"mods\":[{\"steamId\":\"5\",\"enabled\":false,\"position\":0},{\"steamId\":\"5\",\"enabled\":true,\"position\":1}]}";
+        ImportResult r = parsePlaysetFile(js, none);
+        assert(r.ok && r.playset.mods.size() == 1 && r.playset.mods[0].enabled);
+    }
+    {   // unsubscribed list survives a settings round trip
+        Settings a; a.unsubbed["ugc_9.mod"] = 1760000000; a.hidden.insert("ugc_9.mod");
+        assert(saveSettings(a));
+        Settings b; loadSettings(b);
+        assert(b.unsubbed.size() == 1 && b.unsubbed["ugc_9.mod"] == 1760000000 && b.hidden.count("ugc_9.mod"));
+        a.unsubbed.clear(); a.hidden.clear(); saveSettings(a);
+    }
+
     std::cout << "ALL CORE TESTS PASSED\n";
 }

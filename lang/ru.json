@@ -633,5 +633,16 @@
  "The game found data that does not make sense. A mod that is out of date for this game version is the usual reason.": "Игра обнаружила бессмысленные данные. Обычно причина - мод, устаревший для этой версии игры.",
  "This usually means damaged game files or an unstable overclock. Verify the game files in Steam.": "Обычно это значит, что файлы игры повреждены или разгон нестабилен. Проверьте целостность файлов игры в Steam.",
  "A mod gave the game a value of zero where it must not. Check the suspects below.": "Мод передал игре нулевое значение там, где его быть не должно. Проверьте подозреваемых ниже.",
- "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Файлы сбоя не говорят, что пошло не так. Подозреваемые ниже определены по тому, что игра записала в журнал непосредственно перед остановкой."
+ "The crash files do not say what went wrong. The suspects below come from what the game wrote to its log just before it stopped.": "Файлы сбоя не говорят, что пошло не так. Подозреваемые ниже определены по тому, что игра записала в журнал непосредственно перед остановкой.",
+ "Unsubscribe from \"{0}\" on Steam?": "Отписаться от «{0}» в Steam?",
+ "Unsubscribe from these {0} Workshop mods on Steam?": "Отписаться от этих модов Мастерской ({0}) в Steam?",
+ "Steam removes the mods' files from your computer and they stop loading in every playset. You can subscribe again on the Steam Workshop at any time.": "Steam удалит файлы модов с вашего компьютера, и они перестанут загружаться во всех плейсетах. Вы можете снова подписаться в Мастерской Steam в любой момент.",
+ "Steam is not running. Start Steam and sign in, then try again.": "Steam не запущен. Запустите Steam и войдите в аккаунт, затем повторите попытку.",
+ "The program could not unsubscribe through Steam directly, so the Workshop page of the mod is opened in Steam instead. Press Unsubscribe there.": "Программе не удалось отписаться через Steam напрямую, поэтому вместо этого в Steam открыта страница мода в Мастерской. Нажмите там «Отписаться».",
+ "Unsubscribe from {0} mods on Steam...": "Отписаться от модов в Steam ({0})...",
+ "Unsubscribe on Steam...": "Отписаться в Steam...",
+ "Renovatio: its page says it needs Ethnicities & Portraits Expanded, and shows it loaded below it": "Renovatio: на его странице сказано, что нужен мод Ethnicities & Portraits Expanded, и он загружен ниже него",
+ "Embers of Empire (known mod)": "Embers of Empire (известный мод)",
+ "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: на его странице указан порядок загрузки Embers of Empire, Renovatio, а этот патч - последним",
+ "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam получил запрос отписаться от модов (всего: {0}). Они уже убраны из списка и наборов; файлы Steam удалит сам."
 }

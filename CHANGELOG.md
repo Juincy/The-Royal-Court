@@ -6,6 +6,26 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.19.0] - 2026-10-09
+Turned-off mods sink to the bottom, unsubscribe from Steam in one click, and 24 more known mods, and a full audit of the core.
+
+### Added
+- **Unsubscribe on Steam** (right-click a Workshop mod). The mod leaves your list and playsets at once; its leftover entry in the CK3 mod folder is cleared automatically a few seconds after Steam has deleted the files (also on the next start). If Steam has not removed the files after 15 minutes, the mod is shown again. Asks Steam to unsubscribe from the selected Workshop mods, so Steam removes their files and they stop loading in every playset. It uses Valve's own Steamworks library that ships with the game (`steam_api64.dll`) to talk to the running Steam client; nothing of the Paradox launcher is touched. It asks first, will not run while the game is running or Steam is closed, and saves a playset backup before. If the library cannot be used on your computer, the mod's Workshop page opens in Steam instead and you press Unsubscribe there. Once Steam has removed the files, "Delete mod permanently" clears the leftover entry.
+- **Renovatio and Embers of Empire.** From the mods' own Workshop pages: Renovatio needs Ethnicities & Portraits Expanded and loads below it; the EoE + Renovatio patch page lists Embers of Empire, Renovatio, then the patch last. Auto Sort now follows that order.
+- **21 more recognised mods** in the built-in known-mods list (The Bronze Age: Maryannu as a total conversion that loads first; VIET Events, Cities of Wonders 2, Culture Expanded, Immortality, the cheat menus, trait, dynasty-legacy and battle mods; Nameplates, Better Battle Window, Dynamic UI Themes and Show More Traits as interface mods). Each Workshop id and title was checked on the mod's own page. No load-order sentence could be read for these, so only their type is set; Auto Sort leaves their position to the normal type rules.
+
+### Changed
+- **Turned-off mods go to the bottom.** When you untick a mod it moves below all the mods that are on; ticking one puts it at the end of the mods that are on (use Auto Sort to place it). "Enable shown / Disable shown" do the same. Turned-off mods were never used by Auto Sort, the conflict finder or Play; now they also stay out of the way in the list.
+
+### Fixed (full audit of the core)
+- **Delete mod permanently** no longer offers itself for a Steam download the launcher has not registered yet (there is nothing of ours to delete; it used to report success and the mod came back). The menu item also appears when only some of the selected mods can be deleted.
+- **Playset files:** saving no longer rewrites a local mod's identity when the mod folder could not be read at that moment (two local mods with the same name could be confused); two playset files that end up with the same cleaned-up name no longer overwrite each other; a mod listed twice in a playset file counts as turned on if either entry is.
+- **Settings:** if `settings.json` exists but cannot be read for a moment (antivirus scan, file in use), the program retries and then refuses to overwrite it with defaults.
+- **Folder scans** no longer stop with an error when a folder disappears while it is being read (for example Steam rewriting the Workshop folder), in the mod scan, the playset list, the crash list and the automatic refresh check.
+- **Descriptor files:** a path that ends in a backslash (`path="C:\mods\x\"`) now ends there instead of swallowing the closing quote; network paths keep both leading slashes.
+- **Crash helper:** the newest crash folders are no longer cut off in a folder with hundreds of old ones.
+- Tests for these fixes, and for the unsubscribe list surviving a settings save.
+
 ## [0.18.0] - 2026-10-09
 The program now speaks ten more languages, finds out why the game crashed, and greets new users with a quick tour.
 
