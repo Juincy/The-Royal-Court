@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.20.0";
+inline const char* VERSION = "0.20.1";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -1769,6 +1769,50 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.note = K("Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE"); v.push_back(k); }
     { KnownMod k; k.names = {"community title project", "ctp"}; k.ids = {"2216919487"};
       k.note = K("Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it"); v.push_back(k); }
+    // ---- round of 2026-10-12: more author-stated orders from Workshop pages ----
+    { KnownMod k; k.names = {"character ui overhaul", "cuio"}; k.ids = {"2519175282"}; k.cat = CAT_UI; k.after = {"better barbershop"};
+      k.note = K("Character UI Overhaul: its page says to load it below Better Barbershop"); v.push_back(k); }
+    { KnownMod k; k.names = {"a special world special building compatch", "a special world"}; k.ids = {"2875587269"}; k.cat = CAT_PATCH; k.rank = 9;
+      k.after = {"cities of wonder 3", "medieval arts", "unique building plus", "regional immersion and cultural enrichment", "rice", "more bookmarks plus", "africa plus", "muslim enhancements"};
+      k.note = K("A Special World compatch: its page says the special-building mods (Cities of Wonder 3, Medieval Arts, RICE, More Bookmarks+, Muslim Enhancements and others) load before it"); v.push_back(k); }
+    { KnownMod k; k.names = {"more holding graphics", "mhg"}; k.ids = {"2262523658"}; k.cat = CAT_GRAPHICS;
+      k.after = {"rice", "community flavor pack", "ethnicities and portraits expanded", "culture expanded", "architect of estates", "architect of estates estates building expansion", "medieval arts"};
+      k.note = K("More Holding Graphics: its page lists the order RICE, CFP, EPE, Culture Expanded, Architect of Estates, Medieval Arts, then this mod"); v.push_back(k); }
+    for (auto id_name : std::vector<std::pair<const char*, const char*>>{{"2509797306", "MHG + EPE Compatch"}, {"2764329234", "MHG + CFP Compatch"}, {"2947626935", "MHG + CE Compatch"}, {"3186143971", "MHG + RICE + EPE Compatch"}, {"", "MHG + RICE Compatch"}, {"", "MHG + AOE Compatch"}, {"", "MHG + MA Compatch"}}) {
+        KnownMod k; k.names = {id_name.second}; if (id_name.first[0]) k.ids = {id_name.first}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"more holding graphics"};
+        k.note = K("A More Holding Graphics compatch: the More Holding Graphics page lists it below More Holding Graphics"); v.push_back(k);
+    }
+    { KnownMod k; k.names = {"customizable gui"}; k.ids = {"2834463679"}; k.cat = CAT_LIBRARY; k.pos = -1; k.after = {"unofficial patch", "ck3 unofficial patch"};
+      k.note = K("Customizable GUI: its page says to place it above other mods (it does not work on its own)"); v.push_back(k); }
+    { KnownMod k; k.names = {"snat + the catholic trinity"}; k.ids = {"2744600131"}; k.cat = CAT_PATCH; k.rank = 9;
+      k.after = {"the catholic trinity", "separate name and title ie", "seperate name and title ue", "seperate name and title", "separate name and title"};
+      k.note = K("SNAT + The Catholic Trinity: its page says to load it behind both mods"); v.push_back(k); }
+    { KnownMod k; k.names = {"immersive chaste trait"}; k.ids = {"2662352702"}; k.before = {"travel the distance", "love marriage family"};
+      k.note = K("The Love Marriage Family compatch page lists this load order: Immersive Chaste Trait, Travel the Distance, Love Marriage Family, then the compatch"); v.push_back(k); }
+    { KnownMod k; k.names = {"travel the distance"}; k.ids = {"2743500919"}; k.after = {"immersive chaste trait"}; k.before = {"love marriage family"};
+      k.note = K("The Love Marriage Family compatch page lists this load order: Immersive Chaste Trait, Travel the Distance, Love Marriage Family, then the compatch"); v.push_back(k); }
+    { KnownMod k; k.names = {"love marriage family"}; k.ids = {"3037969445"}; k.after = {"immersive chaste trait", "travel the distance"};
+      k.note = K("The Love Marriage Family compatch page lists this load order: Immersive Chaste Trait, Travel the Distance, Love Marriage Family, then the compatch"); v.push_back(k); }
+    { KnownMod k; k.names = {"love marriage family travel the distance immersive chaste trait compatch"}; k.ids = {"3049846007"}; k.cat = CAT_PATCH; k.rank = 9;
+      k.after = {"immersive chaste trait", "travel the distance", "love marriage family"};
+      k.note = K("The Love Marriage Family compatch page lists this load order: Immersive Chaste Trait, Travel the Distance, Love Marriage Family, then the compatch"); v.push_back(k); }
+    { KnownMod k; k.names = {"dnasis character ui compatch"}; k.ids = {"3058423279"}; k.cat = CAT_PATCH; k.rank = 9;
+      k.after = {"customizable gui", "the catholic trinity", "in my humble opinion", "rename anyone", "displayed birth and death dates", "seperate name and title ue", "seperate name and title", "separate name and title ie", "stress bar for all", "custom title form of address", "hometowns"};
+      k.note = K("Dnasis Character UI Compatch: its page says Customizable GUI goes at the top and this loads after the mods it supports"); v.push_back(k); }
+    // ---- round of 2026-10-13: Dynamic Trade Routes and Africa Plus ----
+    { KnownMod k; k.names = {"dynamic trade routes", "beta dynamic trade routes", "dtr"}; k.ids = {"2821835496"}; k.after = {"more bookmarks plus"}; k.before = {"dtr lite"};
+      k.note = K("DTR Lite page lists this load order: More Bookmarks+, Dynamic Trade Routes, DTR Lite, then the MB+DTR compatch"); v.push_back(k); }
+    { KnownMod k; k.names = {"dtr lite", "not updated yet dtr lite"}; k.ids = {"2828692797"}; k.after = {"more bookmarks plus", "dynamic trade routes"};
+      k.note = K("DTR Lite page lists this load order: More Bookmarks+, Dynamic Trade Routes, DTR Lite, then the MB+DTR compatch"); v.push_back(k); }
+    { KnownMod k; k.names = {"mb plus dtr compatch", "mb plus dtr"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"more bookmarks plus", "dynamic trade routes", "dtr lite"};
+      k.note = K("DTR Lite page lists this load order: More Bookmarks+, Dynamic Trade Routes, DTR Lite, then the MB+DTR compatch"); v.push_back(k); }
+    { KnownMod k; k.names = {"africa plus", "bap", "africa plus needs update"}; k.ids = {"2552371897"}; k.after = {"muslim enhancements", "ibn battutas legacy 2"};
+      k.before = {"regional immersion and cultural enrichment", "ethnicities and portraits expanded", "culture expanded"};
+      k.note = K("Africa Plus: its page suggests Muslim Enhancements, Ibn Battuta's Legacy 2, Africa Plus, its compatches, then RICE, EPE and Culture Expanded"); v.push_back(k); }
+    for (const char* nm : {"bap me compatch", "bap ibl compatch", "bap epe compatch"}) {
+        KnownMod k; k.names = {nm}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"africa plus"};
+        k.note = K("Africa Plus page: its compatches load right after Africa Plus"); v.push_back(k);
+    }
     // names are compared in their normalised form (trailing version numbers dropped: "elder kings 2" is "elder kings")
     for (auto& k : v) { for (auto& n : k.names) n = normName(n); for (auto& n : k.after) n = normName(n); for (auto& n : k.before) n = normName(n); }
     return v;
@@ -1922,7 +1966,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         norm[(size_t)i] = normName(it->second.name);
         CatGuess g = guessCategory(it->second);
         if (g.why == "default" && index) { auto f = index->find(ps.mods[(size_t)i].id); if (f != index->end()) g = guessFromFiles(f->second); }
-        if (db) {
+        if (db && ps.mods[(size_t)i].enabled) {
             int k = findKnown(*db, it->second);
             if (k >= 0) {
                 const KnownMod& km = (*db)[(size_t)k];
@@ -1934,18 +1978,18 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         auto ov = overrides.find(ps.mods[(size_t)i].id);
         if (ov != overrides.end() && ov->second >= 0 && ov->second < CAT_COUNT) g = {ov->second, tr("set by you")};
         plan.cat[(size_t)i] = g.cat; plan.catWhy[(size_t)i] = g.why;
-        byName.emplace(lower(trimmed(it->second.name)), i);
+        if (ps.mods[(size_t)i].enabled) byName.emplace(lower(trimmed(it->second.name)), i);
     }
-    auto isLocked = [&](int i) { return locked.count(ps.mods[(size_t)i].id) > 0; };
+    auto isLocked = [&](int i) { return locked.count(ps.mods[(size_t)i].id) > 0 || !ps.mods[(size_t)i].enabled; };   // a turned-off mod is never sorted: it stays where it is and no rule about it is applied
     auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? ps.mods[(size_t)i].id : it->second.name; };
 
     struct Edge { int from, to, kind; std::string text, note, other; bool after = false; };   // text: the reason shown for a move; note/other/after: what a known-mod rule says (for the locked-mod warning)   // from loads before to; kind 0 dependency, 1 conflict tie-break, 2 known-mod rule, 3 patch link
     std::vector<Edge> edges;
     std::vector<std::vector<int>> out((size_t)n);            // adjacency (edge indices)
-    auto addEdge = [&](int a, int b, int kind, const std::string& text, const std::string& note = "", const std::string& other = "", bool after = false) { out[(size_t)a].push_back((int)edges.size()); edges.push_back({a, b, kind, text, note, other, after}); };
+    auto addEdge = [&](int a, int b, int kind, const std::string& text, const std::string& note = "", const std::string& other = "", bool after = false) { if (!ps.mods[(size_t)a].enabled || !ps.mods[(size_t)b].enabled) return; out[(size_t)a].push_back((int)edges.size()); edges.push_back({a, b, kind, text, note, other, after}); };
     for (int i = 0; i < n; i++) {
         auto it = info.find(ps.mods[(size_t)i].id);
-        if (it == info.end()) continue;
+        if (it == info.end() || !ps.mods[(size_t)i].enabled) continue;
         std::string self = lower(trimmed(it->second.name));
         for (auto& d : it->second.deps) {
             auto f = byName.find(lower(trimmed(d)));
@@ -1972,7 +2016,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
             const KnownMod& km = (*db)[(size_t)kidx[(size_t)i]];
             auto link = [&](const std::string& other, bool iAfter) {
                 for (int j = 0; j < n; j++) {
-                    if (j == i || norm[(size_t)j].empty()) continue;
+                    if (j == i || norm[(size_t)j].empty() || !ps.mods[(size_t)j].enabled) continue;
                     bool same = nameIs(norm[(size_t)j], other);
                     if (!same && kidx[(size_t)j] >= 0) for (auto& kn : (*db)[(size_t)kidx[(size_t)j]].names) if (kn == other) same = true;   // recognised by Workshop id
                     if (!same) continue;
@@ -1992,9 +2036,9 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         std::vector<std::string> acr((size_t)n);
         for (int j = 0; j < n; j++) acr[(size_t)j] = acronymOf(norm[(size_t)j]);
         for (int p = 0; p < n; p++) {
-            if (plan.cat[(size_t)p] != CAT_PATCH || norm[(size_t)p].empty()) continue;
+            if (plan.cat[(size_t)p] != CAT_PATCH || norm[(size_t)p].empty() || !ps.mods[(size_t)p].enabled) continue;
             for (int j = 0; j < n; j++) {
-                if (j == p || plan.cat[(size_t)j] == CAT_PATCH || norm[(size_t)j].size() < 5) continue;
+                if (j == p || plan.cat[(size_t)j] == CAT_PATCH || norm[(size_t)j].size() < 5 || !ps.mods[(size_t)j].enabled) continue;
                 bool hit = false;
                 std::string padded = " " + norm[(size_t)p] + " ";
                 if (padded.find(" " + norm[(size_t)j] + " ") != std::string::npos) hit = true;

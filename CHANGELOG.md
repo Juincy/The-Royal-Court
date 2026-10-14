@@ -6,6 +6,31 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.20.1] - 2026-10-12
+A full audit of every system, with a close look at whether the manager can slow Crusader Kings III down while the game runs. It cannot do so any more than it needs to, and now it does even less.
+
+### Fixed
+- **Auto Sort no longer touches turned-off mods.** A mod that is switched off now stays exactly where it is: it is never moved, never appears in the sort preview, and no load-order rule about it is applied (before, a switched-off mod could still be pulled around, and rules about it could push the mods that are on).
+
+### Added (a Workshop round: author-stated load orders, each read from the mod's own page)
+- **More Holding Graphics** (order RICE, CFP, EPE, Culture Expanded, Architect of Estates, Medieval Arts, then it) and its compatches, which load below it.
+- **Customizable GUI** (above other mods, right after Unofficial Patch), the **Dnasis Character UI compatch** (after the mods it supports), **Character UI Overhaul** (below Better Barbershop).
+- **Immersive Chaste Trait, Travel the Distance, Love Marriage Family** and their compatch, in the author's order.
+- **A Special World** special-building compatch (after the special-building mods) and **SNAT + The Catholic Trinity** (behind both mods).
+- **Dynamic Trade Routes, DTR Lite** and their compatch (More Bookmarks+, DTR, DTR Lite, then the compatch), and **Africa Plus** with its compatches (Muslim Enhancements and Ibn Battuta's Legacy 2 first; RICE, EPE and Culture Expanded after).
+- Workshop ledger updated: 61 pages read so far, 24 with a stated order. Steam stopped answering twice (after about 25 pages, then after 17 more), so the rest waits.
+
+### Changed (nothing the manager does can compete with the game)
+- **The animations only run while the window is in front.** The animation clock used to tick 60 times a second whenever the window was open, even when it was behind the game, redrawing the banner and the theme icons for nothing. Now it ticks 30 times a second only while the window is in front, and only checks four times a second otherwise (nothing is drawn). In a test with another window in front, the manager's CPU use dropped by about 90%.
+- **Background scans stay out of the way.** The scans that read your mods' files and look for conflicts now run at lower priority, and with the game running at the lowest CPU and disk priority, so they cannot compete with CK3 loading files.
+- **No automatic scanning while the game runs.** Coming back to the window from the game, or the check for Steam finishing an unsubscribe, no longer starts a rescan until the game is closed. Scans you ask for yourself still run.
+- A theme fade that was still going when the window was minimised now ends, which also releases the finer timer resolution Windows was kept at for it.
+
+### Audited and found correct
+- **Build:** no compiler warnings; the sanitizer tests pass; 40,000 rounds of the file-reading fuzzer found nothing; static analysis found nothing in the program code.
+- **Auto Sort:** a new property test (`src/tests/prop_sort.cpp`) builds 1,500 random playsets from the known-mods list. Every one sorted to a valid order, gave the same result twice, kept locked mods in place, broke no author rule, and sorting the result again changed nothing. The only warnings were for rules a locked mod blocks, which is the intended behaviour.
+- Delete, delete-all-saves, backups, the updater (checksum check) and the playset and settings writers were read through again; no change was needed.
+
 ## [0.20.0] - 2026-10-10
 A third theme (Halloween), animated theme icons, and a much smoother interface, plus more load orders read from the mods' own pages.
 

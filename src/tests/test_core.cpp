@@ -394,6 +394,20 @@ int main() {
         Playset sorted; sorted.name = "s2";
         for (auto& id : ids) sorted.mods.push_back({id, true, ""});
         assert(!planSort(sorted, inf, {}, {}, nullptr, nullptr).changed);
+        // turned-off mods are left alone: they keep their place, never show up as moves, and no rule about them is applied
+        {
+            Playset dp; dp.name = "d";
+            for (auto& m : ms) dp.mods.push_back({m.id, true, ""});
+            dp.mods[0].enabled = false;                       // p.mod (a patch, which would normally go last) is off, in the first slot
+            dp.mods[3].enabled = false;                       // lib.mod (a library, which would normally go first) is off, in the middle
+            auto dpl = planSort(dp, inf, {}, {}, nullptr, nullptr);
+            assert(dpl.order[0] == 0 && dpl.order[3] == 3);
+            for (auto& mv : dpl.moves) assert(mv.id != "p.mod" && mv.id != "lib.mod");
+            std::vector<int> enabledOrder; for (int o : dpl.order) if (dp.mods[(size_t)o].enabled) enabledOrder.push_back(o);
+            assert(enabledOrder.size() == 5);
+            // c1 depends on lib, but lib is off, so it makes no demand on the order
+            assert(dpl.warnings.empty());
+        }
         // a locked mod keeps its position; the rest still sorts around it
         auto pl = planSort(ps, inf, {"p.mod"}, {}, nullptr, nullptr);
         assert(pl.order[0] == 0 && pl.changed);
@@ -456,6 +470,31 @@ int main() {
         assert(pos("bb.mod") > pos("cfp.mod") && pos("bb.mod") > pos("epe.mod"));                         // barbershop below CFP and EPE
         assert(pos("pt.mod") > pos("cfp.mod") && pos("pt.mod") > pos("x1.mod") && plan.patchLinks >= 2);   // patch named for CFP and "Some Content"
         assert(plan.knownCount >= 6);
+        {   // orders added from the Workshop round of 2026-10-12
+            std::vector<ModInfo> ws = {mkm("a.mod", "Love Marriage Family / Travel the Distance / Immersive Chaste Trait Compatch"), mkm("b.mod", "Love Marriage Family"), mkm("c.mod", "Travel the Distance"),
+                                       mkm("d.mod", "Immersive Chaste Trait"), mkm("e.mod", "MHG + EPE Compatch"), mkm("f.mod", "More Holding Graphics"), mkm("g.mod", "Medieval Arts"),
+                                       mkm("h.mod", "Ethnicities & Portraits Expanded"), mkm("i.mod", "Customizable GUI"), mkm("j.mod", "Unofficial Patch"), mkm("k.mod", "Character UI Overhaul"), mkm("l.mod", "Better Barbershop")};
+            auto wi = infoMap(ws); Playset wp; wp.name = "w";
+            for (auto& m : ws) wp.mods.push_back({m.id, true, ""});
+            auto wplan = planSort(wp, wi, {}, {}, nullptr, nullptr, &db);
+            std::vector<std::string> wids; for (int o : wplan.order) wids.push_back(wp.mods[(size_t)o].id);
+            auto wpos = [&](const char* id) { return (int)(std::find(wids.begin(), wids.end(), id) - wids.begin()); };
+            assert(wpos("d.mod") < wpos("c.mod") && wpos("c.mod") < wpos("b.mod") && wpos("b.mod") < wpos("a.mod"));   // ICT, TTD, LMF, then the compatch
+            assert(wpos("g.mod") < wpos("f.mod") && wpos("h.mod") < wpos("f.mod") && wpos("f.mod") < wpos("e.mod"));   // Medieval Arts and EPE, MHG, then its compatch
+            assert(wpos("j.mod") == 0 && wpos("i.mod") == 1);                                                           // Unofficial Patch first, Customizable GUI right after it
+            assert(wpos("l.mod") < wpos("k.mod") && wplan.warnings.empty());                                           // Character UI Overhaul below Better Barbershop
+        }
+        {   // orders added from the Workshop round of 2026-10-13
+            std::vector<ModInfo> ws = {mkm("a.mod", "MB+DTR Compatch"), mkm("b.mod", "DTR Lite"), mkm("c.mod", "Dynamic Trade Routes"), mkm("d.mod", "More Bookmarks+"),
+                                       mkm("e.mod", "Africa Plus"), mkm("f.mod", "Muslim Enhancements"), mkm("g.mod", "BAP-ME Compatch"), mkm("h.mod", "Culture Expanded")};
+            auto wi = infoMap(ws); Playset wp; wp.name = "w";
+            for (auto& m : ws) wp.mods.push_back({m.id, true, ""});
+            auto wplan = planSort(wp, wi, {}, {}, nullptr, nullptr, &db);
+            std::vector<std::string> wids; for (int o : wplan.order) wids.push_back(wp.mods[(size_t)o].id);
+            auto wpos = [&](const char* id) { return (int)(std::find(wids.begin(), wids.end(), id) - wids.begin()); };
+            assert(wpos("d.mod") < wpos("c.mod") && wpos("c.mod") < wpos("b.mod") && wpos("b.mod") < wpos("a.mod"));   // MB+, DTR, DTR Lite, compatch
+            assert(wpos("f.mod") < wpos("e.mod") && wpos("e.mod") < wpos("g.mod") && wpos("e.mod") < wpos("h.mod"));   // Muslim Enhancements, Africa Plus, then its compatch and Culture Expanded
+        }
         // the user can still lock a known mod
         auto pl = planSort(ps, inf, {"ugc_3554844335.mod"}, {}, nullptr, nullptr, &db);
         assert(pl.order[0] == 0);

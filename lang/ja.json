@@ -654,5 +654,16 @@
  "Unified UI: its page lists mods that load before it (Catholic Trinity, Nameplates, Dynamic UI Themes and others) and a few that load after it": "Unified UI：ページには、前に読み込む Mod（Catholic Trinity、Nameplates、Dynamic UI Themes など）と、後に読み込む少数の Mod が載っています",
  "The Unified UI page says to load this below Unified UI": "Unified UI のページでは、この Mod を Unified UI の下に読み込むよう案内されています",
  "Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE": "Muslim Enhancements：ページでは Culture Expanded、CFP、EPE より前に読み込むよう案内されています",
- "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project：ページでは、文化の追加・評議会の変更・ブックマークの編集を行う Mod はその下に読み込むよう案内されています"
+ "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project：ページでは、文化の追加・評議会の変更・ブックマークの編集を行う Mod はその下に読み込むよう案内されています",
+ "Character UI Overhaul: its page says to load it below Better Barbershop": "Character UI Overhaul：ページでは Better Barbershop の下に読み込むよう案内されています",
+ "A Special World compatch: its page says the special-building mods (Cities of Wonder 3, Medieval Arts, RICE, More Bookmarks+, Muslim Enhancements and others) load before it": "A Special World 互換パッチ：ページでは特殊建築 Mod（Cities of Wonder 3、Medieval Arts、RICE、More Bookmarks+、Muslim Enhancements など）をその前に読み込むとされています",
+ "More Holding Graphics: its page lists the order RICE, CFP, EPE, Culture Expanded, Architect of Estates, Medieval Arts, then this mod": "More Holding Graphics：ページでは RICE、CFP、EPE、Culture Expanded、Architect of Estates、Medieval Arts、そしてこの Mod の順とされています",
+ "A More Holding Graphics compatch: the More Holding Graphics page lists it below More Holding Graphics": "More Holding Graphics 互換パッチ：More Holding Graphics のページでは More Holding Graphics の下に載っています",
+ "Customizable GUI: its page says to place it above other mods (it does not work on its own)": "Customizable GUI：ページでは他の Mod より上に置くよう案内されています（単体では動作しません）",
+ "SNAT + The Catholic Trinity: its page says to load it behind both mods": "SNAT + The Catholic Trinity：ページでは両方の Mod の後に読み込むよう案内されています",
+ "The Love Marriage Family compatch page lists this load order: Immersive Chaste Trait, Travel the Distance, Love Marriage Family, then the compatch": "Love Marriage Family 互換パッチのページの読み込み順：Immersive Chaste Trait、Travel the Distance、Love Marriage Family、そしてパッチ",
+ "Dnasis Character UI Compatch: its page says Customizable GUI goes at the top and this loads after the mods it supports": "Dnasis Character UI Compatch：ページでは Customizable GUI を一番上に置き、このパッチはサポート対象の Mod の後に読み込むとされています",
+ "DTR Lite page lists this load order: More Bookmarks+, Dynamic Trade Routes, DTR Lite, then the MB+DTR compatch": "DTR Lite のページに記載されたロード順：More Bookmarks+、Dynamic Trade Routes、DTR Lite、その後に MB+DTR 互換パッチ",
+ "Africa Plus: its page suggests Muslim Enhancements, Ibn Battuta's Legacy 2, Africa Plus, its compatches, then RICE, EPE and Culture Expanded": "Africa Plus のページの推奨順：Muslim Enhancements、Ibn Battuta's Legacy 2、Africa Plus、その互換パッチ、その後に RICE、EPE、Culture Expanded",
+ "Africa Plus page: its compatches load right after Africa Plus": "Africa Plus のページ：互換パッチは Africa Plus の直後にロードします"
 }

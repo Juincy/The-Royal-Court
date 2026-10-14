@@ -654,5 +654,16 @@
  "Unified UI: its page lists mods that load before it (Catholic Trinity, Nameplates, Dynamic UI Themes and others) and a few that load after it": "Unified UI: 페이지에 앞서 로드되는 모드(Catholic Trinity, Nameplates, Dynamic UI Themes 등)와 뒤에 로드되는 몇 가지가 나와 있습니다",
  "The Unified UI page says to load this below Unified UI": "Unified UI 페이지에 따르면 이 모드는 Unified UI 아래에 로드합니다",
  "Muslim Enhancements: its page says to load it before Culture Expanded, CFP and EPE": "Muslim Enhancements: 페이지에 따르면 Culture Expanded, CFP, EPE보다 먼저 로드합니다",
- "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project: 페이지에 따르면 문화를 추가하거나 위원회를 바꾸거나 북마크를 수정하는 모드는 그 아래에 로드해야 합니다"
+ "Community Title Project: its page says mods that add cultures, change councils or edit bookmarks should load below it": "Community Title Project: 페이지에 따르면 문화를 추가하거나 위원회를 바꾸거나 북마크를 수정하는 모드는 그 아래에 로드해야 합니다",
+ "Character UI Overhaul: its page says to load it below Better Barbershop": "Character UI Overhaul: 페이지에 따르면 Better Barbershop 아래에 로드합니다",
+ "A Special World compatch: its page says the special-building mods (Cities of Wonder 3, Medieval Arts, RICE, More Bookmarks+, Muslim Enhancements and others) load before it": "A Special World 호환 패치: 페이지에 따르면 특수 건물 모드(Cities of Wonder 3, Medieval Arts, RICE, More Bookmarks+, Muslim Enhancements 등)가 이보다 먼저 로드됩니다",
+ "More Holding Graphics: its page lists the order RICE, CFP, EPE, Culture Expanded, Architect of Estates, Medieval Arts, then this mod": "More Holding Graphics: 페이지에 나온 순서는 RICE, CFP, EPE, Culture Expanded, Architect of Estates, Medieval Arts, 그다음 이 모드입니다",
+ "A More Holding Graphics compatch: the More Holding Graphics page lists it below More Holding Graphics": "More Holding Graphics 호환 패치: More Holding Graphics 페이지에서 More Holding Graphics 아래에 나열합니다",
+ "Customizable GUI: its page says to place it above other mods (it does not work on its own)": "Customizable GUI: 페이지에 따르면 다른 모드보다 위에 두어야 합니다 (단독으로는 작동하지 않음)",
+ "SNAT + The Catholic Trinity: its page says to load it behind both mods": "SNAT + The Catholic Trinity: 페이지에 따르면 두 모드 뒤에 로드합니다",
+ "The Love Marriage Family compatch page lists this load order: Immersive Chaste Trait, Travel the Distance, Love Marriage Family, then the compatch": "Love Marriage Family 호환 패치 페이지의 로드 순서: Immersive Chaste Trait, Travel the Distance, Love Marriage Family, 그다음 패치",
+ "Dnasis Character UI Compatch: its page says Customizable GUI goes at the top and this loads after the mods it supports": "Dnasis Character UI Compatch: 페이지에 따르면 Customizable GUI는 맨 위에 두고, 이 패치는 지원하는 모드 뒤에 로드합니다",
+ "DTR Lite page lists this load order: More Bookmarks+, Dynamic Trade Routes, DTR Lite, then the MB+DTR compatch": "DTR Lite 페이지에 적힌 로드 순서: More Bookmarks+, Dynamic Trade Routes, DTR Lite, 그다음 MB+DTR 호환 패치",
+ "Africa Plus: its page suggests Muslim Enhancements, Ibn Battuta's Legacy 2, Africa Plus, its compatches, then RICE, EPE and Culture Expanded": "Africa Plus 페이지의 권장 순서: Muslim Enhancements, Ibn Battuta's Legacy 2, Africa Plus, 해당 호환 패치, 그다음 RICE, EPE, Culture Expanded",
+ "Africa Plus page: its compatches load right after Africa Plus": "Africa Plus 페이지: 호환 패치는 Africa Plus 바로 뒤에 로드됩니다"
 }

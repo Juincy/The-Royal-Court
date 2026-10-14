@@ -1074,8 +1074,16 @@ static void drawBannerLive() {   // the Halloween scenery: only the banner is re
     if (dc) { bannerBlit(dc, rc.right); ReleaseDC(hMain, dc); }
 }
 static ULONGLONG g_lastAmbient = 0;
-static void animTick() {   // the animation clock, 60 times a second; does nothing while the window is minimised
-    if (!hMain || IsIconic(hMain) || !IsWindowVisible(hMain)) return;
+static UINT g_tickMs = 16;
+static void setTick(UINT ms) { if (hMain && ms != g_tickMs) { g_tickMs = ms; SetTimer(hMain, TIMER_TOGGLE, ms, nullptr); } }
+static bool ourWindowActive() {   // is the window in front? the animations only run then, so the game (or anything else) in front gets all of the computer
+    HWND f = GetForegroundWindow();
+    DWORD pid = 0;
+    if (f) GetWindowThreadProcessId(f, &pid);
+    return f && pid == GetCurrentProcessId();
+}
+static void animTick() {   // the animation clock: 60 a second while something moves, 30 while the window is in front, a slow check otherwise (nothing is drawn)
+    if (!hMain || IsIconic(hMain) || !IsWindowVisible(hMain)) { endFade(); setTick(500); return; }   // (also lets go of the fine timer resolution)
     ULONGLONG now = GetTickCount64();
     bool busy = false;
     {   // hover glow of the buttons: about a tenth of a second in, a little slower out
@@ -1112,7 +1120,9 @@ static void animTick() {   // the animation clock, 60 times a second; does nothi
         }
         busy = true;
     }
-    bool ambient = now - g_lastAmbient >= 33;   // icons and scenery at about 30 frames a second
+    bool front = ourWindowActive();
+    setTick(busy ? 16 : front ? 33 : 250);
+    bool ambient = front && now - g_lastAmbient >= 33;   // icons and scenery at about 30 frames a second, only while the window is in front
     if (!busy && !ambient) return;
     if (ambient) g_lastAmbient = now;
     if (hTheme && IsWindowVisible(hTheme)) RedrawWindow(hTheme, nullptr, nullptr, RDW_INVALIDATE | RDW_NOERASE | RDW_UPDATENOW);
@@ -1191,7 +1201,14 @@ static ScanJob* g_job = nullptr;
 static std::map<std::string, std::string> g_scanFailed;   // mod id -> fingerprint of a folder that could not be read completely (not retried until it changes)
 static HANDLE g_jobThread = nullptr;
 
+static bool processRunning(const wchar_t* exeName);
+static void keepOutOfTheWay() {   // background work never competes with the user's window, and with the game open it also drops to the lowest disk priority
+    HANDLE t = GetCurrentThread();
+    if (processRunning(L"ck3.exe") && SetThreadPriority(t, THREAD_MODE_BACKGROUND_BEGIN)) return;
+    SetThreadPriority(t, THREAD_PRIORITY_BELOW_NORMAL);
+}
 static DWORD WINAPI scanThread(LPVOID p) {
+    keepOutOfTheWay();
     ScanJob* j = (ScanJob*)p;
     ULONGLONG t0 = GetTickCount64();
     j->out.resize(j->items.size());
@@ -1255,6 +1272,7 @@ static bool g_forceAsyncConf = false;                 // test hook (RC_ASYNC_CON
 static const size_t CONF_ASYNC_FILES = 150000;        // above this many files in the enabled mods the report is computed on a worker thread
 
 static DWORD WINAPI confThread(LPVOID p) {
+    keepOutOfTheWay();
     ConfJob* j = (ConfJob*)p;
     ULONGLONG t0 = GetTickCount64();
     try {
@@ -5156,12 +5174,14 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_ACTIVATE:
             // Never rescan from inside this message: it is also sent while a message box or dialog is closing, in the middle of a handler
             // that still holds pointers into the playset data. Look again from the main loop, and only when no dialog is open.
-            if (LOWORD(w) != WA_INACTIVE) PostMessageW(h, WM_APP + 7, 0, 0);
+            if (LOWORD(w) != WA_INACTIVE) { setTick(16); PostMessageW(h, WM_APP + 7, 0, 0); }
             return 0;
         case WM_APP + 7:
-            if (IsWindowEnabled(h) && g_modStamp && modDirStamp() != g_modStamp) {
+            if (!IsWindowEnabled(h)) return 0;
+            if (processRunning(L"ck3.exe")) return 0;   // the game is running: no automatic scanning at all, it waits until the game is closed
+            if (g_modStamp && modDirStamp() != g_modStamp) {
                 try { resync(true); } catch (...) { g_resyncing = false; }
-            } else if (IsWindowEnabled(h) && !g_job) {
+            } else if (!g_job) {
                 try { maybeScan(true); } catch (...) {}   // also looks inside the mods for changes (at most every two minutes), silently
             }
             return 0;
@@ -5175,7 +5195,7 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             }
             if (w == TIMER_UNSUB) {   // Steam is removing unsubscribed mods: refresh as soon as its folders change (also when this window stays in front)
                 if (g_settings.unsubbed.empty()) { KillTimer(h, TIMER_UNSUB); return 0; }
-                if (!IsWindowEnabled(h) || g_resyncing) return 0;
+                if (!IsWindowEnabled(h) || g_resyncing || processRunning(L"ck3.exe")) return 0;   // nothing is scanned while the game runs
                 long long now = (long long)std::time(nullptr);
                 bool due = g_modStamp && modDirStamp() != g_modStamp;
                 for (auto& kv : g_settings.unsubbed) if (now - kv.second > 900) due = true;
