@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.20.2";
+inline const char* VERSION = "0.20.3";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -624,6 +624,47 @@ inline SaveScan scanSaves(const std::string& ck3Dir) {
         }
     }
     return r;
+}
+
+// ---------- shader cache ----------
+// The game keeps a shader cache in a folder of its user folder whose name contains "shader" (it is rebuilt by the game on the next start).
+// Only such folders directly inside <CK3 user folder> are looked at, and only their contents are cleared (the folders stay). Symlinks are never followed.
+struct ShaderScan { std::vector<fs::path> folders, entries; int files = 0; std::uintmax_t bytes = 0; };
+inline ShaderScan scanShaderCache(const std::string& ck3Dir) {
+    ShaderScan r;
+    if (ck3Dir.empty()) return r;
+    std::error_code ec;
+    if (!fs::is_directory(P(ck3Dir), ec)) return r;
+    for (auto& d : listDir(P(ck3Dir))) {
+        std::error_code e1;
+        if (!d.is_directory(e1) || d.is_symlink(e1)) continue;
+        std::string n = d.path().filename().u8string();
+        for (auto& ch : n) ch = (char)tolower((unsigned char)ch);
+        if (n.find("shader") == std::string::npos) continue;
+        r.folders.push_back(d.path());
+        for (auto& e : listDir(d.path())) {
+            r.entries.push_back(e.path());
+            std::error_code e2;
+            if (e.is_regular_file(e2)) { r.files++; auto sz = e.file_size(e2); if (!e2) r.bytes += sz; }
+            else if (e.is_directory(e2) && !e.is_symlink(e2)) {
+                for (fs::recursive_directory_iterator it(e.path(), e2), end; !e2 && it != end; it.increment(e2)) {
+                    std::error_code e3;
+                    if (it->is_regular_file(e3)) { r.files++; auto sz = it->file_size(e3); if (!e3) r.bytes += sz; }
+                }
+            }
+        }
+    }
+    return r;
+}
+// Removes the contents found by scanShaderCache; returns how many entries could not be removed.
+inline int clearShaderCache(const ShaderScan& sc) {
+    int failed = 0;
+    for (auto& e : sc.entries) {
+        std::error_code ec;
+        if (fs::is_symlink(e, ec)) fs::remove(e, ec); else fs::remove_all(e, ec);
+        if (ec) failed++;
+    }
+    return failed;
 }
 
 // ---------- playset checks ----------
@@ -1805,6 +1846,18 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.after = {"customizable gui", "the catholic trinity", "in my humble opinion", "rename anyone", "displayed birth and death dates", "seperate name and title ue", "seperate name and title", "separate name and title ie", "stress bar for all", "custom title form of address", "hometowns"};
       k.note = K("Dnasis Character UI Compatch: its page says Customizable GUI goes at the top and this loads after the mods it supports"); v.push_back(k); }
     // ---- round of 2026-10-13: Dynamic Trade Routes and Africa Plus ----
+    { KnownMod k; k.names = {"displayed birth and death dates", "displayed birth dates"}; k.ids = {"2228178763"}; k.cat = CAT_UI;
+      k.before = {"better ui scaling", "better character ui", "show more traits", "show more traits better ui mod"};
+      k.note = K("Displayed Birth and Death Dates: its page says it should go before Better UI Scaling, Better Character UI and Show More Traits"); v.push_back(k); }
+    { KnownMod k; k.names = {"seperate name and title ue", "separate name and title ue", "seperate name and title", "separate name and title"}; k.ids = {"2970652165"}; k.cat = CAT_UI;
+      k.after = {"in my humble opinion", "custom title form of address", "displayed birth and death dates"};
+      k.note = K("Separate Name and Title (UE): its page says In My Humble Opinion, Custom Title Form of Address and Displayed Birth and Death Dates go above it"); v.push_back(k); }
+    { KnownMod k; k.names = {"dtr pow", "dynamic trade routes prisoners of war"}; k.ids = {"2854343196"};
+      k.after = {"dynamic trade routes", "beta dynamic trade routes", "prisoners of war"};
+      k.note = K("DTR PoW: its page says to load it after both Dynamic Trade Routes and Prisoners of War"); v.push_back(k); }
+    { KnownMod k; k.names = {"holding sprawl dtr"}; k.ids = {"2824465219"};
+      k.after = {"dynamic trade routes", "beta dynamic trade routes"};
+      k.note = K("Holding Sprawl DTR: its page says to load it after Dynamic Trade Routes"); v.push_back(k); }
     { KnownMod k; k.names = {"immersive personalities", "1 20 immersive personalities"}; k.ids = {"3596393244"}; k.cat = CAT_CONTENT;
       k.note = K("Immersive Personalities: its author says any load order works, since it replaces no vanilla files (overhauls like Princes of Darkness still go first)"); v.push_back(k); }
     { KnownMod k; k.names = {"elder kings 2 nostalgia music submod", "elder kings 2 nostalgia music"}; k.ids = {"2882895497"}; k.after = {"elder kings 2"};

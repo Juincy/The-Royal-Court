@@ -3,6 +3,7 @@
 #include <iostream>
 #include "../core.hpp"
 #include "../gamelog.hpp"
+#include "../scripttime.hpp"
 #include "../crash.hpp"
 #include "../share.hpp"
 #include "../changes.hpp"
@@ -525,6 +526,85 @@ int main() {
             std::vector<std::string> kids; for (int o : kplan.order) kids.push_back(kp.mods[(size_t)o].id);
             auto kpos = [&](const char* id) { return (int)(std::find(kids.begin(), kids.end(), id) - kids.begin()); };
             assert(kpos("b.mod") < kpos("a.mod") && kpos("d.mod") < kpos("c.mod") && kpos("f.mod") < kpos("e.mod"));
+        }
+        {   // round of 2026-10-15 (3): Displayed Birth and Death Dates, Separate Name and Title (UE)
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> us = {mk("1", "Separate Name and Title (UE)"), mk("2", "Better Character UI"), mk("3", "Displayed Birth and Death Dates"), mk("4", "In My Humble Opinion"), mk("5", "Better UI Scaling")};
+            auto ui = infoMap(us); Playset up; up.name = "u";
+            for (auto& m : us) up.mods.push_back({m.id, true, ""});
+            SortPlan upl = planSort(up, ui, {}, {}, nullptr, nullptr, &db);
+            std::map<std::string, int> pos; for (size_t i = 0; i < upl.order.size(); i++) pos[us[(size_t)upl.order[i]].name] = (int)i;
+            assert(pos["Displayed Birth and Death Dates"] < pos["Better UI Scaling"] && pos["Displayed Birth and Death Dates"] < pos["Better Character UI"]);
+            assert(pos["Separate Name and Title (UE)"] > pos["In My Humble Opinion"] && pos["Separate Name and Title (UE)"] > pos["Displayed Birth and Death Dates"]);
+        }
+        {   // script time: statistics files written by the game
+            std::string evCsv = "#ID;IsValidToTrigger;MajorTrigger;Weight;ImmediateEffect;TriggerFailEffect;OptionEffect;OptionAi;AfterEffect;IsValidToTriggerCount;ImmediateEffectCount;ExecuteCount;Sum;%;\r\n"
+                "AAA_maint.100;0.5;0;0;60;0;0;0;0;1000;500;0;60.5;60.50%;\r\n"
+                "BBB_x.1;0.1;0;0;30;0;0;0;0;10;10;10;30.1;30.10%;\r\n"
+                "vanilla_event.0001;0;0;0;9;0;0;0;0;1;1;1;9.0;9.00%;\r\n"
+                "broken row without enough columns\r\n"
+                "AAA_maint.101;0.0;0;0;0.4;0;0;0;0;5;5;0;0.4;0.40%;\r\n";
+            std::string oaCsv = "#ID;IsValidToTrigger;ExecuteEffect;ExecuteEvents;ExecuteFirstValidEvent;ExecuteRandomEvent;ExecuteEventsTotal;ExecuteOnActions;ExecuteFirstValidOnAction;ExecuteRandomOnAction;ExecuteOnActionsTotal;ExecuteFallback;IsValidToTriggerCount;ExecuteCount;Sum;%;\n"
+                "on_death;0.1;2.0;5;0;0;5;3;0;0;3;0;10;10;10.1;50%;\n"
+                "AAA_on_death_extra;0;4.0;0;0;0;0;0;0;0;0;0;10;10;4.0;20%;\n"
+                "shared_pulse;0;1.0;0;0;0;0;0;0;0;0;0;10;10;1.0;5%;\n";
+            TimeTable ev = parseStatsCsv(evCsv, false), oa = parseStatsCsv(oaCsv, true);
+            assert(ev.ok && ev.rows.size() == 4 && oa.ok && oa.rows.size() == 3);
+            assert(ev.rows[0].id == "AAA_maint.100" && ev.rows[0].count == 1000 && std::fabs(ev.total - 100.0) < 1e-9);
+            assert(std::fabs(ev.rows[0].share - 0.605) < 1e-9);
+            // an on_action's own time leaves out the events and on_actions it started: 10.1 - 5 - 3 = 2.1
+            double od = 0; for (auto& r : oa.rows) if (r.id == "on_death") od = r.own;
+            assert(std::fabs(od - 2.1) < 1e-9);
+            assert(!parseStatsCsv("garbage\nmore", false).ok && !parseStatsCsv("", true).ok && !parseStatsCsv("#ID;Foo;\nx;1;", false).ok);
+            // who gets the time
+            auto mkdef = [](ModDefs& md, uint8_t kind, const std::string& nm) { DefEntry d; d.nameOff = (uint32_t)md.pool.size(); d.nameLen = (uint16_t)nm.size(); d.kind = kind; md.pool += nm; md.defs.push_back(d); };
+            std::map<std::string, ModDefs> defs;
+            { ModDefs m; mkdef(m, DK_EVENT, "AAA_maint.100"); mkdef(m, DK_EVENT, "AAA_maint.101"); mkdef(m, DK_ONACTION, "AAA_on_death_extra"); mkdef(m, DK_ONACTION, "on_death"); mkdef(m, DK_ONACTION, "shared_pulse"); defs["1"] = m; }
+            { ModDefs m; mkdef(m, DK_EVENT, "BBB_x.1"); mkdef(m, DK_ONACTION, "on_death"); mkdef(m, DK_ONACTION, "shared_pulse"); defs["2"] = m; }
+            Playset ps; ps.name = "t"; ps.mods.push_back({"1", true, ""}); ps.mods.push_back({"2", true, ""});
+            TimeReport tr = attributeTime(std::move(ev), std::move(oa), ps, defs);
+            assert(tr.perMod.size() == 2 && tr.perMod[0].mod == 0);
+            // mod 1: events 60.5 + 0.4, plus its own prefixed on_action AAA_on_death_extra (4.0); on_death is defined by two mods so it is not credited
+            assert(std::fabs(tr.perMod[0].time - 64.9) < 1e-9 && tr.perMod[0].slowest == "AAA_maint.100");
+            assert(std::fabs(tr.perMod[1].time - 30.1) < 1e-9);
+            assert(std::fabs(tr.baseEvents - 9.0) < 1e-9);                       // vanilla_event.0001 is defined by none of the mods
+            assert(std::fabs(tr.sharedActions - 3.1) < 1e-9);                    // on_death 2.1 + shared_pulse 1.0
+            assert(std::fabs(tr.all - (100.0 + 7.1)) < 1e-9);
+            // a turned-off mod gets nothing
+            ps.mods[0].enabled = false;
+            TimeReport t2 = attributeTime(parseStatsCsv(evCsv, false), parseStatsCsv(oaCsv, true), ps, defs);
+            assert(t2.perMod.size() == 1 && t2.perMod[0].mod == 1);
+            // yearly counts
+            std::string yr = "[08:02:53][I][jomini_log.cpp:23]: [AUTOMATION_STATS][living characters][Year][.]:[22520][1276]\n"
+                "[08:02:53][I][jomini_log.cpp:23]: [AUTOMATION_STATS][opinions][Year][.]:[53697][1276]\n"
+                "[09:39:49][I][jomini_log.cpp:23]: [AUTOMATION_STATS][living characters][Year][.]:[23758][1277]\n"
+                "[09:39:49][I][jomini_log.cpp:23]: [AUTOMATION_STATS][errors][Year][.]:[100000][1277]\n"
+                "[09:39:49][I][jomini_log.cpp:23]: something else\n";
+            auto ys = parseYearStats(yr);
+            assert(ys.size() == 2 && ys[0].year == 1276 && ys[0].v["living characters"] == 22520 && ys[1].v["errors"] == 100000 && ys[1].v["living characters"] == 23758);
+            assert(parseYearStats("").empty());
+        }
+        {   // shader cache scan and clear
+            fs::path root = fs::temp_directory_path() / "rc_shader_test"; fs::remove_all(root);
+            fs::create_directories(root / "ShaderCache" / "sub"); fs::create_directories(root / "save games"); fs::create_directories(root / "mod");
+            { std::ofstream(root / "ShaderCache" / "a.bin") << "12345"; std::ofstream(root / "ShaderCache" / "sub" / "b.bin") << "123"; std::ofstream(root / "save games" / "keep.ck3") << "x"; }
+            ShaderScan sc = scanShaderCache(root.u8string());
+            assert(sc.folders.size() == 1 && sc.files == 2 && sc.bytes == 8 && sc.entries.size() == 2);
+            assert(clearShaderCache(sc) == 0);
+            assert(fs::is_directory(root / "ShaderCache") && !fs::exists(root / "ShaderCache" / "a.bin") && fs::exists(root / "save games" / "keep.ck3"));
+            assert(scanShaderCache(root.u8string()).entries.empty() && scanShaderCache("").folders.empty());
+            fs::remove_all(root / "ShaderCache"); assert(scanShaderCache(root.u8string()).folders.empty());
+            fs::remove_all(root);
+        }
+        {   // round of 2026-10-15: DTR PoW and Holding Sprawl DTR
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> ds = {mk("1", "DTR PoW"), mk("2", "Holding Sprawl DTR"), mk("3", "Prisoners of War"), mk("4", "[Beta] Dynamic Trade Routes")};
+            auto di = infoMap(ds); Playset dp; dp.name = "d";
+            for (auto& m : ds) dp.mods.push_back({m.id, true, ""});
+            SortPlan dpl = planSort(dp, di, {}, {}, nullptr, nullptr, &db);
+            std::map<std::string, int> pos; for (size_t i = 0; i < dpl.order.size(); i++) pos[ds[(size_t)dpl.order[i]].name] = (int)i;
+            assert(pos["DTR PoW"] > pos["Prisoners of War"] && pos["DTR PoW"] > pos["[Beta] Dynamic Trade Routes"]);
+            assert(pos["Holding Sprawl DTR"] > pos["[Beta] Dynamic Trade Routes"]);
         }
         {   // pre-Play health check
             auto mk = [](const char* id, const char* name, std::vector<std::string> deps = {}) { ModInfo m; m.id = id; m.name = name; m.deps = deps; m.supported = "1.20.*"; return m; };

@@ -9,6 +9,7 @@
 #include "core.hpp"
 #include "fastwalk.hpp"
 #include "gamelog.hpp"
+#include "scripttime.hpp"
 #include "crash.hpp"
 #include "share.hpp"
 #include "changes.hpp"
@@ -88,7 +89,7 @@ static std::wstring TLF(const wchar_t* key, std::initializer_list<WA> args) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_ADV_HEALTH, ID_ADV_PLAYCHECK, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_ADV_HEALTH, ID_ADV_PLAYCHECK, ID_ADV_SHADER, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D, ID_ADV_SCRIPTTIME, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
     ID_TREE, ID_EXPAND, ID_COLLAPSE,
     ID_LANG, ID_LANG_BASE = 7100   // ID_LANG_BASE: the language menu uses ID_LANG_BASE .. ID_LANG_BASE + LANG_COUNT
 };
@@ -490,7 +491,7 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
     HBRUSH ab = CreateSolidBrush(around); FillRect(dc, &r, ab); DeleteObject(ab);
     bool dis = (d->itemState & ODS_DISABLED) != 0, down = (d->itemState & ODS_SELECTED) != 0;
     float ha = hoverAmt(d->hwndItem);   // 0..1: the hover colour fades in and out instead of snapping
-    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3) || (id == ID_RP_A && g_repViewForBtn == 0) || (id == ID_RP_B && g_repViewForBtn == 1);
+    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3) || (id == ID_RP_A && g_repViewForBtn == 0) || (id == ID_RP_B && g_repViewForBtn == 1) || (id == ID_RP_C && g_repViewForBtn == 2) || (id == ID_RP_D && g_repViewForBtn == 3);
     COLORREF fill = primary ? (down ? mix(t.accent, RGB(0,0,0), 20) : mix(t.accent, RGB(255,255,255), (int)(18.0f * ha))) : (down ? t.btnDown : mix(t.btn, t.btnHot, (int)(100.0f * ha + 0.5f)));
     COLORREF edge = primary ? mix(t.accent, RGB(0,0,0), 25) : mix(t.border, t.gold, (int)(100.0f * ha + 0.5f));
     {
@@ -2730,9 +2731,10 @@ static void showConflicts() {
 // ---------- report window: the game log helper and "since you last pressed Play" ----------
 // One window, two contents. The game log helper reads the game's own log and shows which mod each message points at.
 // "Since last Play" lists the mods that were updated, are now older than the game, or were turned on or off.
-struct RepRow { std::vector<std::wstring> cells; std::wstring hay, key; int sev = 0; int mod = -1; std::string copy; };
+struct RepRow { std::vector<std::wstring> cells; std::wstring hay, key; int sev = 0; int mod = -1; std::string copy; double frac = -1; };   // frac: bar length (0..1) in the Script time window, -1 = no bar
 static HWND hRep = nullptr, hRepList = nullptr, hRepFilter = nullptr, hRepStatus = nullptr;
-static int g_repKind = 0;            // 0 game log, 1 since last Play
+static int g_repKind = 0;            // 0 game log, 1 since last Play, 2 script time
+static int g_repBarCol = -1;         // script time window: the column that is drawn as a bar
 static std::vector<RepRow> g_repRows;
 static std::vector<int> g_repShown;
 static std::unique_ptr<LogReport> g_logRep;
@@ -2884,6 +2886,121 @@ static void repBuildLog() {
     }
 }
 
+// ---------- script time (Advanced > Script time) ----------
+static std::wstring timeText(double v) { wchar_t b[48]; swprintf(b, 48, v >= 100 ? L"%.0f" : v >= 10 ? L"%.1f" : L"%.2f", v); return b; }
+static std::wstring shareText(double f) { wchar_t b[32]; swprintf(b, 32, f > 0 && f < 0.001 ? L"<0.1%%" : L"%.1f%%", f * 100.0); return b; }
+static std::wstring countText(long long n) {
+    std::wstring s = std::to_wstring(n);
+    for (int i = (int)s.size() - 3; i > 0; i -= 3) s.insert((size_t)i, L",");
+    return s;
+}
+static void repBuildTime() {
+    g_repRows.clear(); g_repReport.clear(); g_repBarCol = -1; g_repWaitIndex = false;
+    Playset* ps = active();
+    std::string dir = effectiveDir();
+    if (!ps || dir.empty()) { g_repStatusText = TL(L"The CK3 folder is not set. Enter it in the main window first."); return; }
+    fs::path logs = P(dir) / "logs";
+    std::error_code ec;
+    std::string evText = readHeadOrTail(logs / "eventstats.csv", 32u << 20, false), oaText = readHeadOrTail(logs / "onactionstats.csv", 32u << 20, false);
+    std::string yrText = readHeadOrTail(logs / "custom_automated_stats.log", 32u << 20, false);
+    TimeTable ev = parseStatsCsv(evText, false), oa = parseStatsCsv(oaText, true);
+    std::vector<YearStats> years = parseYearStats(yrText);
+    if (!ev.ok && !oa.ok && years.empty()) { g_repStatusText = TLF(L"The game has not written its script statistics yet (eventstats.csv and onactionstats.csv in {0}). Play for a while, quit the game, then open this again.", {logs.u8string()}); return; }
+    int enabled = 0, ready = 0;
+    for (auto& m : ps->mods) if (m.enabled) { enabled++; auto f = g_fileIndex.find(m.id); if (f != g_fileIndex.end() && f->second.complete) ready++; }
+    bool waiting = ready < enabled;
+    if (waiting) { g_repWaitIndex = true; if (!g_scanning) maybeScan(true); }
+    TimeReport tr = attributeTime(std::move(ev), std::move(oa), *ps, g_defIndex);
+    auto modName = [&](int pos) { auto it = g_info.find(ps->mods[(size_t)pos].id); return it != g_info.end() ? it->second.name : ps->mods[(size_t)pos].id; };
+    // same mods as in that game session?
+    std::wstring same;
+    std::vector<LoadedMod> loaded = parseLoadedMods(readHeadOrTail(logs / "debug.log", 6u << 20, false));
+    if (!loaded.empty()) {
+        std::set<std::string> was, is;
+        for (auto& m : loaded) if (m.enabled) was.insert(m.id);
+        for (auto& m : ps->mods) if (m.enabled) is.insert(m.id);
+        int onlyNow = 0, onlyThen = 0;
+        for (auto& id : is) if (!was.count(id)) onlyNow++;
+        for (auto& id : was) if (!is.count(id)) onlyThen++;
+        if (!onlyNow && !onlyThen) same = std::wstring(L" · ") + TL(L"the game ran with the mods you have enabled now");
+        else same = L" · " + TLF(L"NOT the playset you have now ({0} turned on, {1} turned off since); names may point at the wrong mods", {onlyNow, onlyThen});
+    }
+    auto ft = fs::last_write_time(logs / (oaText.empty() ? "eventstats.csv" : "onactionstats.csv"), ec);
+    long long when = 0;
+    if (!ec) when = (long long)std::time(nullptr) - (long long)std::chrono::duration_cast<std::chrono::seconds>(fs::file_time_type::clock::now() - ft).count();
+    double errs = years.empty() ? 0 : years.back().v["errors"];
+    g_repStatusText = TLF(L"Statistics from {0}", {when ? repWhen(when) : std::wstring(L"?")}) + L" · " + TLF(L"{0} events and {1} on_actions measured", {tr.events.rows.size(), tr.onActions.rows.size()}) + same
+        + (waiting ? std::wstring(L" · ") + TL(L"still reading your mods' files, this updates by itself") : std::wstring())
+        + (errs >= 1000 ? std::wstring(L" · ") + TLF(L"the game counted {0} script errors in that session (error messages cost time too: see the Game log)", {countText((long long)errs)}) : std::wstring());
+    g_repReport = "Script time report (" + U(std::wstring(L"time as written by the game, share of all measured script time"))+ ")\n";
+    const double all = tr.all > 0 ? tr.all : 1;
+    auto push = [&](RepRow r, const std::wstring& line) { r.copy = U(line); g_repReport += r.copy + "\n"; repAddRow(std::move(r)); };
+    auto addBar = [&](RepRow& r, double v, double mx) { r.frac = mx > 0 ? v / mx : 0; };
+    if (g_repViewForBtn == 0) {                                                   // by mod
+        g_repBarCol = 2;
+        double mx = tr.perMod.empty() ? 0 : tr.perMod[0].time;
+        mx = std::max({mx, tr.baseEvents, tr.sharedActions});
+        for (auto& m : tr.perMod) {
+            RepRow r; r.mod = m.mod; r.key = W(modName(m.mod));
+            r.cells = {modLabel(m.mod), timeText(m.time), shareText(m.time / all), countText(m.runs), W(m.slowest)};
+            addBar(r, m.time, mx);
+            push(std::move(r), modLabel(m.mod) + L": " + timeText(m.time) + L" (" + shareText(m.time / all) + L"), slowest: " + W(m.slowest));
+        }
+        if (tr.baseEvents > 0) {
+            RepRow r; r.mod = -2; r.key = TL(L"Base game");
+            r.cells = {TL(L"Base game events (not found in your mods)"), timeText(tr.baseEvents), shareText(tr.baseEvents / all), countText(tr.baseRuns), L""};
+            addBar(r, tr.baseEvents, mx);
+            push(std::move(r), r.cells[0] + L": " + r.cells[1] + L" (" + r.cells[2] + L")");
+        }
+        if (tr.sharedActions > 0) {
+            RepRow r; r.mod = -3; r.key = L"On_actions";
+            r.cells = {TL(L"On_actions (base game and mods share these)"), timeText(tr.sharedActions), shareText(tr.sharedActions / all), countText(tr.sharedRuns), TL(L"see the On_actions view")};
+            addBar(r, tr.sharedActions, mx);
+            push(std::move(r), r.cells[0] + L": " + r.cells[1] + L" (" + r.cells[2] + L")");
+        }
+    } else if (g_repViewForBtn == 1) {                                            // events
+        g_repBarCol = 3;
+        size_t shown = 0;
+        double mx = tr.events.rows.empty() ? 0 : tr.events.rows[0].own;
+        for (size_t k = 0; k < tr.events.rows.size() && shown < 600; k++, shown++) {
+            const TimeRow& x = tr.events.rows[k];
+            std::wstring who = tr.eventMod[k] >= 0 ? modLabel(tr.eventMod[k]) : TL(L"Base game");
+            RepRow r; r.mod = tr.eventMod[k]; r.key = W(x.id);
+            r.cells = {W(x.id), who, timeText(x.own), shareText(x.own / all), countText(x.count)};
+            addBar(r, x.own, mx);
+            push(std::move(r), W(x.id) + L" (" + who + L"): " + timeText(x.own) + L", " + shareText(x.own / all) + L", " + countText(x.count) + L" runs");
+        }
+    } else if (g_repViewForBtn == 2) {                                            // on_actions
+        g_repBarCol = 3;
+        double mx = tr.onActions.rows.empty() ? 0 : tr.onActions.rows[0].own;
+        size_t shown = 0;
+        for (size_t k = 0; k < tr.onActions.rows.size() && shown < 600; k++, shown++) {
+            const TimeRow& x = tr.onActions.rows[k];
+            std::wstring who;
+            if (tr.actionMod[k] >= 0) who = modLabel(tr.actionMod[k]);
+            else if (tr.actionDefiners[k].empty()) who = TL(L"Base game");
+            else { size_t n = 0; for (int mi : tr.actionDefiners[k]) { if (n++) who += L", "; if (n > 2) { who += L"..."; break; } who += modLabel(mi); } who = TL(L"Base game and ") + who; }
+            RepRow r; r.mod = tr.actionMod[k]; r.key = W(x.id);
+            r.cells = {W(x.id), who, timeText(x.own), shareText(x.own / all), countText(x.count)};
+            addBar(r, x.own, mx);
+            push(std::move(r), W(x.id) + L" (" + who + L"): " + timeText(x.own) + L", " + shareText(x.own / all) + L", " + countText(x.count) + L" runs");
+        }
+    } else {                                                                      // over the years
+        g_repBarCol = 1;
+        double mx = 0;
+        for (auto& y : years) mx = std::max(mx, y.v["living characters"]);
+        auto num = [&](YearStats& y, const char* k) { auto it = y.v.find(k); return it == y.v.end() ? std::wstring(L"") : countText((long long)it->second); };
+        for (size_t i = years.size(); i-- > 0;) {
+            YearStats& y = years[i];
+            RepRow r; r.key = std::to_wstring(y.year);
+            r.cells = {std::to_wstring(y.year), num(y, "living characters"), num(y, "court characters"), num(y, "ruler characters"), num(y, "opinions"), num(y, "schemes"), num(y, "wars"), num(y, "errors")};
+            addBar(r, y.v["living characters"], mx);
+            push(std::move(r), r.cells[0] + L": " + r.cells[1] + L" living characters, " + r.cells[4] + L" opinions, " + r.cells[5] + L" schemes");
+        }
+    }
+    if (g_repRows.empty()) { RepRow r; r.cells = {TL(L"Nothing to show for this view.")}; repAddRow(std::move(r)); }
+}
+
 static void repBuildSince() {
     g_repRows.clear(); g_repReport.clear();
     Playset* ps = active();
@@ -2908,7 +3025,13 @@ static void repColumns() {
     while (ListView_DeleteColumn(hRepList, 0)) {}
     struct Col { const wchar_t* t; int w; };
     std::vector<Col> cols;
-    if (g_repKind == 1) { cols.push_back({TLK(L"What"), 190}); cols.push_back({TLK(L"Mod"), 320}); cols.push_back({TLK(L"Details"), 620}); }
+    if (g_repKind == 2) {
+        auto add = [&](const wchar_t* t, int w) { cols.push_back({t, w}); };
+        if (g_repViewForBtn == 0) { add(TLK(L"Mod"), 330); add(TLK(L"Time"), 80); add(TLK(L"Share of script time"), 260); add(TLK(L"Runs"), 100); add(TLK(L"Slowest event or on_action"), 360); }
+        else if (g_repViewForBtn == 3) { add(TLK(L"Year"), 70); add(TLK(L"Living characters"), 260); add(TLK(L"Court"), 90); add(TLK(L"Rulers"), 90); add(TLK(L"Opinions"), 100); add(TLK(L"Schemes"), 90); add(TLK(L"Wars"), 70); add(TLK(L"Errors"), 90); }
+        else { add(g_repViewForBtn == 1 ? TLK(L"Event") : TLK(L"On_action"), 330); add(TLK(L"Mod"), 300); add(TLK(L"Time"), 80); add(TLK(L"Share of script time"), 200); add(TLK(L"Runs"), 100); }
+    }
+    else if (g_repKind == 1) { cols.push_back({TLK(L"What"), 190}); cols.push_back({TLK(L"Mod"), 320}); cols.push_back({TLK(L"Details"), 620}); }
     else if (g_repViewForBtn == 0) { cols.push_back({TLK(L"Mod"), 320}); cols.push_back({TLK(L"Errors"), 70}); cols.push_back({TLK(L"Warnings"), 80}); cols.push_back({TLK(L"Different"), 80}); cols.push_back({TLK(L"Most common message"), 620}); }
     else { cols.push_back({TLK(L"Mod"), 260}); cols.push_back({TLK(L"Level"), 70}); cols.push_back({TLK(L"Times"), 60}); cols.push_back({TLK(L"Message"), 560}); cols.push_back({TLK(L"File"), 360}); }
     for (size_t i = 0; i < cols.size(); i++) {
@@ -2932,10 +3055,10 @@ static void repFill() {
 }
 static void repRefresh() {
     if (!hRep) return;
-    if (g_repKind == 0) repBuildLog(); else repBuildSince();
+    if (g_repKind == 0) repBuildLog(); else if (g_repKind == 2) repBuildTime(); else repBuildSince();
     repColumns();
     repFill();
-    for (int id : {ID_RP_A, ID_RP_B}) if (HWND b = GetDlgItem(hRep, id)) InvalidateRect(b, nullptr, FALSE);
+    for (int id : {ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D}) if (HWND b = GetDlgItem(hRep, id)) InvalidateRect(b, nullptr, FALSE);
 }
 static void repLayout() {
     RECT r; GetClientRect(hRep, &r);
@@ -2943,6 +3066,8 @@ static void repLayout() {
     if (g_repKind == 0) {
         MoveWindow(GetDlgItem(hRep, ID_RP_A), x, y, S(110), bh, TRUE); x += S(110) + gap;
         MoveWindow(GetDlgItem(hRep, ID_RP_B), x, y, S(150), bh, TRUE); x += S(150) + gap;
+    } else if (g_repKind == 2) {
+        for (int id : {ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D}) { MoveWindow(GetDlgItem(hRep, id), x, y, S(id == ID_RP_D ? 150 : 124), bh, TRUE); x += S(id == ID_RP_D ? 150 : 124) + gap; }
     }
     int right = r.right - m;
     MoveWindow(GetDlgItem(hRep, ID_RP_RELOAD), right - S(110), y, S(110), bh, TRUE); right -= S(110) + gap;
@@ -2970,6 +3095,7 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_CREATE: {
             hRep = h;
             if (g_repKind == 0) { mkBtn(h, L"☰", TL(L"By mod"), ID_RP_A); mkBtn(h, L"≡", TL(L"All messages"), ID_RP_B); }
+            else if (g_repKind == 2) { mkBtn(h, L"☰", TL(L"By mod"), ID_RP_A); mkBtn(h, L"≡", TL(L"Slowest events"), ID_RP_B); mkBtn(h, L"↯", TL(L"On_actions"), ID_RP_C); mkBtn(h, L"▁", TL(L"Over the years"), ID_RP_D); }
             mkBtn(h, L"⎘", TL(L"Copy report"), ID_RP_COPY);
             mkBtn(h, L"↻", TL(L"Reload"), ID_RP_RELOAD);
             hRepFilter = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL, 0, 0, 10, 10, h, (HMENU)(INT_PTR)ID_RP_FILTER, g_inst, nullptr);
@@ -2996,7 +3122,7 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_APP + 1: repTheme(); return 0;
         case WM_COMMAND:
             switch (LOWORD(w)) {
-                case ID_RP_A: case ID_RP_B: g_repViewForBtn = LOWORD(w) == ID_RP_A ? 0 : 1; repRefresh(); break;
+                case ID_RP_A: case ID_RP_B: case ID_RP_C: case ID_RP_D: g_repViewForBtn = LOWORD(w) - ID_RP_A; repRefresh(); break;
                 case ID_RP_FILTER: if (HIWORD(w) == EN_CHANGE) repFill(); break;
                 case ID_RP_RELOAD: repRefresh(); break;
                 case ID_RP_COPY:
@@ -3014,6 +3140,14 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 if ((di->item.mask & LVIF_TEXT) && di->item.iItem >= 0 && di->item.iItem < (int)g_repShown.size()) {
                     const auto& row = g_repRows[(size_t)g_repShown[(size_t)di->item.iItem]];
                     di->item.pszText = (LPWSTR)(di->item.iSubItem >= 0 && di->item.iSubItem < (int)row.cells.size() ? row.cells[(size_t)di->item.iSubItem].c_str() : L"");
+                }
+                return 0;
+            }
+            if (nh->code == NM_DBLCLK && g_repKind == 2 && g_repViewForBtn == 0) {   // a mod: show its events
+                int it = ((NMITEMACTIVATE*)l)->iItem;
+                if (it >= 0 && it < (int)g_repShown.size() && g_repRows[(size_t)g_repShown[(size_t)it]].mod >= 0) {
+                    std::wstring key = g_repRows[(size_t)g_repShown[(size_t)it]].cells[0];
+                    g_repViewForBtn = 1; SetWindowTextW(hRepFilter, key.c_str()); repRefresh();
                 }
                 return 0;
             }
@@ -3061,6 +3195,22 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 if (cd->nmcd.dwDrawStage == (CDDS_ITEMPREPAINT | CDDS_SUBITEM)) {
                     size_t row = (size_t)cd->nmcd.dwItemSpec;
                     bool sel = (ListView_GetItemState(hRepList, (int)row, LVIS_SELECTED) & LVIS_SELECTED) != 0;
+                    if (g_repKind == 2 && cd->iSubItem == g_repBarCol && row < g_repShown.size() && g_repRows[(size_t)g_repShown[row]].frac >= 0) {   // the bar of the graph
+                        const RepRow& rr = g_repRows[(size_t)g_repShown[row]];
+                        RECT rc{}; ListView_GetSubItemRect(hRepList, (int)row, cd->iSubItem, LVIR_BOUNDS, &rc);
+                        HDC dc = cd->nmcd.hdc;
+                        HBRUSH bb = CreateSolidBrush(sel ? t.sel : (row & 1) ? t.alt : t.list); FillRect(dc, &rc, bb); DeleteObject(bb);
+                        RECT bar = rc; bar.left += S(3); bar.right -= S(3); bar.top += S(3); bar.bottom -= S(3);
+                        int full = bar.right - bar.left, len = (int)(full * std::min(1.0, rr.frac) + 0.5);
+                        if (rr.frac > 0 && len < S(2)) len = S(2);
+                        RECT fillr = bar; fillr.right = bar.left + len;
+                        HBRUSH fb = CreateSolidBrush(mix(t.accent, (row & 1) ? t.alt : t.list, 45)); FillRect(dc, &fillr, fb); DeleteObject(fb);
+                        const std::wstring& txt = cd->iSubItem < (int)rr.cells.size() ? rr.cells[(size_t)cd->iSubItem] : std::wstring();
+                        RECT tr2 = rc; tr2.left += S(8);
+                        SetBkMode(dc, TRANSPARENT); SetTextColor(dc, sel ? t.selText : t.text);
+                        DrawTextW(dc, txt.c_str(), -1, &tr2, DT_SINGLELINE | DT_VCENTER | DT_LEFT | DT_NOPREFIX | DT_END_ELLIPSIS);
+                        return CDRF_SKIPDEFAULT;
+                    }
                     cd->clrTextBk = sel ? t.sel : (row & 1) ? t.alt : t.list;
                     cd->clrText = sel ? t.selText : t.text;
                     if (!sel && row < g_repShown.size()) {
@@ -3106,7 +3256,7 @@ static void showReport(int kind) {
         RegisterClassW(&wc); reg = true;
     }
     g_repKind = kind; g_repViewForBtn = 0;
-    CreateWindowExW(0, L"RCRep", kind == 0 ? TL(L"Game log - The Royal Court") : TL(L"Since you last pressed Play - The Royal Court"), WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, S(1120), S(600), hMain, nullptr, g_inst, nullptr);
+    CreateWindowExW(0, L"RCRep", kind == 0 ? TL(L"Game log - The Royal Court") : kind == 2 ? TL(L"Script time - The Royal Court") : TL(L"Since you last pressed Play - The Royal Court"), WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN, CW_USEDEFAULT, CW_USEDEFAULT, S(1120), S(600), hMain, nullptr, g_inst, nullptr);
 }
 
 static bool g_sinceShown = false;
@@ -4107,6 +4257,22 @@ static void deleteAllSaves() {
         say(TLF(L"Deleted {0} save file(s) ({1}) to the Recycle Bin.", {sc.files, sizeText(sc.bytes)}));
 }
 
+static void clearShaders() {
+    std::string dir = effectiveDir();
+    if (dir.empty()) { info(TL(L"The CK3 folder is not set. Enter it at the bottom (the folder that contains \"mod\") and press Save folder.")); return; }
+    if (processRunning(L"ck3.exe")) { info(TL(L"Crusader Kings III is running. Close the game first, then try again.")); return; }
+    ShaderScan sc = scanShaderCache(dir);
+    if (sc.folders.empty()) { info(TL(L"No shader cache folder was found in your Crusader Kings III folder. Nothing to clear.")); return; }
+    if (sc.entries.empty()) { info(TL(L"The shader cache folder is already empty.")); return; }
+    std::wstring q = TLF(L"Clear the shader cache?\n\n{0} file(s), {1}\nin {2}\n\nThe game rebuilds it by itself, so the first start afterwards can be a little slower and stutter more for a while. Your saves, mods and settings are not touched.",
+                         {sc.files, sizeText(sc.bytes), sc.folders[0].wstring()});
+    if (MessageBoxW(hMain, q.c_str(), TL(L"Clear shader cache"), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) != IDYES) return;
+    int failed = clearShaderCache(sc);
+    logLine("shader cache cleared: " + std::to_string(sc.files) + " files, " + std::to_string(failed) + " failed");
+    if (failed) say(TLF(L"Some shader cache items could not be removed ({0}). Close the game and other programs and try again.", {failed}));
+    else say(TLF(L"Shader cache cleared ({0} file(s), {1}). The game builds it again on the next start.", {sc.files, sizeText(sc.bytes)}));
+}
+
 static void restoreBackup() {
     Playset* ps = active();
     if (!ps) return;
@@ -4475,6 +4641,7 @@ static void advancedMenu() {
     AppendMenuW(m, MF_STRING, ID_ADV_HEALTH, TL(L"Health check: is this playset ready to play..."));
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING, ID_ADV_GAMELOG, TL(L"Game log: which mod causes the errors..."));
+    AppendMenuW(m, MF_STRING, ID_ADV_SCRIPTTIME, TL(L"Script time: which mod's scripts take the most time..."));
     AppendMenuW(m, MF_STRING, ID_ADV_SINCE, TL(L"What changed since I last pressed Play..."));
     AppendMenuW(m, MF_STRING, ID_ADV_CRASH, TL(L"Crash helper: why did the game crash..."));
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
@@ -4492,6 +4659,7 @@ static void advancedMenu() {
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING, ID_ADV_OPENSAVES, TL(L"Open saves folder"));
     AppendMenuW(m, MF_STRING, ID_ADV_OPENLOGS, TL(L"Open game logs folder"));
+    AppendMenuW(m, MF_STRING, ID_ADV_SHADER, TL(L"Clear the shader cache (the game rebuilds it)..."));
     AppendMenuW(m, MF_STRING, ID_ADV_TUTORIAL, TL(L"Show the quick tour again..."));
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING | (g_settings.playCheck ? MF_CHECKED : 0), ID_ADV_PLAYCHECK, TL(L"Run the health check when I press Play"));
@@ -4505,8 +4673,10 @@ static void advancedMenu() {
     if (cmd == ID_FOLDER) ShellExecuteW(hMain, L"open", playsetsDir().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     else if (cmd == ID_ADV_DELSAVES) deleteAllSaves();
     else if (cmd == ID_ADV_HEALTH) showHealth();
+    else if (cmd == ID_ADV_SHADER) clearShaders();
     else if (cmd == ID_ADV_PLAYCHECK) { g_settings.playCheck = !g_settings.playCheck; saveSettingsNow(); say(g_settings.playCheck ? TL(L"The health check will run when you press Play.") : TL(L"The health check will no longer run when you press Play. You can still start it from Advanced.")); }
     else if (cmd == ID_ADV_GAMELOG) showReport(0);
+    else if (cmd == ID_ADV_SCRIPTTIME) showReport(2);
     else if (cmd == ID_ADV_SINCE) showReport(1);
     else if (cmd == ID_ADV_CRASH) crashHelper();
     else if (cmd == ID_ADV_TUTORIAL) showTutorial();

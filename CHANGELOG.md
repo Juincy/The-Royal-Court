@@ -6,6 +6,16 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.20.3] - 2026-10-15
+Five Workshop rounds (72 more pages read, four with a stated order).
+
+### Added
+- **DTR PoW** (after Dynamic Trade Routes and Prisoners of War) and **Holding Sprawl DTR** (after Dynamic Trade Routes).
+- **Script time** (Advanced > "Script time: which mod's scripts take the most time..."). While you play, the game keeps its own stopwatch for every event and every on_action and writes the totals to `logs/eventstats.csv` and `logs/onactionstats.csv`. This window reads them, so the numbers are measured, not guessed. Four views, each with a bar graph: **By mod** (time per mod, share of all measured script time, runs, slowest event; double-click a mod to see its events), **Slowest events** (which mod each belongs to), **On_actions**, and **Over the years** (from `custom_automated_stats.log`: living characters, court, opinions, schemes, wars and the game's error count per year, which shows why a long game slows down). An event is credited to the mod that loads last and defines it. An on_action is credited to a mod only when exactly one mod defines it and its first word (for example POD_) matches that mod's event names; the rest stays under "On_actions", because many mods extend the same base-game on_actions and the time cannot be split between them. The window says when the game ran with a different set of mods than you have now, and when the game counted a large number of script errors (error messages cost time too). It measures the last game session only and reads the files once, when you open it.
+- **Clear the shader cache** (Advanced > "Clear the shader cache (the game rebuilds it)..."). The game keeps a shader cache in a folder of your Crusader Kings III user folder; this empties it after you confirm (it shows the file count and size first). It refuses while the game is running, only touches folders directly inside the user folder whose name contains "shader", and never touches saves, mods or settings. The game rebuilds the cache itself, so the first start afterwards can be slower. It is housekeeping, not a known fix for crashes.
+- **Displayed Birth and Death Dates** (before Better UI Scaling, Better Character UI and Show More Traits) and **Separate Name and Title (UE)** (below In My Humble Opinion, Custom Title Form of Address and Displayed Birth and Death Dates).
+- Workshop ledger: 192 pages read so far.
+
 ## [0.20.2] - 2026-10-14
 Two more author-stated load orders, and the Workshop ledger now follows the real "Most Popular (all time)" list so the mods people actually use are read first.
 
@@ -17,7 +27,7 @@ Two more author-stated load orders, and the Workshop ledger now follows the real
 - **Elder Kings 2 - Nostalgia Music Submod** (below Elder Kings 2), **Search & Trade Artifacts** (after the Unofficial Patch) and **AGOT Expanded - Dragons** (below AGOT More Dragon Eggs).
 - **Pre-Play health check** (Advanced > Health check). It lists missing or turned-off dependencies, mods for another game version, mods that break a known load-order rule, two total conversions at once, and serious file conflicts. When you press Play it runs by itself and asks Yes/No before launching if it finds anything (Yes launches, No shows the full list). Turn that off with "Run the health check when I press Play".
 - **Immersive Personalities**: its author says any load order works because it replaces no vanilla files, so it is listed as Content with no position (overhauls like Princes of Darkness still go first).
-- Workshop ledger: the top 120 mods of the all-time Most Popular list are in it (63 were new to the ledger) and nearly all of them are now read. 120 pages read so far, 34 with a stated order.
+- Workshop ledger: the top 120 mods of the all-time Most Popular list are in it (63 were new to the ledger) and nearly all of them are now read. 120 pages read so far.
 
 ## [0.20.1] - 2026-10-12
 A full audit of every system, with a close look at whether the manager can slow Crusader Kings III down while the game runs. It cannot do so any more than it needs to, and now it does even less.
