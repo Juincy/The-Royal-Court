@@ -495,6 +495,69 @@ int main() {
             assert(wpos("d.mod") < wpos("c.mod") && wpos("c.mod") < wpos("b.mod") && wpos("b.mod") < wpos("a.mod"));   // MB+, DTR, DTR Lite, compatch
             assert(wpos("f.mod") < wpos("e.mod") && wpos("e.mod") < wpos("g.mod") && wpos("e.mod") < wpos("h.mod"));   // Muslim Enhancements, Africa Plus, then its compatch and Culture Expanded
         }
+        {   // orders added from the Workshop round of 2026-10-14
+            std::vector<ModInfo> ws = {mkm("a.mod", "Knight Manager"), mkm("b.mod", "Unified UI"), mkm("c.mod", "Community Flavor Pack"), mkm("d.mod", "Godherja: The Dying World")};
+            auto wi = infoMap(ws); Playset wp; wp.name = "w";
+            for (auto& m : ws) wp.mods.push_back({m.id, true, ""});
+            auto wplan = planSort(wp, wi, {}, {}, nullptr, nullptr, &db);
+            std::vector<std::string> wids; for (int o : wplan.order) wids.push_back(wp.mods[(size_t)o].id);
+            auto wpos = [&](const char* id) { return (int)(std::find(wids.begin(), wids.end(), id) - wids.begin()); };
+            assert(wpos("d.mod") == 0);                        // Godherja is a total conversion: first
+            assert(wpos("b.mod") < wpos("a.mod"));             // Knight Manager below Unified UI
+            std::vector<ModInfo> rs = {mkm("a.mod", "RUI:Character Unofficial"), mkm("b.mod", "Hometowns"), mkm("c.mod", "Weight of Crown")};
+            auto ri = infoMap(rs); Playset rp; rp.name = "r";
+            for (auto& m : rs) rp.mods.push_back({m.id, true, ""});
+            auto rplan = planSort(rp, ri, {}, {}, nullptr, nullptr, &db);
+            assert(rp.mods[(size_t)rplan.order.back()].id == "a.mod");   // RUI:Character Unofficial below the mods on its page's list
+            std::vector<ModInfo> gs = {mkm("a.mod", "AGOT - Armies of Westeros"), mkm("b.mod", "A Game of Thrones"), mkm("c.mod", "AGOT Submod Core"), mkm("d.mod", "COW-AGOT: 3D Models & Bigger Castles"), mkm("e.mod", "Better Ruler Designer"), mkm("f.mod", "Better UI Scaling")};
+            auto gi = infoMap(gs); Playset gp; gp.name = "g";
+            for (auto& m : gs) gp.mods.push_back({m.id, true, ""});
+            auto gplan = planSort(gp, gi, {}, {}, nullptr, nullptr, &db);
+            std::vector<std::string> gids; for (int o : gplan.order) gids.push_back(gp.mods[(size_t)o].id);
+            auto gpos = [&](const char* id) { return (int)(std::find(gids.begin(), gids.end(), id) - gids.begin()); };
+            assert(gpos("b.mod") < gpos("c.mod") && gpos("c.mod") < gpos("a.mod") && gpos("a.mod") < gpos("d.mod"));   // AGOT, Submod Core, Armies of Westeros, COW-AGOT
+            assert(gpos("f.mod") < gpos("e.mod"));                                                                   // Better Ruler Designer below Better UI Scaling
+            std::vector<ModInfo> ks = {mkm("a.mod", "Elder Kings 2 - Nostalgia Music Submod"), mkm("b.mod", "Elder Kings 2"), mkm("c.mod", "Search & Trade Artifacts"), mkm("d.mod", "Unofficial Patch"),
+                                       mkm("e.mod", "AGOT expanded - Dragons"), mkm("f.mod", "AGOT More Dragon Eggs")};
+            auto ki = infoMap(ks); Playset kp; kp.name = "k";
+            for (auto& m : ks) kp.mods.push_back({m.id, true, ""});
+            auto kplan = planSort(kp, ki, {}, {}, nullptr, nullptr, &db);
+            std::vector<std::string> kids; for (int o : kplan.order) kids.push_back(kp.mods[(size_t)o].id);
+            auto kpos = [&](const char* id) { return (int)(std::find(kids.begin(), kids.end(), id) - kids.begin()); };
+            assert(kpos("b.mod") < kpos("a.mod") && kpos("d.mod") < kpos("c.mod") && kpos("f.mod") < kpos("e.mod"));
+        }
+        {   // pre-Play health check
+            auto mk = [](const char* id, const char* name, std::vector<std::string> deps = {}) { ModInfo m; m.id = id; m.name = name; m.deps = deps; m.supported = "1.20.*"; return m; };
+            std::vector<ModInfo> hs = {mk("a.mod", "Lib Thing"), mk("b.mod", "Needs Lib", {"Lib Thing"}), mk("c.mod", "Needs Missing", {"Not Installed Mod"}), mk("d.mod", "Old Mod")};
+            hs[3].supported = "1.14.*";
+            auto hi = infoMap(hs); Playset hp; hp.name = "h";
+            for (auto& m : hs) hp.mods.push_back({m.id, true, ""});
+            HealthReport r1 = checkHealth(hp, hi, "1.20.0.4", {}, {}, nullptr, nullptr, &db);
+            assert(r1.problems == 1 && r1.warnings == 1 && !r1.ok());                     // missing dependency is a problem, old game version a warning
+            std::string txt = healthText(r1, "h");
+            assert(txt.find("Not Installed Mod") != std::string::npos && txt.find("Needs Missing") != std::string::npos);
+            hp.mods[2].enabled = false; hp.mods[3].enabled = false;                         // turned-off mods are not checked
+            HealthReport r2 = checkHealth(hp, hi, "1.20.0.4", {}, {}, nullptr, nullptr, &db);
+            assert(r2.ok() && r2.enabled == 2 && healthText(r2, "h").find("ready to play") != std::string::npos);
+            hp.mods[0].enabled = false;                                                      // dependency turned off
+            HealthReport r3 = checkHealth(hp, hi, "1.20.0.4", {}, {}, nullptr, nullptr, &db);
+            assert(r3.problems == 1);
+            // known-mod rules: a total conversion below ordinary mods, and two total conversions
+            std::vector<ModInfo> ws = {mk("x.mod", "Cool Events"), mk("pod.mod", "Princes of Darkness"), mk("agot.mod", "A Game of Thrones")};
+            auto wi = infoMap(ws); Playset wp; wp.name = "w";
+            for (auto& m : ws) wp.mods.push_back({m.id, true, ""});
+            HealthReport r4 = checkHealth(wp, wi, "1.20.0.4", {}, {}, nullptr, nullptr, &db);
+            assert(r4.warnings >= 3 && r4.orderIssues);                                      // both are below Cool Events; two total conversions
+            bool two = false; for (auto& h : r4.items) if (h.text.find("total conversions") != std::string::npos) two = true;
+            assert(two);
+            SortPlan fix = planSort(wp, wi, {}, {}, nullptr, nullptr, &db);                  // after Auto Sort the order warnings are gone
+            Playset sorted; sorted.name = "s"; for (int o : fix.order) sorted.mods.push_back(wp.mods[(size_t)o]);
+            HealthReport r5 = checkHealth(sorted, wi, "1.20.0.4", {}, {}, nullptr, nullptr, &db);
+            assert(!r5.orderIssues && r5.warnings == 1);                                     // only "two total conversions" is left
+            Playset none; none.name = "n";
+            HealthReport r6 = checkHealth(none, wi, "1.20.0.4", {}, {}, nullptr, nullptr, &db);
+            assert(r6.enabled == 0 && r6.items.size() == 1 && r6.ok());
+        }
         // the user can still lock a known mod
         auto pl = planSort(ps, inf, {"ugc_3554844335.mod"}, {}, nullptr, nullptr, &db);
         assert(pl.order[0] == 0);

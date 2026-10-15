@@ -6,6 +6,19 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.20.2] - 2026-10-14
+Two more author-stated load orders, and the Workshop ledger now follows the real "Most Popular (all time)" list so the mods people actually use are read first.
+
+### Added
+- **Godherja: The Dying World** is a total conversion, so it now always loads first, like A Game of Thrones and the other total conversions.
+- **Knight Manager**: its page says that with Unified UI it goes at the bottom of the load order, so it now loads below Unified UI.
+- **RUI:Character Unofficial**: its page lists the mods that must load before it (Hometowns, Separate Name and Title, Weight of Crown and others), so it now loads below them.
+- **Better Ruler Designer** (below Better UI Scaling), **AGOT - Armies of Westeros** (after AGOT, AGOT Submod Core, AGOT+ and Legacy of Valyria) and **COW-AGOT 3D Models and Bigger Castles** (always after AGOT and its submods).
+- **Elder Kings 2 - Nostalgia Music Submod** (below Elder Kings 2), **Search & Trade Artifacts** (after the Unofficial Patch) and **AGOT Expanded - Dragons** (below AGOT More Dragon Eggs).
+- **Pre-Play health check** (Advanced > Health check). It lists missing or turned-off dependencies, mods for another game version, mods that break a known load-order rule, two total conversions at once, and serious file conflicts. When you press Play it runs by itself and asks Yes/No before launching if it finds anything (Yes launches, No shows the full list). Turn that off with "Run the health check when I press Play".
+- **Immersive Personalities**: its author says any load order works because it replaces no vanilla files, so it is listed as Content with no position (overhauls like Princes of Darkness still go first).
+- Workshop ledger: the top 120 mods of the all-time Most Popular list are in it (63 were new to the ledger) and nearly all of them are now read. 120 pages read so far, 34 with a stated order.
+
 ## [0.20.1] - 2026-10-12
 A full audit of every system, with a close look at whether the manager can slow Crusader Kings III down while the game runs. It cannot do so any more than it needs to, and now it does even less.
 

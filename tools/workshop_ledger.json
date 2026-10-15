@@ -1791,6 +1791,646 @@
    "source": "Workshop page",
    "date": "2026-10-12",
    "inDatabase": false
+  },
+  {
+   "id": "2216544773",
+   "title": "Brighter Portraits",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2216916022",
+   "title": "More Building Slots",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2217002908",
+   "title": "Immortality+",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2217865748",
+   "title": "CK2 Style Colorful Education Traits",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "Most Popular (all time) list, 2026-10-14",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2220397689",
+   "title": "No Duchy Limit",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2224004745",
+   "title": "CK2 Style Colorful Lifestyle Traits",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "Most Popular (all time) list, 2026-10-14",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2227406359",
+   "title": "199 Immersive Loading Screens",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2228828005",
+   "title": "Beautiful Females",
+   "status": "read",
+   "found": "none",
+   "note": "Beautiful Females: texture mod, no load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2243307127",
+   "title": "The Fallen Eagle",
+   "status": "read",
+   "found": "note",
+   "note": "The Fallen Eagle: total-conversion style mod; page gives no load order, not added (page text does not say total conversion)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2245415465",
+   "title": "Fair Ladies",
+   "status": "read",
+   "found": "note",
+   "note": "Fair Ladies: author says load order probably does not matter; if another mod has face textures, place this one below it. Not added",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2248667521",
+   "title": "Fair Lords",
+   "status": "read",
+   "found": "note",
+   "note": "Fair Lords: same as Fair Ladies (below other face-texture mods). Not added",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2251314687",
+   "title": "Extended Nicknames",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2253278582",
+   "title": "Shogunate",
+   "status": "read",
+   "found": "none",
+   "note": "Shogunate: no load order sentence",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2261468688",
+   "title": "Clear Notifications",
+   "status": "read",
+   "found": "none",
+   "note": "Clear Notifications: overwrites only the notifications panel; no order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2276469612",
+   "title": "Population Control (Reduce late-game lag)",
+   "status": "read",
+   "found": "none",
+   "note": "Population Control: compatible with AGOT; no order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2293272317",
+   "title": "Knight Manager",
+   "status": "read",
+   "found": "order",
+   "note": "Knight Manager: if using Unified UI, put this mod at the bottom of the load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "2298410092",
+   "title": "A Spouse Designer",
+   "status": "read",
+   "found": "none",
+   "note": "A Spouse Designer: incompatible with mods changing the ruler designer or choose-a-character window; no order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2326030123",
+   "title": "Godherja: The Dying World",
+   "status": "read",
+   "found": "order",
+   "note": "Godherja: The Dying World: total fantasy conversion, assume incompatible with all other mods; goes first like other total conversions",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "2506311074",
+   "title": "Oriental Empires (All Under Heaven)",
+   "status": "read",
+   "found": "note",
+   "note": "Oriental Empires (All Under Heaven): lists compatches (HMI, EPE, CFP, RICE, MHG) but no load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2566883856",
+   "title": "Sinews of War",
+   "status": "read",
+   "found": "note",
+   "note": "Sinews of War: map mods and total conversions always need a patch; no order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2592094512",
+   "title": "Eastern Ritual and Governance 1.99 (oe ver.0.55)",
+   "status": "read",
+   "found": "none",
+   "note": "Eastern Ritual and Governance: adapted Oriental Empires, incompatible with the original; no order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2636170225",
+   "title": "Duel Overlay",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2653885896",
+   "title": "Custom Title Form of Address",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "Most Popular (all time) list, 2026-10-14",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2677152091",
+   "title": "Invite Debutantes",
+   "status": "read",
+   "found": "none",
+   "note": "Invite Debutantes: high compatibility, no load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2686352443",
+   "title": "Invite Nobles",
+   "status": "read",
+   "found": "none",
+   "note": "Invite Nobles: high compatibility, no load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2689410555",
+   "title": "Auto promote culture",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2694172949",
+   "title": "Auto conversion",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2695438942",
+   "title": "Congenital Beauty",
+   "status": "read",
+   "found": "none",
+   "note": "Congenital Beauty: high compatibility, no load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2729685999",
+   "title": "Auto increase control",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2748438194",
+   "title": "Cat's Coat of Arms Emblem 1.11",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2748508571",
+   "title": "Clear Artifact Levels",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2753176859",
+   "title": "Mass Demand Conversion",
+   "status": "read",
+   "found": "note",
+   "note": "Mass Demand Conversion: if you use game translation mods, load this after them; overwrites religious_interaction.2002. Not added",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2787813663",
+   "title": "Celestial & Illusion Flavor Pack",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2794092125",
+   "title": "Celestial & Illusion Emblems Pack",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2818728722",
+   "title": "Holding Sprawl",
+   "status": "read",
+   "found": "none",
+   "note": "Holding Sprawl: no load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2846371321",
+   "title": "Orient Empires Expansion of cultural customs and troops",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2882895497",
+   "title": "Elder Kings 2 - Nostalgia Music Submod",
+   "status": "read",
+   "found": "order",
+   "note": "Elder Kings 2 Nostalgia Music Submod: with EK2, place the submod below EK2",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "2916314958",
+   "title": "Young and Beautiful",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2949767945",
+   "title": "Warcraft: Guardians of Azeroth Reforged 2",
+   "status": "read",
+   "found": "none",
+   "note": "Warcraft: Guardians of Azeroth Reforged 2: no load order; has a mod collection of submods",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2950245430",
+   "title": "AGOT+",
+   "status": "read",
+   "found": "none",
+   "note": "AGOT+: page gives no load order; AGOT submod, covered by the AGOT Submod Core rule",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2962238514",
+   "title": "Search & Trade Artifacts",
+   "status": "read",
+   "found": "order",
+   "note": "Search & Trade Artifacts: put it after Unofficial Patch; mods that change the inventory window or Destroy Artifact interaction should load after it",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "2962713441",
+   "title": "Valyrian Steel",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2963453899",
+   "title": "Armor of the Kingsguard",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2966438738",
+   "title": "AGOT: Canon Children+",
+   "status": "read",
+   "found": "note",
+   "note": "AGOT Canon Children+: has a Load order heading but the list is not in the page text (probably an image); not added",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2966543745",
+   "title": "AGOT - Armies of Westeros",
+   "status": "read",
+   "found": "order",
+   "note": "AGOT Armies of Westeros: order AGOT, AGOT Subcore, AGOT+, Legacy of Valyria, Armies of Westeros",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "2970440958",
+   "title": "Asia Expansion Project [LEGACY 1.17]",
+   "status": "read",
+   "found": "note",
+   "note": "Asia Expansion Project (legacy 1.17): lists known conflicts (More Bookmarks+, Governments+, Succession Expanded, Culture Expanded, Cities of Wonders, Sinews of War); no order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "2971198450",
+   "title": "COW-AGOT: 3D Models & Bigger Castles",
+   "status": "read",
+   "found": "order",
+   "note": "COW-AGOT 3D Models & Bigger Castles: edits many AGOT files; always after AGOT and the other AGOT submods",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "2986538297",
+   "title": "Divine Intervention Cheat Menu",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "Most Popular (all time) list, 2026-10-14",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "2995674648",
+   "title": "AGOT - Crowns of Westeros",
+   "status": "read",
+   "found": "order",
+   "note": "AGOT Crowns of Westeros: below AGOT and AGOT Submod Core (already in the database)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3030427202",
+   "title": "Big Battle View",
+   "status": "read",
+   "found": "none",
+   "note": "Big Battle View: no load order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3034473189",
+   "title": "AGOT Submod Core",
+   "status": "read",
+   "found": "note",
+   "note": "AGOT Submod Core: load order lists supported mods (Crowns of Westeros, Armor of the Kingsguard, Legacy of the Dragon, Valyrian Steel, AGOT+, The Golden Company, AGOT Brightroar); already in the database",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3035543804",
+   "title": "Custom Nickname",
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "source": "Most Popular (all time) list, 2026-10-14",
+   "date": "",
+   "inDatabase": false
+  },
+  {
+   "id": "3101422928",
+   "title": "Legacy Of The Dragon",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3150612985",
+   "title": "Real Eyes 3.0",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3191893683",
+   "title": "Commanders +",
+   "status": "read",
+   "found": "note",
+   "note": "Commanders +: not compatible with AGOT without a compatch; no order",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3192256710",
+   "title": "After the End CK3",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3239002020",
+   "title": "RUI:Character Unofficial",
+   "status": "read",
+   "found": "order",
+   "note": "RUI:Character Unofficial: mods on its list (Hometowns, Separate Name and Title, Weight of Crown, Historical Bloodline, Oriental Empires Eastern Etiquette, Elf Destiny, compatches for AGOT/PoD/Godherja) must load before it",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "3275318194",
+   "title": "Better Ruler Designer",
+   "status": "read",
+   "found": "order",
+   "note": "Better Ruler Designer: put it below Better UI Scaling or other UI mods that change the ruler designer window",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "3276373926",
+   "title": "Battleground Commanders",
+   "status": "read",
+   "found": "none",
+   "note": "Battleground Commanders: put anywhere in the playset",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3319354609",
+   "title": "AGOT Additional Models and Special Buildings",
+   "status": "read",
+   "found": "note",
+   "note": "AGOT Additional Models and Special Buildings: touches few AGOT files; compatches for AGOT+ / Legacy of Valyria have their own load orders on their pages; not added",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3388366564",
+   "title": "AGOT More Dragon Eggs",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3403938445",
+   "title": "Legacy of Valyria",
+   "status": "read",
+   "found": "none",
+   "note": "no load order sentence on the page (read 2026-10-14)",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": false
+  },
+  {
+   "id": "3466228580",
+   "title": "AGOT expanded - Dragons",
+   "status": "read",
+   "found": "order",
+   "note": "AGOT Expanded - Dragons: works with More Dragon Eggs if loaded below it; generally place near the bottom",
+   "source": "Workshop page",
+   "date": "2026-10-14",
+   "inDatabase": true
+  },
+  {
+   "id": "3596393244",
+   "title": "",
+   "inDatabase": false,
+   "status": "read",
+   "found": "note",
+   "note": "Immersive Personalities (1.20): page says compatible with everything, no order. Author's comment reply: any load order works, no vanilla files replaced. PoD's compatible-mods list does not mention it. Entry added with a content type and no position; overhauls like PoD still go first by the standard rule",
+   "date": "2026-10-14",
+   "source": "Workshop page"
   }
  ]
 }

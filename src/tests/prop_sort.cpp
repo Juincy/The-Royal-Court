@@ -49,6 +49,10 @@ int main(int argc, char** argv) {
         Playset q; q.name = "q"; for (int o : a.order) q.mods.push_back(ps.mods[(size_t)o]);
         SortPlan c = planSort(q, info, locked, {}, nullptr, nullptr, &db);
         if (c.changed) notIdem++;
+        if (a.warnings.empty() && locked.empty()) {          // a sorted playset has nothing left for the health check to flag
+            SortPlan d = planSort(q, info, locked, {}, nullptr, nullptr, &db);
+            if (!d.broken.empty()) { bad++; std::cout << "BAD broken rule after sort round " << r << ": " << d.broken[0].text << "\n"; }
+        }
         if (!a.warnings.empty()) { withWarn++; for (auto& w : a.warnings) std::cout << "WARN: " << w << "\n"; }
         // enabled-only positions for rules
         std::map<std::string, int> pos; int p = 0;

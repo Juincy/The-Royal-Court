@@ -88,7 +88,7 @@ static std::wstring TLF(const wchar_t* key, std::initializer_list<WA> args) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_ADV_HEALTH, ID_ADV_PLAYCHECK, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
     ID_TREE, ID_EXPAND, ID_COLLAPSE,
     ID_LANG, ID_LANG_BASE = 7100   // ID_LANG_BASE: the language menu uses ID_LANG_BASE .. ID_LANG_BASE + LANG_COUNT
 };
@@ -3079,6 +3079,19 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
     return DefWindowProcW(h, m, w, l);
 }
 
+// ---------- health check ----------
+static HealthReport runHealth() {
+    Playset* ps = active();
+    if (!ps) return {};
+    return checkHealth(*ps, g_info, g_gameVer, lockedIds(), g_settings.cats, g_conf.valid ? &g_conf : nullptr, &g_fileIndex, &g_known);
+}
+static void showHealth() {
+    Playset* ps = active();
+    if (!ps) { info(TL(L"Choose or create a playset first.")); return; }
+    HealthReport hr = runHealth();
+    showText(TL(L"Health check - The Royal Court"), W(healthText(hr, ps->name)));
+}
+
 static void showReport(int kind) {
     if (hRep) {
         if (g_repKind == kind) { if (IsIconic(hRep)) ShowWindow(hRep, SW_RESTORE); SetForegroundWindow(hRep); repRefresh(); return; }
@@ -4459,6 +4472,8 @@ static void importShareCode() {
 static void crashHelper();
 static void advancedMenu() {
     HMENU m = CreatePopupMenu();
+    AppendMenuW(m, MF_STRING, ID_ADV_HEALTH, TL(L"Health check: is this playset ready to play..."));
+    AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING, ID_ADV_GAMELOG, TL(L"Game log: which mod causes the errors..."));
     AppendMenuW(m, MF_STRING, ID_ADV_SINCE, TL(L"What changed since I last pressed Play..."));
     AppendMenuW(m, MF_STRING, ID_ADV_CRASH, TL(L"Crash helper: why did the game crash..."));
@@ -4479,6 +4494,7 @@ static void advancedMenu() {
     AppendMenuW(m, MF_STRING, ID_ADV_OPENLOGS, TL(L"Open game logs folder"));
     AppendMenuW(m, MF_STRING, ID_ADV_TUTORIAL, TL(L"Show the quick tour again..."));
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
+    AppendMenuW(m, MF_STRING | (g_settings.playCheck ? MF_CHECKED : 0), ID_ADV_PLAYCHECK, TL(L"Run the health check when I press Play"));
     AppendMenuW(m, MF_STRING | (g_settings.checkUpdates ? MF_CHECKED : 0), ID_ADV_AUTOUPD, TL(L"Check for updates when the program starts"));
     AppendMenuW(m, MF_STRING, ID_ADV_SORTREPORT, TL(L"Report a sort problem (copy details)..."));
     AppendMenuW(m, MF_STRING, ID_ADV_LOG, TL(L"Open diagnostics log (for bug reports)"));
@@ -4488,6 +4504,8 @@ static void advancedMenu() {
     std::string dir = effectiveDir();
     if (cmd == ID_FOLDER) ShellExecuteW(hMain, L"open", playsetsDir().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     else if (cmd == ID_ADV_DELSAVES) deleteAllSaves();
+    else if (cmd == ID_ADV_HEALTH) showHealth();
+    else if (cmd == ID_ADV_PLAYCHECK) { g_settings.playCheck = !g_settings.playCheck; saveSettingsNow(); say(g_settings.playCheck ? TL(L"The health check will run when you press Play.") : TL(L"The health check will no longer run when you press Play. You can still start it from Advanced.")); }
     else if (cmd == ID_ADV_GAMELOG) showReport(0);
     else if (cmd == ID_ADV_SINCE) showReport(1);
     else if (cmd == ID_ADV_CRASH) crashHelper();
@@ -4761,6 +4779,22 @@ static void onCommand(int id, int code) {
             if (g_gameVer.empty()) { refreshGameVersion(exe); populate(); }
             if (processRunning(L"ck3.exe")) { info(TL(L"Crusader Kings III is already running. Close the game first, then press Play again.")); break; }
             if (!processRunning(L"steam.exe")) { info(TL(L"Steam needs to be running to start the game without the launcher. Start Steam, then press Play again.")); break; }
+            if (g_settings.playCheck) {
+                HealthReport hr = runHealth();
+                if (!hr.ok()) {
+                    std::wstring list;
+                    int shown = 0;
+                    for (auto& h : hr.items) {
+                        if (h.sev < 1) continue;
+                        if (shown++ >= 4) break;
+                        list += L"  \u2022 " + (h.pos >= 0 ? W(h.name) + L": " : std::wstring()) + W(h.text) + L"\n";
+                    }
+                    int total = hr.problems + hr.warnings;
+                    if (total > shown) list += L"  " + TLF(L"... and {0} more", {total - shown}) + L"\n";
+                    std::wstring q = TLF(L"The health check found {0} problem(s) and {1} warning(s) in this playset:", {hr.problems, hr.warnings}) + L"\n\n" + list + L"\n" + TL(L"Start the game anyway?\nYes: start the game. No: show me the details first.");
+                    if (MessageBoxW(hMain, q.c_str(), TL(L"Health check"), (hr.problems ? MB_ICONWARNING : MB_ICONINFORMATION) | MB_YESNO) != IDYES) { showText(TL(L"Health check - The Royal Court"), W(healthText(hr, ps->name))); break; }
+                }
+            }
             std::set<std::string> inst;
             for (auto& m : g_mods) inst.insert(m.id);
             std::string regErr;

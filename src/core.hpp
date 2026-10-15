@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.20.1";
+inline const char* VERSION = "0.20.2";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -281,6 +281,7 @@ struct Settings {
     std::map<std::string, std::string> seen;                          // mod id -> fingerprint when Play was last pressed (update detection)
     int winX = 0, winY = 0, winW = 0, winH = 0; bool winMax = false;  // remembered window position and size (winW == 0: none)
     std::vector<int> colW;                                            // remembered widths of the list columns (0 = automatic)
+    bool playCheck = true;                                            // run the health check when Play is pressed (on by default)
     bool checkUpdates = false;                                        // look for a newer release when the program starts (off by default)
     std::string playGameVer, playName;                                // game version and playset name when Play was last pressed
     long long playTime = 0;                                           // when (seconds since 1970; 0 = never)
@@ -348,6 +349,7 @@ inline void loadSettingsExtra(Settings& st, J& root) {
     if (J* l = root.get("seen"); l && l->t == J::Obj)
         for (size_t i = 0; i < l->keys.size(); i++) if (l->vals[i].t == J::Str) st.seen[l->keys[i]] = l->vals[i].s;
     if (J* u = root.get("checkUpdates"); u && u->t == J::Bool) st.checkUpdates = u->b;
+    if (J* u = root.get("playCheck"); u && u->t == J::Bool) st.playCheck = u->b;
     if (J* lp = root.get("lastPlay"); lp && lp->t == J::Obj) {
         if (J* v = lp->get("game"); v && v->t == J::Str) st.playGameVer = v->s.substr(0, 40);
         if (J* v = lp->get("playset"); v && v->t == J::Str) st.playName = v->s.substr(0, 100);
@@ -421,6 +423,7 @@ inline bool saveSettings(const Settings& st) {
     if (!st.launch.empty()) { J o = J::obj(); for (auto& kv : st.launch) o.set(kv.first, J::str(kv.second)); root.set("launch", o); }
     if (!st.seen.empty()) { J o = J::obj(); for (auto& kv : st.seen) o.set(kv.first, J::str(kv.second)); root.set("seen", o); }
     if (st.checkUpdates) root.set("checkUpdates", J::boolean(true));
+    if (!st.playCheck) root.set("playCheck", J::boolean(false));
     if (st.playTime > 0) {
         J lp = J::obj();
         lp.set("game", J::str(st.playGameVer)); lp.set("playset", J::str(st.playName)); lp.set("time", J::num((double)st.playTime));
@@ -1690,6 +1693,8 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.note = K("Princes of Darkness is a total conversion, so it goes first (standard rule for total conversions)"); v.push_back(k); }
     { KnownMod k; k.names = {"elder kings 2"}; k.ids = {"2887120253"}; k.cat = CAT_OVERHAUL; k.pos = -2;
       k.note = K("Elder Kings 2 is a total conversion, so it goes first (standard rule for total conversions)"); v.push_back(k); }
+    { KnownMod k; k.names = {"godherja the dying world", "godherja"}; k.ids = {"2326030123"}; k.cat = CAT_OVERHAUL; k.pos = -2;
+      k.note = K("Godherja: The Dying World is a total conversion, so it goes first (standard rule for total conversions)"); v.push_back(k); }
     { KnownMod k; k.names = {"agot submod core"}; k.cat = CAT_LIBRARY; k.pos = -2; k.after = {"a game of thrones", "agot"};
       k.note = K("AGOT Submod Core: its page says to load it immediately after A Game of Thrones"); v.push_back(k); }
     for (const char* sub : {"agot crowns of westeros", "armor of the kingsguard", "legacy of the dragon", "valyrian steel", "agot plus", "the golden company", "agot brightboar westerosi house flavor"}) {
@@ -1800,6 +1805,27 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.after = {"customizable gui", "the catholic trinity", "in my humble opinion", "rename anyone", "displayed birth and death dates", "seperate name and title ue", "seperate name and title", "separate name and title ie", "stress bar for all", "custom title form of address", "hometowns"};
       k.note = K("Dnasis Character UI Compatch: its page says Customizable GUI goes at the top and this loads after the mods it supports"); v.push_back(k); }
     // ---- round of 2026-10-13: Dynamic Trade Routes and Africa Plus ----
+    { KnownMod k; k.names = {"immersive personalities", "1 20 immersive personalities"}; k.ids = {"3596393244"}; k.cat = CAT_CONTENT;
+      k.note = K("Immersive Personalities: its author says any load order works, since it replaces no vanilla files (overhauls like Princes of Darkness still go first)"); v.push_back(k); }
+    { KnownMod k; k.names = {"elder kings 2 nostalgia music submod", "elder kings 2 nostalgia music"}; k.ids = {"2882895497"}; k.after = {"elder kings 2"};
+      k.note = K("Elder Kings 2 - Nostalgia Music Submod: its page says to place it below Elder Kings 2"); v.push_back(k); }
+    { KnownMod k; k.names = {"search and trade artifacts", "search trade artifacts"}; k.ids = {"2962238514"}; k.after = {"unofficial patch", "ck3 unofficial patch"};
+      k.note = K("Search & Trade Artifacts: its page says to put it after the Unofficial Patch"); v.push_back(k); }
+    { KnownMod k; k.names = {"agot expanded dragons", "agot expanded - dragons"}; k.ids = {"3466228580"}; k.after = {"agot more dragon eggs", "a game of thrones", "agot"};
+      k.note = K("AGOT Expanded - Dragons: its page says it works with AGOT More Dragon Eggs if it loads below it"); v.push_back(k); }
+    { KnownMod k; k.names = {"better ruler designer"}; k.ids = {"3275318194"}; k.cat = CAT_UI; k.after = {"better ui scaling"};
+      k.note = K("Better Ruler Designer: its page says to put it below Better UI Scaling and other mods that change the ruler designer window"); v.push_back(k); }
+    { KnownMod k; k.names = {"agot armies of westeros", "armies of westeros"}; k.ids = {"2966543745"};
+      k.after = {"a game of thrones", "agot", "agot submod core", "agot plus", "legacy of valyria"};
+      k.note = K("AGOT - Armies of Westeros: its page gives the order AGOT, AGOT Submod Core, AGOT+, Legacy of Valyria, then this mod"); v.push_back(k); }
+    { KnownMod k; k.names = {"cow agot 3d models and bigger castles", "cow agot 3d models bigger castles"}; k.ids = {"2971198450"};
+      k.after = {"a game of thrones", "agot", "agot submod core", "agot plus", "legacy of valyria", "agot crowns of westeros", "armor of the kingsguard", "legacy of the dragon", "valyrian steel", "agot armies of westeros"};
+      k.note = K("COW-AGOT 3D Models and Bigger Castles: its page says to always put it after AGOT and the other AGOT submods"); v.push_back(k); }
+    { KnownMod k; k.names = {"rui character unofficial", "ruicharacter unofficial", "rui character"}; k.ids = {"3239002020"}; k.cat = CAT_UI;
+      k.after = {"hometowns", "separate name and title", "seperate name and title", "seperate name and title ue", "weight of crown", "historical bloodline", "oriental empires eastern etiquette", "elf destiny"};
+      k.note = K("RUI:Character Unofficial: its page lists mods (Hometowns, Separate Name and Title, Weight of Crown and others) that must load before it"); v.push_back(k); }
+    { KnownMod k; k.names = {"knight manager"}; k.ids = {"2293272317"}; k.after = {"unified ui"};
+      k.note = K("Knight Manager: its page says that if you use Unified UI it goes at the bottom of the load order"); v.push_back(k); }
     { KnownMod k; k.names = {"dynamic trade routes", "beta dynamic trade routes", "dtr"}; k.ids = {"2821835496"}; k.after = {"more bookmarks plus"}; k.before = {"dtr lite"};
       k.note = K("DTR Lite page lists this load order: More Bookmarks+, Dynamic Trade Routes, DTR Lite, then the MB+DTR compatch"); v.push_back(k); }
     { KnownMod k; k.names = {"dtr lite", "not updated yet dtr lite"}; k.ids = {"2828692797"}; k.after = {"more bookmarks plus", "dynamic trade routes"};
@@ -1936,6 +1962,7 @@ inline CatGuess guessFromFiles(const ModFiles& mf) {
 }
 
 struct SortMove { int from = 0, to = 0; std::string id, reason; };
+struct SortViolation { int mod = 0, other = -1, kind = 0; std::string text; };   // mod (old position) should load after / below something but does not; kind 2 known-mod rule, 3 patch link, 4 should load first (total conversion, library)
 struct SortPlan {
     std::vector<int> order;                  // order[newPosition] = old position
     std::vector<SortMove> moves;             // only mods whose position changed, in new order
@@ -1943,6 +1970,8 @@ struct SortPlan {
     std::vector<int> cat;                    // per OLD position
     std::vector<std::string> catWhy;         // per OLD position
     std::vector<std::string> known;          // per OLD position: note of the known-mod entry ("" if none)
+    std::vector<int> posTier;                // per OLD position: -2 total conversion / very first, -1 first, 0 normal, 1 last
+    std::vector<SortViolation> broken;       // rules the CURRENT order breaks (dependencies are reported by analyzePlayset instead)
     int conflictChoices = 0;                 // how many conflict tie-breaks were applied
     int knownCount = 0;                      // how many mods were recognised from the known-mods list
     int patchLinks = 0;                      // how many "patch for X" links were found
@@ -1957,6 +1986,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
     plan.cat.assign((size_t)n, CAT_CONTENT);
     plan.catWhy.assign((size_t)n, "");
     plan.known.assign((size_t)n, "");
+    plan.posTier.assign((size_t)n, 0);
     std::vector<int> tier((size_t)n, 0), rank((size_t)n, 0), kidx((size_t)n, -1);
     std::vector<std::string> norm((size_t)n);
     std::map<std::string, int> byName;                       // lower(name) -> first position (dependencies)
@@ -2104,6 +2134,15 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
             if (--indeg[(size_t)to] == 0) ready.insert(keyOf(to));
         }
     }
+    plan.posTier = tier;
+    for (auto& e : edges)                                    // rules the current order breaks
+        if (e.kind != 0 && e.kind != 1 && e.from > e.to) plan.broken.push_back({e.to, e.from, e.kind, e.text});
+    for (int i = 0; i < n; i++) {
+        if (tier[(size_t)i] >= 0 || !ps.mods[(size_t)i].enabled) continue;
+        int before = 0, firstOther = -1;
+        for (int j = 0; j < i; j++) if (ps.mods[(size_t)j].enabled && tier[(size_t)j] > tier[(size_t)i]) { before++; if (firstOther < 0) firstOther = j; }
+        if (before > 0) plan.broken.push_back({i, firstOther, 4, trf("{0} Right now {1} other mod(s) load before it.", {plan.known[(size_t)i], before})});
+    }
     plan.order.assign((size_t)n, -1);
     size_t k = 0;
     for (int p = 0; p < n; p++) plan.order[(size_t)p] = isLocked(p) ? p : seq[k++];
@@ -2135,6 +2174,77 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         plan.moves.push_back(std::move(mv));
     }
     return plan;
+}
+
+// ---------- pre-Play health check ----------
+struct HealthItem { int sev = 0; int pos = 0; std::string id, name, text; };     // sev: 2 problem, 1 warning, 0 note
+struct HealthReport {
+    std::vector<HealthItem> items;
+    int enabled = 0, problems = 0, warnings = 0;
+    bool orderIssues = false;                      // some items can be fixed by Auto Sort
+    bool ok() const { return problems == 0 && warnings == 0; }
+};
+
+// Everything that is worth knowing before the game starts: missing or turned-off dependencies, mods that cannot load, wrong dependency
+// order, mods made for another game version, duplicates, load-order rules of well-known mods that the current order breaks, a total
+// conversion that is not first, two total conversions at once, and serious file conflicts. Nothing here changes the playset.
+inline HealthReport checkHealth(const Playset& ps, const std::map<std::string, ModInfo>& info, const std::string& gameVersion,
+                                const std::set<std::string>& locked, const std::map<std::string, int>& overrides,
+                                const ConflictReport* cr, const std::map<std::string, ModFiles>* index, const std::vector<KnownMod>* db) {
+    HealthReport hr;
+    const int n = (int)ps.mods.size();
+    for (auto& m : ps.mods) if (m.enabled) hr.enabled++;
+    auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? (ps.mods[(size_t)i].name.empty() ? ps.mods[(size_t)i].id : ps.mods[(size_t)i].name) : it->second.name; };
+    auto add = [&](int sev, int pos, const std::string& text) {
+        HealthItem h; h.sev = sev; h.pos = pos;
+        if (pos >= 0 && pos < n) { h.id = ps.mods[(size_t)pos].id; h.name = nameOf(pos); }
+        h.text = text; hr.items.push_back(std::move(h));
+    };
+    if (hr.enabled == 0) { add(0, -1, tr("No mods are turned on.")); return hr; }
+    auto issues = analyzePlayset(ps, info, gameVersion);
+    for (int i = 0; i < n; i++) {
+        if (!ps.mods[(size_t)i].enabled) continue;
+        for (auto& is : issues[(size_t)i]) if (is.sev >= 1) add(is.sev, i, is.text);
+    }
+    SortPlan plan = planSort(ps, info, locked, overrides, cr, index, db);
+    for (auto& b : plan.broken) {
+        if (b.mod < 0 || b.mod >= n) continue;
+        add(1, b.mod, b.text);
+        hr.orderIssues = true;
+    }
+    std::vector<int> tcs;                                    // enabled total conversions
+    for (int i = 0; i < n; i++) if (ps.mods[(size_t)i].enabled && plan.posTier[(size_t)i] == -2 && plan.cat[(size_t)i] == CAT_OVERHAUL) tcs.push_back(i);
+    if (tcs.size() >= 2) add(1, tcs[1], trf("Two total conversions are turned on (\"{0}\" and \"{1}\"). A total conversion replaces the whole game setting, so they usually cannot be combined.", {nameOf(tcs[0]), nameOf(tcs[1])}));
+    if (cr && cr->valid) {
+        int high = 0;
+        for (auto& p : cr->pairs) if (p.sev >= SEV_HIGH) high++;
+        if (high > 0) add(1, -1, trf("{0} serious file conflict(s) between mods. Open Conflicts to see who wins.", {high}));
+    }
+    std::stable_sort(hr.items.begin(), hr.items.end(), [](const HealthItem& a, const HealthItem& b) { return a.sev != b.sev ? a.sev > b.sev : a.pos < b.pos; });
+    for (auto& h : hr.items) { if (h.sev >= 2) hr.problems++; else if (h.sev == 1) hr.warnings++; }
+    return hr;
+}
+
+inline std::string healthText(const HealthReport& hr, const std::string& playsetName) {
+    std::string t = trf("Health check for \"{0}\": {1} mod(s) turned on", {playsetName, hr.enabled}) + "\n\n";
+    if (hr.ok() && hr.enabled > 0) t += tr("No problems found. This playset looks ready to play.") + "\n";
+    if (hr.enabled == 0) t += tr("No mods are turned on.") + "\n";
+    auto section = [&](int sev, const std::string& head) {
+        bool any = false;
+        for (auto& h : hr.items) {
+            if (h.sev != sev) continue;
+            if (!any) { t += head + "\n"; any = true; }
+            t += h.pos >= 0 ? trf("  #{0}  {1}: {2}", {h.pos + 1, h.name, h.text}) : "  " + h.text;
+            t += "\n";
+        }
+        if (any) t += "\n";
+    };
+    section(2, trf("Problems ({0}): the game will probably not start properly", {hr.problems}));
+    section(1, trf("Warnings ({0}): worth fixing", {hr.warnings}));
+    int notes = 0; for (auto& h : hr.items) if (h.sev == 0) notes++;
+    if (notes) section(0, tr("Notes"));
+    if (hr.orderIssues) t += tr("Tip: the Auto Sort button can fix the load-order warnings above. You see a preview first, and Undo order puts everything back.") + "\n";
+    return t;
 }
 
 // Natural order for versions and names: digit runs compare as numbers ("1.9" < "1.10"), letters ignore case.
