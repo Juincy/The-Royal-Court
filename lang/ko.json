@@ -731,5 +731,7 @@
  "On_actions": "On_action",
  "Over the years": "연도별 추이",
  "Script time - The Royal Court": "스크립트 시간 - The Royal Court",
- "Script time: which mod's scripts take the most time...": "스크립트 시간: 어느 모드의 스크립트가 가장 오래 걸리는지..."
+ "Script time: which mod's scripts take the most time...": "스크립트 시간: 어느 모드의 스크립트가 가장 오래 걸리는지...",
+ "If the author has updated this mod, Steam may be serving you an old copy: unsubscribe, close Steam, start it again and subscribe again": "제작자가 이 모드를 업데이트했다면 Steam이 예전 사본을 주고 있을 수 있습니다: 구독 취소, Steam 종료, 다시 실행 후 재구독하세요",
+ "Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority": "Custom Title Form of Address: 페이지에 따르면 Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names, Submission to Authority 뒤에 불러와야 합니다"
 }

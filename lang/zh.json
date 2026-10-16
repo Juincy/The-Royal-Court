@@ -731,5 +731,7 @@
  "On_actions": "On_action",
  "Over the years": "历年变化",
  "Script time - The Royal Court": "脚本耗时 - The Royal Court",
- "Script time: which mod's scripts take the most time...": "脚本耗时:哪个模组的脚本最耗时..."
+ "Script time: which mod's scripts take the most time...": "脚本耗时:哪个模组的脚本最耗时...",
+ "If the author has updated this mod, Steam may be serving you an old copy: unsubscribe, close Steam, start it again and subscribe again": "如果作者已更新此模组,Steam 可能给了你旧版本:取消订阅,关闭 Steam,重新启动后再订阅",
+ "Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority": "Custom Title Form of Address:页面说明必须在 Title Manager、Randomize CoA、Ethnicities & Portraits Expanded、Community Title Project、More Cultural Names 和 Submission to Authority 之后加载"
 }

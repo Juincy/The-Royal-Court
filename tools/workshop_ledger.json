@@ -995,11 +995,11 @@
   {
    "id": "2217509277",
    "title": "Better UI Scaling",
-   "status": "title-only",
+   "status": "read",
    "found": "",
-   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open page flagged removed / incompatible, probably dead",
-   "source": "Workshop (comments/changelog page)",
-   "date": "2026-10-09",
+   "note": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
@@ -1025,11 +1025,11 @@
   {
    "id": "2829397295",
    "title": "Culture Expanded",
-   "status": "title-only",
+   "status": "read",
    "found": "",
-   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
-   "source": "Workshop (comments/changelog page)",
-   "date": "2026-10-09",
+   "note": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
@@ -1045,11 +1045,11 @@
   {
    "id": "2815382549",
    "title": "Dynamic UI Themes",
-   "status": "title-only",
+   "status": "read",
    "found": "",
-   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
-   "source": "Workshop (comments/changelog page)",
-   "date": "2026-10-09",
+   "note": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
@@ -1065,11 +1065,11 @@
   {
    "id": "2697392271",
    "title": "Hiraeth - Dynasty Legacies Overhaul",
-   "status": "title-only",
+   "status": "read",
    "found": "",
-   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
-   "source": "Workshop (comments/changelog page)",
-   "date": "2026-10-09",
+   "note": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
@@ -1105,11 +1105,11 @@
   {
    "id": "2394747105",
    "title": "Petty Inheritable Traits",
-   "status": "title-only",
+   "status": "read",
    "found": "",
-   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
-   "source": "Workshop (comments/changelog page)",
-   "date": "2026-10-09",
+   "note": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
@@ -1135,11 +1135,11 @@
   {
    "id": "2221307044",
    "title": "Show More Traits",
-   "status": "title-only",
+   "status": "read",
    "found": "",
-   "note": "only the id and title were confirmed (description not readable then); order unknown, a real page read is still open",
-   "source": "Workshop (comments/changelog page)",
-   "date": "2026-10-09",
+   "note": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
@@ -1685,11 +1685,11 @@
   {
    "id": "2764329234",
    "title": "MHG + CFP Compatch",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "in collection 3191935116 (Totally Not CMH, 79 items)",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
@@ -1705,41 +1705,41 @@
   {
    "id": "3186143971",
    "title": "MHG + RICE + EPE Compatch",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "in collection 3191935116 (Totally Not CMH, 79 items)",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
    "id": "2947626935",
    "title": "MHG + CE Compatch",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "in collection 3191935116 (Totally Not CMH, 79 items)",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": true
   },
   {
    "id": "2986496756",
    "title": "More Background Illustrations",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "in collection 3191935116 (Totally Not CMH, 79 items)",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
    "id": "2996006654",
    "title": "Ibn Battuta's Terrain Pack for CMH",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "in collection 3191935116 (Totally Not CMH, 79 items)",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
@@ -1755,21 +1755,21 @@
   {
    "id": "2813306520",
    "title": "Community Mods for Historicity - More Cultural Names",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "in collection 3191935116 (Totally Not CMH, 79 items)",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
    "id": "2974850904",
    "title": "Knight Manager Continued",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "in collection 3191935116 (Totally Not CMH, 79 items)",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
@@ -1825,11 +1825,11 @@
   {
    "id": "2217865748",
    "title": "CK2 Style Colorful Education Traits",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "Most Popular (all time) list, 2026-10-14",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
@@ -1845,11 +1845,11 @@
   {
    "id": "2224004745",
    "title": "CK2 Style Colorful Lifestyle Traits",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "Most Popular (all time) list, 2026-10-14",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
@@ -2015,11 +2015,11 @@
   {
    "id": "2653885896",
    "title": "Custom Title Form of Address",
-   "status": "unread",
-   "found": "",
-   "note": "",
-   "source": "Most Popular (all time) list, 2026-10-14",
-   "date": "",
+   "status": "read",
+   "found": "FOUND",
+   "note": "load after Title Manager, Randomize CoA, EPE, Community Title Project, More Cultural Names, Submission to Authority",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
@@ -2265,11 +2265,11 @@
   {
    "id": "2986538297",
    "title": "Divine Intervention Cheat Menu",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "Most Popular (all time) list, 2026-10-14",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {
@@ -2305,11 +2305,11 @@
   {
    "id": "3035543804",
    "title": "Custom Nickname",
-   "status": "unread",
+   "status": "read",
    "found": "",
    "note": "",
-   "source": "Most Popular (all time) list, 2026-10-14",
-   "date": "",
+   "source": "Workshop page",
+   "date": "2026-10-16",
    "inDatabase": false
   },
   {

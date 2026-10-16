@@ -731,5 +731,7 @@
  "On_actions": "On_action",
  "Over the years": "По годам",
  "Script time - The Royal Court": "Время скриптов - The Royal Court",
- "Script time: which mod's scripts take the most time...": "Время скриптов: скрипты каких модов работают дольше всего..."
+ "Script time: which mod's scripts take the most time...": "Время скриптов: скрипты каких модов работают дольше всего...",
+ "If the author has updated this mod, Steam may be serving you an old copy: unsubscribe, close Steam, start it again and subscribe again": "Если автор обновил этот мод, Steam мог выдать вам старую копию: отпишитесь, закройте Steam, запустите его снова и подпишитесь заново",
+ "Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority": "Custom Title Form of Address: по странице должен грузиться после Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names и Submission to Authority"
 }

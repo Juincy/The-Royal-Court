@@ -316,6 +316,15 @@ int main() {
         assert(r[3].empty());                                       // disabled mod
         assert(has(4, "Same name as enabled mod #6") && has(5, "Same name as enabled mod #5") && has(5, "Made for game 1.19.*"));
         assert(r[6].size() == 1 && r[6][0].sev == 2 && r[7].size() == 1 && r[7][0].sev == 0);
+        {   // an old-looking Workshop mod gets the "Steam may be serving an old copy" hint, a local one does not
+            std::vector<ModInfo> om = {mk("u.mod", "Old Workshop", {}, "1.12.*"), mk("v.mod", "Old Local", {}, "1.12.*"), mk("w.mod", "Fine Workshop", {}, "1.20.*")};
+            om[0].source = "Workshop"; om[1].source = "Local"; om[2].source = "Workshop";
+            auto oi = infoMap(om); Playset po; po.name = "o";
+            po.mods = {{"u.mod", true, ""}, {"v.mod", true, ""}, {"w.mod", true, ""}};
+            auto ro = analyzePlayset(po, oi, "1.20.1.1");
+            assert(ro[0].size() == 2 && ro[0][0].sev == 1 && ro[0][1].sev == 0 && ro[0][1].text.find("Steam may be serving") != std::string::npos);
+            assert(ro[1].size() == 1 && ro[2].empty());
+        }
         assert(issueSeverity(r[1]) == 2 && issueSeverity(r[2]) == 0 && issueSummary(r[2]).empty() && !issueSummary(r[1]).empty());
         assert(issueSummary(r[1]).find("(+") != std::string::npos);
 
@@ -583,6 +592,16 @@ int main() {
             auto ys = parseYearStats(yr);
             assert(ys.size() == 2 && ys[0].year == 1276 && ys[0].v["living characters"] == 22520 && ys[1].v["errors"] == 100000 && ys[1].v["living characters"] == 23758);
             assert(parseYearStats("").empty());
+        }
+        {   // round of 2026-10-16: Custom Title Form of Address
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> cs = {mk("1", "Custom Title Form of Address"), mk("2", "Title Manager"), mk("3", "Ethnicities & Portraits Expanded"), mk("4", "Separate Name and Title (UE)")};
+            auto ci = infoMap(cs); Playset cp; cp.name = "c";
+            for (auto& m : cs) cp.mods.push_back({m.id, true, ""});
+            SortPlan cpl = planSort(cp, ci, {}, {}, nullptr, nullptr, &db);
+            std::map<std::string, int> pos; for (size_t i = 0; i < cpl.order.size(); i++) pos[cs[(size_t)cpl.order[i]].name] = (int)i;
+            assert(pos["Custom Title Form of Address"] > pos["Title Manager"] && pos["Custom Title Form of Address"] > pos["Ethnicities & Portraits Expanded"]);
+            assert(pos["Separate Name and Title (UE)"] > pos["Custom Title Form of Address"]);
         }
         {   // shader cache scan and clear
             fs::path root = fs::temp_directory_path() / "rc_shader_test"; fs::remove_all(root);

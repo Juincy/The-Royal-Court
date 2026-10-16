@@ -731,5 +731,7 @@
  "On_actions": "On_action'lar",
  "Over the years": "Yıllar içinde",
  "Script time - The Royal Court": "Betik süresi - The Royal Court",
- "Script time: which mod's scripts take the most time...": "Betik süresi: hangi modların betikleri en çok zaman alıyor..."
+ "Script time: which mod's scripts take the most time...": "Betik süresi: hangi modların betikleri en çok zaman alıyor...",
+ "If the author has updated this mod, Steam may be serving you an old copy: unsubscribe, close Steam, start it again and subscribe again": "Yazar bu modu güncellediyse Steam size eski bir kopya veriyor olabilir: abonelikten çıkın, Steam'i kapatın, yeniden başlatın ve tekrar abone olun",
+ "Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority": "Custom Title Form of Address: sayfasına göre Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names ve Submission to Authority'den sonra yüklenmeli"
 }

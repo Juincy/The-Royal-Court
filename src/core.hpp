@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.20.3";
+inline const char* VERSION = "0.20.4";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -718,6 +718,8 @@ inline std::vector<std::vector<ModIssue>> analyzePlayset(const Playset& ps, cons
         }
         if (matchGameVersion(m.supported, gameVersion) == VerMatch::Mismatch)
             iss.push_back({1, trf("Made for game {0} (installed {1})", {m.supported, gameVersion})});
+        if (matchGameVersion(m.supported, gameVersion) == VerMatch::Mismatch && m.source == "Workshop" && !m.pending)
+            iss.push_back({0, tr("If the author has updated this mod, Steam may be serving you an old copy: unsubscribe, close Steam, start it again and subscribe again")});
         if (!m.replacePaths.empty()) {
             std::string l;
             for (size_t k = 0; k < m.replacePaths.size(); k++) l += (k ? ", " : "") + m.replacePaths[k];
@@ -1846,6 +1848,9 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.after = {"customizable gui", "the catholic trinity", "in my humble opinion", "rename anyone", "displayed birth and death dates", "seperate name and title ue", "seperate name and title", "separate name and title ie", "stress bar for all", "custom title form of address", "hometowns"};
       k.note = K("Dnasis Character UI Compatch: its page says Customizable GUI goes at the top and this loads after the mods it supports"); v.push_back(k); }
     // ---- round of 2026-10-13: Dynamic Trade Routes and Africa Plus ----
+    { KnownMod k; k.names = {"custom title form of address"}; k.ids = {"2653885896"};
+      k.after = {"title manager", "randomize coa", "ethnicities and portraits expanded", "community title project", "more cultural names", "community mods for historicity more cultural names", "submission to authority"};
+      k.note = K("Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority"); v.push_back(k); }
     { KnownMod k; k.names = {"displayed birth and death dates", "displayed birth dates"}; k.ids = {"2228178763"}; k.cat = CAT_UI;
       k.before = {"better ui scaling", "better character ui", "show more traits", "show more traits better ui mod"};
       k.note = K("Displayed Birth and Death Dates: its page says it should go before Better UI Scaling, Better Character UI and Show More Traits"); v.push_back(k); }

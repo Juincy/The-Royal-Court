@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.20.3
+# The Royal Court | CK3 Mod Manager  v0.20.4
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 

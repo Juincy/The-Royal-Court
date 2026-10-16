@@ -6,6 +6,14 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.20.4] - 2026-10-16
+Found while checking a "made for an older game" warning that looked wrong.
+
+### Added
+- **Steam old-copy hint.** When a Workshop mod's own game version is older than your game, the Notes column now also says: if the author has updated it, Steam may be serving you an old copy (unsubscribe, close Steam, start it again, subscribe again). The Unofficial Patch's author documents this exact Steam problem: the launcher shows the old version number (the case that started this: version 7.1.4 for game 1.12 installed, while the current release is 9.0.22 for 1.20.1). The warning itself was correct. Local mods do not get the hint.
+- **Custom Title Form of Address** now loads after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority (its page says so).
+- Workshop ledger: 18 more pages read (210 in all); the rest of the MHG compatch pages only repeat the order already in the database.
+
 ## [0.20.3] - 2026-10-15
 Five Workshop rounds (72 more pages read, four with a stated order).
 

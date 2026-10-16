@@ -731,5 +731,7 @@
  "On_actions": "On_action",
  "Over the years": "年ごとの推移",
  "Script time - The Royal Court": "スクリプト時間 - The Royal Court",
- "Script time: which mod's scripts take the most time...": "スクリプト時間:どの MOD のスクリプトが最も時間を使うか..."
+ "Script time: which mod's scripts take the most time...": "スクリプト時間:どの MOD のスクリプトが最も時間を使うか...",
+ "If the author has updated this mod, Steam may be serving you an old copy: unsubscribe, close Steam, start it again and subscribe again": "作者がこのMODを更新している場合、Steam が古いコピーを配信している可能性があります。購読を解除し、Steam を終了して再起動し、もう一度購読してください",
+ "Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority": "Custom Title Form of Address:ページによると Title Manager、Randomize CoA、Ethnicities & Portraits Expanded、Community Title Project、More Cultural Names、Submission to Authority の後に読み込みます"
 }
