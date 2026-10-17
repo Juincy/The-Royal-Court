@@ -6,6 +6,23 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.21.0] - 2026-10-17
+### Added
+- **Script time: History.** A fifth view saves one snapshot per game session (only when the game ran with the mods you have now and all their files are read) and compares the newest with the one before it: each mod's share of script time now and before, the change, and in how many sessions it showed up. The snapshots are kept in `scripttime_history.txt` in the program's data folder (the last 30).
+- **Script time: more on_actions credited without guessing.** The base game's on_action names are now read (game and DLC folders), and an on_action that only one of your mods defines, and the base game does not have, is credited to that mod. on_actions the base game has, or that several mods define, stay shared, because the time cannot be split.
+- **Explain this position** (right-click a mod): which rules hold it in place (dependencies, the author's stated load order, patch links, file overlaps), whether the current order already follows each, and where Auto Sort would put it.
+- **Compatch finder** (Advanced menu): lists known compatibility patches (for example MHG + EPE, MB+ + CE, Africa Plus + Muslim Enhancements, DTR PoW) for mods you have turned on together, with the Workshop page when it is known, and tells you if the patch is already in your list but turned off.
+- **Four new load orders** from the Workshop's AGOT search (sorted by last updated, 20 pages read): the Grand Remembrance AGOT submod (after A Game of Thrones and Grand Remembrance, last), the Animal Characters AGOT patch (after A Game of Thrones and Animal Characters), the Animal Characters vanilla patch (after Animal Characters) and Sightseer AGOT Compatibility (after A Game of Thrones). The compatch finder knows the first three pairs.
+- Workshop ledger: 246 pages read; the AGOT list has 87 more waiting.
+- The quick tour has a new page, "Speed and fit"; the README now describes Health check, Script time, Explain this position, Compatch finder and the shader cache.
+
+## [0.20.5] - 2026-10-17
+One more Workshop round (16 pages read, 226 in all).
+
+### Added
+- **Sawwhet's Legacies Mod Pack** now goes near the top of the load order (its page says so).
+- Workshop ledger: the other 15 pages stated no order (several are deprecated or say they can load anywhere). The ledger had one wrong title (a curated modlist, not a mod), now fixed.
+
 ## [0.20.4] - 2026-10-16
 Found while checking a "made for an older game" warning that looked wrong.
 

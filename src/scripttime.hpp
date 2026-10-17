@@ -89,6 +89,7 @@ struct TimeReport {
     std::vector<TimeMod> perMod;                 // most time first
     double baseEvents = 0, sharedActions = 0, all = 0;   // base-game events, on_actions not credited to a mod, and everything
     long long baseRuns = 0, sharedRuns = 0;
+    int actionsByName = 0;                       // on_actions credited because only one mod defines them and the base game does not
 };
 
 inline std::string firstWord(const std::string& s) {
@@ -100,7 +101,30 @@ inline std::string firstWord(const std::string& s) {
     return w;
 }
 
-inline TimeReport attributeTime(TimeTable&& events, TimeTable&& actions, const Playset& ps, const std::map<std::string, ModDefs>& defs) {
+// The names of the base game's on_actions (game/common/on_action and the same folder in every DLC). An on_action that only ONE of your mods
+// defines and that the base game does not have belongs to that mod without any guessing.
+inline std::unordered_set<std::string> baseOnActionNames(const std::string& gameDir) {
+    std::unordered_set<std::string> names;
+    if (gameDir.empty()) return names;
+    std::error_code ec;
+    std::vector<fs::path> roots{P(gameDir) / "common" / "on_action"};
+    for (auto& dd : vanillaDlcDirs(gameDir))
+        for (fs::directory_iterator it(P(dd), ec), end; !ec && it != end; it.increment(ec)) roots.push_back(it->path() / "common" / "on_action");
+    for (auto& r : roots) {
+        if (!fs::is_directory(r, ec)) continue;
+        for (fs::recursive_directory_iterator it(r, fs::directory_options::skip_permission_denied, ec), end; !ec && it != end; it.increment(ec)) {
+            if (!it->is_regular_file(ec) || lower(it->path().extension().u8string()) != ".txt") continue;
+            std::string text;
+            if (!readFile(it->path(), text, 8u << 20)) continue;
+            std::vector<ScriptKey> keys;
+            scanScriptKeys(text, 0, keys);
+            for (auto& k : keys) names.insert(k.key);
+        }
+    }
+    return names;
+}
+
+inline TimeReport attributeTime(TimeTable&& events, TimeTable&& actions, const Playset& ps, const std::map<std::string, ModDefs>& defs, const std::unordered_set<std::string>* baseActions = nullptr) {
     TimeReport r;
     r.events = std::move(events);
     r.onActions = std::move(actions);
@@ -144,8 +168,10 @@ inline TimeReport attributeTime(TimeTable&& events, TimeTable&& actions, const P
         auto it = oaDef.find(x.id);
         if (it != oaDef.end()) r.actionDefiners[k] = it->second;
         std::string w = firstWord(x.id);
-        if (it != oaDef.end() && it->second.size() == 1 && w.size() >= 2 && w != "on" && words[(size_t)it->second[0]].count(w)) {
+        bool ownName = baseActions && !baseActions->empty() && it != oaDef.end() && it->second.size() == 1 && !baseActions->count(x.id);   // only one mod has it and the base game does not
+        if (ownName || (it != oaDef.end() && it->second.size() == 1 && w.size() >= 2 && w != "on" && words[(size_t)it->second[0]].count(w))) {
             int mi = it->second[0];
+            if (ownName) r.actionsByName++;
             r.actionMod[k] = mi;
             TimeMod& m = pm[mi];
             m.mod = mi; m.time += x.own; m.runs += x.count;
@@ -156,6 +182,85 @@ inline TimeReport attributeTime(TimeTable&& events, TimeTable&& actions, const P
     std::stable_sort(r.perMod.begin(), r.perMod.end(), [](const TimeMod& a, const TimeMod& b) { return a.time > b.time; });
     r.all = r.events.total + r.onActions.total;
     return r;
+}
+
+
+// ---------- history: one snapshot per game session, to see whether a mod got slower ----------
+struct SnapMod { std::string id, name; double time = 0, share = 0; long long runs = 0; };
+struct TimeSnap { long long when = 0; double total = 0; size_t events = 0; std::string playset, game; std::vector<SnapMod> mods; };
+
+inline std::string snapClean(std::string s) { for (auto& c : s) if (c == '\t' || c == '\n' || c == '\r') c = ' '; return s; }
+inline std::string snapToText(const std::vector<TimeSnap>& v) {
+    std::string o;
+    char b[64];
+    for (auto& s : v) {
+        snprintf(b, sizeof b, "%lld\t%.6g\t%zu\t", s.when, s.total, s.events);
+        o += std::string("S\t") + b + snapClean(s.playset) + "\t" + snapClean(s.game) + "\n";
+        for (auto& m : s.mods) {
+            snprintf(b, sizeof b, "%.6g\t%.6g\t%lld\t", m.time, m.share, m.runs);
+            o += "M\t" + snapClean(m.id) + "\t" + b + snapClean(m.name) + "\n";
+        }
+    }
+    return o;
+}
+inline std::vector<TimeSnap> snapFromText(const std::string& text) {
+    std::vector<TimeSnap> v;
+    size_t p = 0;
+    while (p < text.size()) {
+        size_t e = text.find('\n', p);
+        if (e == std::string::npos) e = text.size();
+        std::string line = text.substr(p, e - p);
+        p = e + 1;
+        std::vector<std::string> c;
+        size_t q = 0;
+        while (q <= line.size()) { size_t t = line.find('\t', q); if (t == std::string::npos) t = line.size(); c.push_back(line.substr(q, t - q)); q = t + 1; }
+        if (c.size() >= 6 && c[0] == "S") { TimeSnap s; s.when = std::atoll(c[1].c_str()); s.total = toDouble(c[2]); s.events = (size_t)std::atoll(c[3].c_str()); s.playset = c[4]; s.game = c[5]; v.push_back(std::move(s)); }
+        else if (c.size() >= 6 && c[0] == "M" && !v.empty()) { SnapMod m; m.id = c[1]; m.time = toDouble(c[2]); m.share = toDouble(c[3]); m.runs = std::atoll(c[4].c_str()); m.name = c[5]; v.back().mods.push_back(std::move(m)); }
+    }
+    return v;
+}
+// Adds a snapshot of this report (replaces one with the same time), keeps the newest `keep`, oldest first.
+inline void snapAdd(std::vector<TimeSnap>& v, TimeSnap s, size_t keep = 30) {
+    for (auto& x : v) if (x.when == s.when) { x = std::move(s); return; }
+    v.push_back(std::move(s));
+    std::stable_sort(v.begin(), v.end(), [](const TimeSnap& a, const TimeSnap& b) { return a.when < b.when; });
+    while (v.size() > keep) v.erase(v.begin());
+}
+inline TimeSnap makeSnap(const TimeReport& r, const Playset& ps, const std::map<std::string, ModInfo>& info, long long when, const std::string& game) {
+    TimeSnap s; s.when = when; s.total = r.all; s.events = r.events.rows.size(); s.playset = ps.name; s.game = game;
+    const double all = r.all > 0 ? r.all : 1;
+    for (auto& m : r.perMod) {
+        if (m.mod < 0 || (size_t)m.mod >= ps.mods.size()) continue;
+        SnapMod sm; sm.id = ps.mods[(size_t)m.mod].id;
+        auto it = info.find(sm.id); sm.name = it != info.end() ? it->second.name : sm.id;
+        sm.time = m.time; sm.share = m.time / all; sm.runs = m.runs;
+        s.mods.push_back(std::move(sm));
+    }
+    if (r.baseEvents > 0) s.mods.push_back({"*base", "", r.baseEvents, r.baseEvents / all, r.baseRuns});
+    if (r.sharedActions > 0) s.mods.push_back({"*shared", "", r.sharedActions, r.sharedActions / all, r.sharedRuns});
+    return s;
+}
+struct HistRow { std::string id, name; double now = 0, before = 0, change = 0; bool inNow = false, inBefore = false; int seen = 0; long long runsNow = 0; };
+// Compares the newest snapshot with the one before it (same playset name preferred). Rows: biggest share now first, then mods that only appear before.
+inline std::vector<HistRow> historyRows(const std::vector<TimeSnap>& v, bool* haveBefore = nullptr) {
+    std::vector<HistRow> rows;
+    if (haveBefore) *haveBefore = false;
+    if (v.empty()) return rows;
+    const TimeSnap& now = v.back();
+    const TimeSnap* before = nullptr;
+    for (size_t i = v.size() - 1; i-- > 0;) if (v[i].playset == now.playset) { before = &v[i]; break; }
+    if (!before && v.size() >= 2) before = &v[v.size() - 2];
+    if (haveBefore) *haveBefore = before != nullptr;
+    std::map<std::string, size_t> at;
+    for (auto& m : now.mods) { HistRow r; r.id = m.id; r.name = m.name; r.now = m.share; r.inNow = true; r.runsNow = m.runs; at[m.id] = rows.size(); rows.push_back(r); }
+    if (before) for (auto& m : before->mods) {
+        auto f = at.find(m.id);
+        if (f == at.end()) { HistRow r; r.id = m.id; r.name = m.name; r.before = m.share; r.inBefore = true; at[m.id] = rows.size(); rows.push_back(r); }
+        else { rows[f->second].before = m.share; rows[f->second].inBefore = true; }
+    }
+    for (auto& r : rows) { r.change = r.now - r.before; for (auto& s : v) for (auto& m : s.mods) if (m.id == r.id) { r.seen++; break; } }
+    std::stable_sort(rows.begin(), rows.end(), [](const HistRow& a, const HistRow& b) { return a.now != b.now ? a.now > b.now : a.before > b.before; });
+    return rows;
 }
 
 // ---------- yearly counts ----------

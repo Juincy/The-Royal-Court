@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.20.4";
+inline const char* VERSION = "0.21.0";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -1771,7 +1771,8 @@ inline std::vector<KnownMod> builtinKnownMods() {
     { KnownMod k; k.names = {"petty inheritable traits"}; k.ids = {"2394747105"}; k.cat = CAT_CONTENT; v.push_back(k); }
     { KnownMod k; k.names = {"inheritable traits++", "inheritable traits"}; k.ids = {"2588849555"}; k.cat = CAT_CONTENT; v.push_back(k); }
     { KnownMod k; k.names = {"game master a new lifestyle trait", "game master"}; k.ids = {"3197506469"}; k.cat = CAT_CONTENT; v.push_back(k); }
-    { KnownMod k; k.names = {"sawwhets legacies mod pack", "sawwhet's legacies mod pack"}; k.ids = {"3000855939"}; k.cat = CAT_CONTENT; v.push_back(k); }
+    { KnownMod k; k.names = {"sawwhets legacies mod pack", "sawwhet's legacies mod pack"}; k.ids = {"3000855939"}; k.cat = CAT_CONTENT; k.pos = -1;
+      k.note = K("Sawwhet's Legacies Mod Pack: its page says to load it near the top of the load order"); v.push_back(k); }
     { KnownMod k; k.names = {"hiraeth dynasty legacies overhaul", "hiraeth"}; k.ids = {"2697392271"}; k.cat = CAT_CONTENT; v.push_back(k); }
     { KnownMod k; k.names = {"better battle window"}; k.ids = {"3305890494"}; k.cat = CAT_UI; v.push_back(k); }
     { KnownMod k; k.names = {"better battles"}; k.ids = {"2749062980"}; k.cat = CAT_CONTENT; v.push_back(k); }
@@ -1847,6 +1848,15 @@ inline std::vector<KnownMod> builtinKnownMods() {
     { KnownMod k; k.names = {"dnasis character ui compatch"}; k.ids = {"3058423279"}; k.cat = CAT_PATCH; k.rank = 9;
       k.after = {"customizable gui", "the catholic trinity", "in my humble opinion", "rename anyone", "displayed birth and death dates", "seperate name and title ue", "seperate name and title", "separate name and title ie", "stress bar for all", "custom title form of address", "hometowns"};
       k.note = K("Dnasis Character UI Compatch: its page says Customizable GUI goes at the top and this loads after the mods it supports"); v.push_back(k); }
+    // ---- round of 2026-10-17: AGOT search, last updated ----
+    { KnownMod k; k.names = {"grand remembrance agot compatibility submod", "grand remembrance agot"}; k.ids = {"3683507542"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "grand remembrance"};
+      k.note = K("Grand Remembrance - AGOT Compatibility Submod: its page says the order is A Game of Thrones, Grand Remembrance, then this submod last"); v.push_back(k); }
+    { KnownMod k; k.names = {"animal characters agot patch"}; k.ids = {"3820075861"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "animal characters"};
+      k.note = K("Animal Characters - AGOT patch: its page says the order is A Game of Thrones, Animal Characters, then this patch"); v.push_back(k); }
+    { KnownMod k; k.names = {"animal characters vanilla patch"}; k.ids = {"3820076820"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"animal characters"};
+      k.note = K("Animal Characters - Vanilla patch: its page says to load it after Animal Characters"); v.push_back(k); }
+    { KnownMod k; k.names = {"sightseer agot compatibility"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "sightseer"};
+      k.note = K("Sightseer AGOT Compatibility: its page says to keep it after A Game of Thrones and its submods"); v.push_back(k); }
     // ---- round of 2026-10-13: Dynamic Trade Routes and Africa Plus ----
     { KnownMod k; k.names = {"custom title form of address"}; k.ids = {"2653885896"};
       k.after = {"title manager", "randomize coa", "ethnicities and portraits expanded", "community title project", "more cultural names", "community mods for historicity more cultural names", "submission to authority"};
@@ -1971,6 +1981,85 @@ inline int findKnown(const std::vector<KnownMod>& db, const ModInfo& m) {
     return -1;
 }
 
+
+// ---------- compatch finder ----------
+// Compatibility patches whose names say which mods they join. Only patches that exist on the Workshop and name their parents are listed.
+struct CompatPatch { const char* name; const char* id; std::vector<std::vector<const char*>> parents; };   // parents: one list of alternative names per mod the patch is for
+inline const std::vector<CompatPatch>& compatPatches() {
+    static const std::vector<CompatPatch> v = {
+        {"EoE + Renovatio", "", {{"embers of empire"}, {"renovatio"}}},
+        {"MB Plus EPE CFP", "2543865921", {{"more bookmarks plus", "mb plus"}, {"ethnicities and portraits expanded", "epe"}, {"community flavor pack", "cfp"}}},
+        {"MB Plus CE", "2829541200", {{"more bookmarks plus", "mb plus"}, {"culture expanded"}}},
+        {"RICE + EPE Compatibility Patch", "2553043828", {{"regional immersion and cultural enrichment", "rice"}, {"ethnicities and portraits expanded", "epe"}}},
+        {"MHG + EPE Compatch", "2509797306", {{"more holding graphics", "mhg"}, {"ethnicities and portraits expanded", "epe"}}},
+        {"MHG + CFP Compatch", "2764329234", {{"more holding graphics", "mhg"}, {"community flavor pack", "cfp"}}},
+        {"MHG + CE Compatch", "2947626935", {{"more holding graphics", "mhg"}, {"culture expanded"}}},
+        {"MHG + RICE + EPE Compatch", "3186143971", {{"more holding graphics", "mhg"}, {"regional immersion and cultural enrichment", "rice"}, {"ethnicities and portraits expanded", "epe"}}},
+        {"MHG + RICE Compatch", "", {{"more holding graphics", "mhg"}, {"regional immersion and cultural enrichment", "rice"}}},
+        {"MHG + AOE Compatch", "", {{"more holding graphics", "mhg"}, {"architect of estates"}}},
+        {"MHG + MA Compatch", "", {{"more holding graphics", "mhg"}, {"medieval arts"}}},
+        {"SNAT + The Catholic Trinity", "2744600131", {{"separate name and title ue", "seperate name and title ue", "separate name and title", "seperate name and title"}, {"the catholic trinity"}}},
+        {"Love Marriage Family + Travel the Distance + Immersive Chaste Trait Compatch", "3049846007", {{"love marriage family"}, {"travel the distance"}, {"immersive chaste trait"}}},
+        {"MB Plus DTR Compatch", "", {{"more bookmarks plus", "mb plus"}, {"dynamic trade routes", "dtr lite"}}},
+        {"BAP ME Compatch", "", {{"africa plus"}, {"muslim enhancements"}}},
+        {"BAP IBL Compatch", "", {{"africa plus"}, {"ibn battutas legacy 2"}}},
+        {"BAP EPE Compatch", "", {{"africa plus"}, {"ethnicities and portraits expanded", "epe"}}},
+        {"DTR PoW", "", {{"dynamic trade routes"}, {"prisoners of war"}}},
+        {"Grand Remembrance - AGOT Compatibility Submod", "3683507542", {{"grand remembrance"}, {"a game of thrones"}}},
+        {"Animal Characters - AGOT patch", "3820075861", {{"animal characters"}, {"a game of thrones"}}},
+        {"Sightseer AGOT Compatibility", "", {{"sightseer"}, {"a game of thrones"}}},
+    };
+    return v;
+}
+struct CompatHit { int state = 0; std::string patch, id; std::vector<std::string> parents; int patchPos = -1; };   // state 0: not installed, 1: installed but turned off
+// Patches for pairs (or groups) of mods that are all turned on in this playset, where the patch itself is not turned on.
+inline std::vector<CompatHit> findCompatches(const Playset& ps, const std::map<std::string, ModInfo>& info) {
+    std::vector<CompatHit> out;
+    const int n = (int)ps.mods.size();
+    std::vector<std::string> norm((size_t)n);
+    for (int i = 0; i < n; i++) { auto it = info.find(ps.mods[(size_t)i].id); if (it != info.end()) norm[(size_t)i] = normName(it->second.name); }
+    for (auto& cp : compatPatches()) {
+        std::vector<std::string> names;
+        bool all = true;
+        for (auto& group : cp.parents) {
+            int hit = -1;
+            for (int i = 0; i < n && hit < 0; i++) {
+                if (!ps.mods[(size_t)i].enabled || norm[(size_t)i].empty()) continue;
+                for (const char* a : group) if (nameIs(norm[(size_t)i], normName(a))) { hit = i; break; }
+            }
+            if (hit < 0) { all = false; break; }
+            names.push_back(info.at(ps.mods[(size_t)hit].id).name);
+        }
+        if (!all) continue;
+        std::string pn = normName(cp.name);
+        int on = -1, off = -1;
+        for (int i = 0; i < n; i++) {
+            if (norm[(size_t)i].empty()) continue;
+            bool same = nameIs(norm[(size_t)i], pn) || (cp.id[0] && steamIdOf(ps.mods[(size_t)i].id) == cp.id);
+            if (!same) continue;
+            if (ps.mods[(size_t)i].enabled) on = i; else if (off < 0) off = i;
+        }
+        if (on >= 0) continue;
+        CompatHit h; h.state = off >= 0 ? 1 : 0; h.patch = cp.name; h.id = cp.id; h.parents = names; h.patchPos = off;
+        out.push_back(std::move(h));
+    }
+    return out;
+}
+inline std::string compatText(const std::vector<CompatHit>& hits, const std::string& playsetName) {
+    std::string t = trf("Compatibility patches for \"{0}\"", {playsetName}) + "\n\n";
+    if (hits.empty()) return t + tr("No known compatibility patch is missing. (This only knows patches that name the mods they join.)") + "\n";
+    for (auto& h : hits) {
+        std::string who;
+        for (auto& p : h.parents) who += (who.empty() ? "" : " + ") + p;
+        t += "- " + h.patch + "\n    " + trf("for: {0}", {who}) + "\n    ";
+        if (h.state == 1) t += trf("It is in your list but turned off (#{0}): tick it so the two mods work together.", {h.patchPos + 1}) + "\n";
+        else if (!h.id.empty()) t += tr("Not subscribed. Workshop page:") + " https://steamcommunity.com/sharedfiles/filedetails/?id=" + h.id + "\n";
+        else t += tr("Not subscribed. Search the Steam Workshop for its name.") + "\n";
+    }
+    t += "\n" + tr("Check each page before you subscribe: a patch is only needed when you really use both mods together.") + "\n";
+    return t;
+}
+
 // why: "default" is a language-neutral marker (nothing specific said what the mod is); every other text is already translated.
 // shown() is the text for display (translates the marker).
 struct CatGuess { int cat = CAT_CONTENT; std::string why; std::string shown() const { return why == "default" ? tr("default") : why; } };
@@ -2021,7 +2110,10 @@ inline CatGuess guessFromFiles(const ModFiles& mf) {
 
 struct SortMove { int from = 0, to = 0; std::string id, reason; };
 struct SortViolation { int mod = 0, other = -1, kind = 0; std::string text; };   // mod (old position) should load after / below something but does not; kind 2 known-mod rule, 3 patch link, 4 should load first (total conversion, library)
+struct SortEdge { int from = 0, to = 0, kind = 0, subj = 0; std::string text; };   // from loads before to (OLD positions); subj: the mod the text talks about (text is empty for kind 1)
 struct SortPlan {
+    std::vector<SortEdge> edges;             // the rules that shaped the order (dependencies, known-mod rules, patch links, conflict tie-breaks)
+    std::vector<int> newPos;                 // per OLD position: where Auto Sort puts it
     std::vector<int> order;                  // order[newPosition] = old position
     std::vector<SortMove> moves;             // only mods whose position changed, in new order
     std::vector<std::string> warnings;       // things the sort could not satisfy
@@ -2071,10 +2163,10 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
     auto isLocked = [&](int i) { return locked.count(ps.mods[(size_t)i].id) > 0 || !ps.mods[(size_t)i].enabled; };   // a turned-off mod is never sorted: it stays where it is and no rule about it is applied
     auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? ps.mods[(size_t)i].id : it->second.name; };
 
-    struct Edge { int from, to, kind; std::string text, note, other; bool after = false; };   // text: the reason shown for a move; note/other/after: what a known-mod rule says (for the locked-mod warning)   // from loads before to; kind 0 dependency, 1 conflict tie-break, 2 known-mod rule, 3 patch link
+    struct Edge { int from, to, kind; std::string text, note, other; bool after = false; int subj = 0; };   // text: the reason shown for a move; note/other/after: what a known-mod rule says (for the locked-mod warning)   // from loads before to; kind 0 dependency, 1 conflict tie-break, 2 known-mod rule, 3 patch link
     std::vector<Edge> edges;
     std::vector<std::vector<int>> out((size_t)n);            // adjacency (edge indices)
-    auto addEdge = [&](int a, int b, int kind, const std::string& text, const std::string& note = "", const std::string& other = "", bool after = false) { if (!ps.mods[(size_t)a].enabled || !ps.mods[(size_t)b].enabled) return; out[(size_t)a].push_back((int)edges.size()); edges.push_back({a, b, kind, text, note, other, after}); };
+    auto addEdge = [&](int a, int b, int kind, const std::string& text, const std::string& note = "", const std::string& other = "", bool after = false) { if (!ps.mods[(size_t)a].enabled || !ps.mods[(size_t)b].enabled) return; out[(size_t)a].push_back((int)edges.size()); edges.push_back({a, b, kind, text, note, other, after, kind == 2 ? (after ? b : a) : b}); };
     for (int i = 0; i < n; i++) {
         auto it = info.find(ps.mods[(size_t)i].id);
         if (it == info.end() || !ps.mods[(size_t)i].enabled) continue;
@@ -2193,6 +2285,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         }
     }
     plan.posTier = tier;
+    for (auto& e : edges) plan.edges.push_back({e.from, e.to, e.kind, e.subj, e.kind == 1 ? std::string() : e.text});
     for (auto& e : edges)                                    // rules the current order breaks
         if (e.kind != 0 && e.kind != 1 && e.from > e.to) plan.broken.push_back({e.to, e.from, e.kind, e.text});
     for (int i = 0; i < n; i++) {
@@ -2206,6 +2299,7 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
     for (int p = 0; p < n; p++) plan.order[(size_t)p] = isLocked(p) ? p : seq[k++];
     std::vector<int> newPos((size_t)n, 0);
     for (int p = 0; p < n; p++) newPos[(size_t)plan.order[(size_t)p]] = p;
+    plan.newPos = newPos;
     for (auto& e : edges) {
         if (e.kind == 1 || e.kind == 3 || newPos[(size_t)e.from] < newPos[(size_t)e.to]) continue;
         if (isLocked(e.from) || isLocked(e.to)) {
@@ -2232,6 +2326,42 @@ inline SortPlan planSort(const Playset& ps, const std::map<std::string, ModInfo>
         plan.moves.push_back(std::move(mv));
     }
     return plan;
+}
+
+// "Why is this mod here?": every rule that ties the mod at OLD position `pos` to a place, and whether the current order already follows it.
+inline std::string explainPosition(const SortPlan& plan, const Playset& ps, const std::map<std::string, ModInfo>& info, int pos, bool locked) {
+    const int n = (int)ps.mods.size();
+    if (pos < 0 || pos >= n || (int)plan.newPos.size() != n) return "";
+    auto nameOf = [&](int i) { auto it = info.find(ps.mods[(size_t)i].id); return it == info.end() ? ps.mods[(size_t)i].id : it->second.name; };
+    std::string t = trf("\"{0}\" is at position {1} of {2}.", {nameOf(pos), pos + 1, n}) + "\n";
+    if (!ps.mods[(size_t)pos].enabled) return t + tr("It is turned off: Auto Sort ignores it and no rule about it is applied.") + "\n";
+    if (locked) t += tr("You locked it: Auto Sort never moves this mod.") + "\n";
+    else if (plan.newPos[(size_t)pos] != pos) t += trf("Auto Sort would move it to position {0}.", {plan.newPos[(size_t)pos] + 1}) + "\n";
+    else t += tr("Auto Sort would leave it where it is.") + "\n";
+    std::string grp = plan.catWhy[(size_t)pos].empty() || plan.catWhy[(size_t)pos] == "default" ? trf("{0} group", {catName(plan.cat[(size_t)pos])}) : trf("{0} group ({1})", {catName(plan.cat[(size_t)pos]), plan.catWhy[(size_t)pos]});
+    t += tr("Group:") + " " + grp + "\n";
+    if (!plan.known[(size_t)pos].empty()) t += tr("Known mod:") + " " + plan.known[(size_t)pos] + "\n";
+    if (plan.posTier[(size_t)pos] == -2) t += tr("It belongs at the very top of the load order.") + "\n";
+    else if (plan.posTier[(size_t)pos] == -1) t += tr("It belongs near the top of the load order.") + "\n";
+    else if (plan.posTier[(size_t)pos] == 1) t += tr("It belongs at the very bottom of the load order.") + "\n";
+    std::string must, tie;
+    for (auto& e : plan.edges) {
+        if (e.from != pos && e.to != pos) continue;
+        int other = e.from == pos ? e.to : e.from;
+        bool ok = e.from < e.to;                             // the current order already follows it (from loads before to)
+        std::string tail = ok ? trf("already true (position {0})", {other + 1}) : trf("not true yet (it is at position {0})", {other + 1});
+        if (e.kind == 1) {
+            if (e.to == pos) tie += "  " + trf("Loads after \"{0}\": they overwrite the same files and this is the smaller mod, so it wins", {nameOf(other)}) + " - " + tail + "\n";
+            else tie += "  " + trf("\"{0}\" loads after it: they overwrite the same files and \"{0}\" is the smaller mod, so it wins", {nameOf(other)}) + " - " + tail + "\n";
+            continue;
+        }
+        std::string line = e.subj == pos ? e.text : nameOf(e.subj) + ": " + e.text;
+        must += "  " + line + " - " + tail + "\n";
+    }
+    if (!must.empty()) t += "\n" + tr("Rules that fix its place:") + "\n" + must;
+    if (!tie.empty()) t += "\n" + tr("Overlap with other mods (a tie-break, not a rule):") + "\n" + tie;
+    if (must.empty() && tie.empty()) t += "\n" + tr("No rule ties it to a particular place. Auto Sort keeps it inside its group, in its current order.") + "\n";
+    return t;
 }
 
 // ---------- pre-Play health check ----------

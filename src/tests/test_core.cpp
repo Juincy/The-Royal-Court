@@ -603,6 +603,92 @@ int main() {
             assert(pos["Custom Title Form of Address"] > pos["Title Manager"] && pos["Custom Title Form of Address"] > pos["Ethnicities & Portraits Expanded"]);
             assert(pos["Separate Name and Title (UE)"] > pos["Custom Title Form of Address"]);
         }
+        {   // round of 2026-10-17: Sawwhet's Legacies Mod Pack near the top
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> cs = {mk("1", "Some Mod"), mk("2", "Other Mod"), mk("3000855939", "Sawwhet's Legacies Mod Pack")};
+            auto ci = infoMap(cs); Playset cp; cp.name = "s";
+            for (auto& m : cs) cp.mods.push_back({m.id, true, ""});
+            SortPlan cpl = planSort(cp, ci, {}, {}, nullptr, nullptr, &db);
+            assert(cs[(size_t)cpl.order[0]].name == "Sawwhet's Legacies Mod Pack");
+        }
+        {   // v0.21.0: on_action credit by base-game names, history, explain, compatch finder
+            std::string oaCsv = "#ID;ExecuteEventsTotal;ExecuteOnActionsTotal;ExecuteCount;Sum;\n"
+                "zeta_unique;0;0;5;8.0;\n"                  // one mod defines it, the base game does not, but its first word matches no event namespace
+                "on_birth;0;0;5;2.0;\n"                     // base game has it and a mod extends it: stays shared
+                "twin;0;0;5;1.0;\n";                        // two mods define it, not in the base game: stays shared
+            auto mkdef = [](ModDefs& md, uint8_t kind, const std::string& nm) { DefEntry d; d.nameOff = (uint32_t)md.pool.size(); d.nameLen = (uint16_t)nm.size(); d.kind = kind; md.pool += nm; md.defs.push_back(d); };
+            std::map<std::string, ModDefs> defs;
+            { ModDefs m; mkdef(m, DK_EVENT, "AAA_x.1"); mkdef(m, DK_ONACTION, "zeta_unique"); mkdef(m, DK_ONACTION, "on_birth"); mkdef(m, DK_ONACTION, "twin"); defs["1"] = m; }
+            { ModDefs m; mkdef(m, DK_EVENT, "BBB_x.1"); mkdef(m, DK_ONACTION, "twin"); defs["2"] = m; }
+            Playset ps; ps.name = "h"; ps.mods.push_back({"1", true, ""}); ps.mods.push_back({"2", true, ""});
+            std::unordered_set<std::string> base{"on_birth", "on_death"};
+            TimeReport noBase = attributeTime(TimeTable(), parseStatsCsv(oaCsv, true), ps, defs);
+            assert(noBase.perMod.empty() && std::fabs(noBase.sharedActions - 11.0) < 1e-9);          // without the base-game list nothing is guessed
+            TimeReport withBase = attributeTime(TimeTable(), parseStatsCsv(oaCsv, true), ps, defs, &base);
+            assert(withBase.perMod.size() == 1 && withBase.perMod[0].mod == 0 && std::fabs(withBase.perMod[0].time - 8.0) < 1e-9 && withBase.actionsByName == 1);
+            assert(std::fabs(withBase.sharedActions - 3.0) < 1e-9);
+            // base-game names are read from the game folder (and DLC folders)
+            fs::path gd = fs::temp_directory_path() / "rc_base_oa"; fs::remove_all(gd);
+            fs::create_directories(gd / "common" / "on_action"); fs::create_directories(gd / "dlc" / "dlc001" / "common" / "on_action");
+            { std::ofstream(gd / "common" / "on_action" / "a.txt") << "on_birth = {\n effect = { }\n}\non_death = { }\n"; std::ofstream(gd / "dlc" / "dlc001" / "common" / "on_action" / "b.txt") << "dlc_pulse = { }\n"; }
+            auto names = baseOnActionNames(gd.u8string());
+            assert(names.count("on_birth") && names.count("on_death") && names.count("dlc_pulse") && !names.count("zeta_unique"));
+            assert(baseOnActionNames("").empty());
+            fs::remove_all(gd);
+            // history: round trip, one per time, newest compared with the one before
+            std::map<std::string, ModInfo> inf; { ModInfo a; a.id = "1"; a.name = "Mod One"; ModInfo b; b.id = "2"; b.name = "Mod Two"; inf["1"] = a; inf["2"] = b; }
+            std::vector<TimeSnap> hv;
+            TimeSnap s1; s1.when = 100; s1.total = 50; s1.events = 7; s1.playset = "h"; s1.game = "1.20.1"; s1.mods = {{"1", "Mod One", 40, 0.8, 9}, {"*shared", "", 10, 0.2, 3}};
+            TimeSnap s2; s2.when = 200; s2.total = 60; s2.events = 8; s2.playset = "h"; s2.game = "1.20.1"; s2.mods = {{"1", "Mod One", 30, 0.5, 9}, {"2", "Mod\tTwo", 30, 0.5, 4}};
+            snapAdd(hv, s2); snapAdd(hv, s1); snapAdd(hv, s2);
+            assert(hv.size() == 2 && hv[0].when == 100 && hv[1].when == 200);
+            auto back = snapFromText(snapToText(hv));
+            assert(back.size() == 2 && back[1].mods.size() == 2 && back[1].mods[1].name == "Mod Two" && back[0].playset == "h" && std::fabs(back[0].mods[0].share - 0.8) < 1e-9);
+            assert(snapFromText("junk\nM\tx\n").empty());
+            bool hb = false; auto hr = historyRows(back, &hb);
+            assert(hb && hr.size() == 3);
+            for (auto& r : hr) { if (r.id == "1") assert(std::fabs(r.change - (-0.3)) < 1e-9 && r.seen == 2); if (r.id == "2") assert(r.inNow && !r.inBefore && r.seen == 1); if (r.id == "*shared") assert(!r.inNow && r.inBefore); }
+            for (size_t i = 0; i < 40; i++) { TimeSnap x = s1; x.when = 1000 + (long long)i; snapAdd(hv, x, 30); }
+            assert(hv.size() == 30);
+            // explain this position
+            std::vector<ModInfo> cs = {[]{ModInfo m; m.id = "1"; m.name = "Custom Title Form of Address"; return m;}(), []{ModInfo m; m.id = "2"; m.name = "Title Manager"; return m;}(), []{ModInfo m; m.id = "3"; m.name = "Plain Content Thing"; return m;}()};
+            auto ci = infoMap(cs); Playset ep; ep.name = "e";
+            for (auto& m : cs) ep.mods.push_back({m.id, true, ""});
+            SortPlan epl = planSort(ep, ci, {}, {}, nullptr, nullptr, &db);
+            std::string ex = explainPosition(epl, ep, ci, 0, false);
+            assert(ex.find("Title Manager") != std::string::npos && ex.find("not true yet") != std::string::npos && ex.find("position 1 of 3") != std::string::npos);
+            std::string ex2 = explainPosition(epl, ep, ci, 2, true);
+            assert(ex2.find("locked") != std::string::npos && ex2.find("No rule ties it") != std::string::npos);
+            ep.mods[2].enabled = false;
+            assert(explainPosition(planSort(ep, ci, {}, {}, nullptr, nullptr, &db), ep, ci, 2, false).find("turned off") != std::string::npos);
+            assert(explainPosition(epl, ep, ci, 9, false).empty());
+            // compatch finder
+            std::vector<ModInfo> cm = {[]{ModInfo m; m.id = "1"; m.name = "More Holding Graphics"; return m;}(), []{ModInfo m; m.id = "2"; m.name = "Ethnicities & Portraits Expanded"; return m;}(), []{ModInfo m; m.id = "3"; m.name = "Culture Expanded"; return m;}()};
+            auto cmi = infoMap(cm); Playset cpp; cpp.name = "c";
+            for (auto& m : cm) cpp.mods.push_back({m.id, true, ""});
+            auto hits = findCompatches(cpp, cmi);
+            bool epe = false, ce = false, cfp = false; for (auto& h : hits) { if (h.patch == "MHG + EPE Compatch") epe = true; if (h.patch == "MHG + CE Compatch") ce = true; if (h.patch == "MHG + CFP Compatch") cfp = true; }
+            assert(epe && ce && !cfp);
+            { ModInfo p; p.id = "9"; p.name = "MHG + EPE Compatch"; cm.push_back(p); cmi = infoMap(cm); cpp.mods.push_back({"9", true, ""}); }
+            for (auto& h : findCompatches(cpp, cmi)) assert(h.patch != "MHG + EPE Compatch");      // already turned on
+            cpp.mods[3].enabled = false;
+            bool off = false; for (auto& h : findCompatches(cpp, cmi)) if (h.patch == "MHG + EPE Compatch" && h.state == 1) off = true;
+            assert(off);
+            cpp.mods[0].enabled = false;
+            assert(findCompatches(cpp, cmi).empty());                                          // a parent is off: nothing to suggest
+            assert(compatText(hits, "c").find("2509797306") != std::string::npos);
+        }
+        {   // round of 2026-10-17 (AGOT search): Grand Remembrance submod, Animal Characters patches, Sightseer AGOT
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> cs = {mk("1", "Grand Remembrance - AGOT Compatibility Submod"), mk("2", "Grand Remembrance"), mk("3", "A Game of Thrones"), mk("4", "Animal Characters - AGOT patch"), mk("5", "Animal Characters (Horses & Dogs)"), mk("6", "Sightseer AGOT Compatibility"), mk("7", "Sightseer")};
+            auto ci = infoMap(cs); Playset cp; cp.name = "g";
+            for (auto& m : cs) cp.mods.push_back({m.id, true, ""});
+            SortPlan cpl = planSort(cp, ci, {}, {}, nullptr, nullptr, &db);
+            std::map<std::string, int> pos; for (size_t i = 0; i < cpl.order.size(); i++) pos[cs[(size_t)cpl.order[i]].name] = (int)i;
+            assert(pos["Grand Remembrance - AGOT Compatibility Submod"] > pos["Grand Remembrance"] && pos["Grand Remembrance - AGOT Compatibility Submod"] > pos["A Game of Thrones"]);
+            assert(pos["Animal Characters - AGOT patch"] > pos["A Game of Thrones"] && pos["Animal Characters - AGOT patch"] > pos["Animal Characters (Horses & Dogs)"]);
+            assert(pos["Sightseer AGOT Compatibility"] > pos["A Game of Thrones"] && pos["Sightseer AGOT Compatibility"] > pos["Sightseer"]);
+        }
         {   // shader cache scan and clear
             fs::path root = fs::temp_directory_path() / "rc_shader_test"; fs::remove_all(root);
             fs::create_directories(root / "ShaderCache" / "sub"); fs::create_directories(root / "save games"); fs::create_directories(root / "mod");

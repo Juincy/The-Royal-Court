@@ -89,7 +89,7 @@ static std::wstring TLF(const wchar_t* key, std::initializer_list<WA> args) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_ADV_HEALTH, ID_ADV_PLAYCHECK, ID_ADV_SHADER, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D, ID_ADV_SCRIPTTIME, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_ADV_HEALTH, ID_ADV_PLAYCHECK, ID_ADV_SHADER, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D, ID_RP_E, ID_ADV_SCRIPTTIME, ID_ADV_COMPATCH, ID_CTX_EXPLAIN, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
     ID_TREE, ID_EXPAND, ID_COLLAPSE,
     ID_LANG, ID_LANG_BASE = 7100   // ID_LANG_BASE: the language menu uses ID_LANG_BASE .. ID_LANG_BASE + LANG_COUNT
 };
@@ -491,7 +491,7 @@ static void drawButton(const DRAWITEMSTRUCT* d) {
     HBRUSH ab = CreateSolidBrush(around); FillRect(dc, &r, ab); DeleteObject(ab);
     bool dis = (d->itemState & ODS_DISABLED) != 0, down = (d->itemState & ODS_SELECTED) != 0;
     float ha = hoverAmt(d->hwndItem);   // 0..1: the hover colour fades in and out instead of snapping
-    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3) || (id == ID_RP_A && g_repViewForBtn == 0) || (id == ID_RP_B && g_repViewForBtn == 1) || (id == ID_RP_C && g_repViewForBtn == 2) || (id == ID_RP_D && g_repViewForBtn == 3);
+    bool primary = id == ID_PLAY || (id == ID_CF_PAIR && g_cfView == 0) || (id == ID_CF_FILE && g_cfView == 1) || (id == ID_CF_DEF && g_cfView == 2) || (id == ID_CF_VAN && g_cfView == 3) || (id == ID_RP_A && g_repViewForBtn == 0) || (id == ID_RP_B && g_repViewForBtn == 1) || (id == ID_RP_C && g_repViewForBtn == 2) || (id == ID_RP_D && g_repViewForBtn == 3) || (id == ID_RP_E && g_repViewForBtn == 4);
     COLORREF fill = primary ? (down ? mix(t.accent, RGB(0,0,0), 20) : mix(t.accent, RGB(255,255,255), (int)(18.0f * ha))) : (down ? t.btnDown : mix(t.btn, t.btnHot, (int)(100.0f * ha + 0.5f)));
     COLORREF edge = primary ? mix(t.accent, RGB(0,0,0), 25) : mix(t.border, t.gold, (int)(100.0f * ha + 0.5f));
     {
@@ -2910,7 +2910,9 @@ static void repBuildTime() {
     for (auto& m : ps->mods) if (m.enabled) { enabled++; auto f = g_fileIndex.find(m.id); if (f != g_fileIndex.end() && f->second.complete) ready++; }
     bool waiting = ready < enabled;
     if (waiting) { g_repWaitIndex = true; if (!g_scanning) maybeScan(true); }
-    TimeReport tr = attributeTime(std::move(ev), std::move(oa), *ps, g_defIndex);
+    std::unordered_set<std::string> baseOa = baseOnActionNames(vanillaGameDir(g_gameExeUsed));   // the base game's on_action names (a hundred small files, read once per window)
+    TimeReport tr = attributeTime(std::move(ev), std::move(oa), *ps, g_defIndex, baseOa.empty() ? nullptr : &baseOa);
+    bool sameSet = true;                                       // false: that session ran with other mods than you have now
     auto modName = [&](int pos) { auto it = g_info.find(ps->mods[(size_t)pos].id); return it != g_info.end() ? it->second.name : ps->mods[(size_t)pos].id; };
     // same mods as in that game session?
     std::wstring same;
@@ -2923,11 +2925,19 @@ static void repBuildTime() {
         for (auto& id : is) if (!was.count(id)) onlyNow++;
         for (auto& id : was) if (!is.count(id)) onlyThen++;
         if (!onlyNow && !onlyThen) same = std::wstring(L" · ") + TL(L"the game ran with the mods you have enabled now");
-        else same = L" · " + TLF(L"NOT the playset you have now ({0} turned on, {1} turned off since); names may point at the wrong mods", {onlyNow, onlyThen});
+        else { same = L" · " + TLF(L"NOT the playset you have now ({0} turned on, {1} turned off since); names may point at the wrong mods", {onlyNow, onlyThen}); sameSet = false; }
     }
     auto ft = fs::last_write_time(logs / (oaText.empty() ? "eventstats.csv" : "onactionstats.csv"), ec);
     long long when = 0;
     if (!ec) when = (long long)std::time(nullptr) - (long long)std::chrono::duration_cast<std::chrono::seconds>(fs::file_time_type::clock::now() - ft).count();
+    // one snapshot per game session (same mods as then, all files read), kept in the program's data folder
+    fs::path histFile = P(dataDir()) / "scripttime_history.txt";
+    std::vector<TimeSnap> hist;
+    { std::string ht; if (readFile(histFile, ht, 4u << 20)) hist = snapFromText(ht); }
+    if (when > 0 && !waiting && tr.all > 0 && sameSet && !loaded.empty()) {
+        bool known = false; for (auto& x : hist) if (x.when == when) known = true;
+        if (!known) { snapAdd(hist, makeSnap(tr, *ps, g_info, when, g_gameVer)); writeFileAtomic(histFile, snapToText(hist)); }
+    }
     double errs = years.empty() ? 0 : years.back().v["errors"];
     g_repStatusText = TLF(L"Statistics from {0}", {when ? repWhen(when) : std::wstring(L"?")}) + L" · " + TLF(L"{0} events and {1} on_actions measured", {tr.events.rows.size(), tr.onActions.rows.size()}) + same
         + (waiting ? std::wstring(L" · ") + TL(L"still reading your mods' files, this updates by itself") : std::wstring())
@@ -2985,6 +2995,25 @@ static void repBuildTime() {
             addBar(r, x.own, mx);
             push(std::move(r), W(x.id) + L" (" + who + L"): " + timeText(x.own) + L", " + shareText(x.own / all) + L", " + countText(x.count) + L" runs");
         }
+    } else if (g_repViewForBtn == 4) {                                            // history
+        g_repBarCol = 1;
+        bool haveBefore = false;
+        std::vector<HistRow> hr = historyRows(hist, &haveBefore);
+        g_repStatusText = TLF(L"{0} game session(s) saved; the newest is compared with the one before it", {hist.size()}) + (hist.size() >= 2 ? L" · " + TLF(L"total measured time {0} now, {1} before", {timeText(hist.back().total), timeText(hist[hist.size() - 2].total)}) : std::wstring()) + L" · " + TL(L"a session is saved when you open this window after playing");
+        double mx = 0; for (auto& r : hr) mx = std::max(mx, r.now);
+        for (auto& r : hr) {
+            std::wstring nm = r.id == "*base" ? TL(L"Base game events (not found in your mods)") : r.id == "*shared" ? TL(L"On_actions (base game and mods share these)") : W(r.name);
+            wchar_t b[32];
+            std::wstring ch;
+            if (!r.inBefore) ch = TL(L"new"); else if (!r.inNow) ch = TL(L"gone");
+            else { swprintf(b, 32, L"%+.1f", r.change * 100.0); ch = std::wstring(b) + L" pts"; }
+            RepRow row; row.key = nm;
+            row.cells = {nm, r.inNow ? shareText(r.now) : std::wstring(L"-"), r.inBefore ? shareText(r.before) : std::wstring(L"-"), ch, std::to_wstring(r.seen)};
+            addBar(row, r.now, mx);
+            std::wstring line = nm + L": " + row.cells[1] + L" (before " + row.cells[2] + L", " + ch + L")";
+            push(std::move(row), line);
+        }
+        if (!haveBefore && !hr.empty()) g_repStatusText += std::wstring(L" · ") + TL(L"play again to see changes");
     } else {                                                                      // over the years
         g_repBarCol = 1;
         double mx = 0;
@@ -3028,6 +3057,7 @@ static void repColumns() {
     if (g_repKind == 2) {
         auto add = [&](const wchar_t* t, int w) { cols.push_back({t, w}); };
         if (g_repViewForBtn == 0) { add(TLK(L"Mod"), 330); add(TLK(L"Time"), 80); add(TLK(L"Share of script time"), 260); add(TLK(L"Runs"), 100); add(TLK(L"Slowest event or on_action"), 360); }
+        else if (g_repViewForBtn == 4) { add(TLK(L"Mod"), 330); add(TLK(L"Share now"), 220); add(TLK(L"Share before"), 110); add(TLK(L"Change"), 100); add(TLK(L"Sessions seen"), 110); }
         else if (g_repViewForBtn == 3) { add(TLK(L"Year"), 70); add(TLK(L"Living characters"), 260); add(TLK(L"Court"), 90); add(TLK(L"Rulers"), 90); add(TLK(L"Opinions"), 100); add(TLK(L"Schemes"), 90); add(TLK(L"Wars"), 70); add(TLK(L"Errors"), 90); }
         else { add(g_repViewForBtn == 1 ? TLK(L"Event") : TLK(L"On_action"), 330); add(TLK(L"Mod"), 300); add(TLK(L"Time"), 80); add(TLK(L"Share of script time"), 200); add(TLK(L"Runs"), 100); }
     }
@@ -3058,7 +3088,7 @@ static void repRefresh() {
     if (g_repKind == 0) repBuildLog(); else if (g_repKind == 2) repBuildTime(); else repBuildSince();
     repColumns();
     repFill();
-    for (int id : {ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D}) if (HWND b = GetDlgItem(hRep, id)) InvalidateRect(b, nullptr, FALSE);
+    for (int id : {ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D, ID_RP_E}) if (HWND b = GetDlgItem(hRep, id)) InvalidateRect(b, nullptr, FALSE);
 }
 static void repLayout() {
     RECT r; GetClientRect(hRep, &r);
@@ -3067,7 +3097,7 @@ static void repLayout() {
         MoveWindow(GetDlgItem(hRep, ID_RP_A), x, y, S(110), bh, TRUE); x += S(110) + gap;
         MoveWindow(GetDlgItem(hRep, ID_RP_B), x, y, S(150), bh, TRUE); x += S(150) + gap;
     } else if (g_repKind == 2) {
-        for (int id : {ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D}) { MoveWindow(GetDlgItem(hRep, id), x, y, S(id == ID_RP_D ? 150 : 124), bh, TRUE); x += S(id == ID_RP_D ? 150 : 124) + gap; }
+        for (int id : {ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D, ID_RP_E}) { MoveWindow(GetDlgItem(hRep, id), x, y, S(id == ID_RP_D || id == ID_RP_E ? 150 : 124), bh, TRUE); x += S(id == ID_RP_D || id == ID_RP_E ? 150 : 124) + gap; }
     }
     int right = r.right - m;
     MoveWindow(GetDlgItem(hRep, ID_RP_RELOAD), right - S(110), y, S(110), bh, TRUE); right -= S(110) + gap;
@@ -3095,7 +3125,7 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_CREATE: {
             hRep = h;
             if (g_repKind == 0) { mkBtn(h, L"☰", TL(L"By mod"), ID_RP_A); mkBtn(h, L"≡", TL(L"All messages"), ID_RP_B); }
-            else if (g_repKind == 2) { mkBtn(h, L"☰", TL(L"By mod"), ID_RP_A); mkBtn(h, L"≡", TL(L"Slowest events"), ID_RP_B); mkBtn(h, L"↯", TL(L"On_actions"), ID_RP_C); mkBtn(h, L"▁", TL(L"Over the years"), ID_RP_D); }
+            else if (g_repKind == 2) { mkBtn(h, L"☰", TL(L"By mod"), ID_RP_A); mkBtn(h, L"≡", TL(L"Slowest events"), ID_RP_B); mkBtn(h, L"↯", TL(L"On_actions"), ID_RP_C); mkBtn(h, L"▁", TL(L"Over the years"), ID_RP_D); mkBtn(h, L"⟲", TL(L"History"), ID_RP_E); }
             mkBtn(h, L"⎘", TL(L"Copy report"), ID_RP_COPY);
             mkBtn(h, L"↻", TL(L"Reload"), ID_RP_RELOAD);
             hRepFilter = CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT", L"", WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_AUTOHSCROLL, 0, 0, 10, 10, h, (HMENU)(INT_PTR)ID_RP_FILTER, g_inst, nullptr);
@@ -3122,7 +3152,7 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
         case WM_APP + 1: repTheme(); return 0;
         case WM_COMMAND:
             switch (LOWORD(w)) {
-                case ID_RP_A: case ID_RP_B: case ID_RP_C: case ID_RP_D: g_repViewForBtn = LOWORD(w) - ID_RP_A; repRefresh(); break;
+                case ID_RP_A: case ID_RP_B: case ID_RP_C: case ID_RP_D: case ID_RP_E: g_repViewForBtn = LOWORD(w) - ID_RP_A; repRefresh(); break;
                 case ID_RP_FILTER: if (HIWORD(w) == EN_CHANGE) repFill(); break;
                 case ID_RP_RELOAD: repRefresh(); break;
                 case ID_RP_COPY:
@@ -3325,6 +3355,13 @@ static const std::vector<TourPage>& tourPages() {
           TLK(L"What changed since I last pressed Play: mods that updated, mods made for an older game, mods turned on or off, a game update."),
           TLK(L"The status line at the bottom tells you when the game crashed or when something changed.")},
          TLK(L"These helpers are in the Advanced menu.")},
+        {L"⏱", TLK(L"Speed and fit"),
+         TLK(L"Tools that look at the whole playset instead of one mod at a time."),
+         {TLK(L"Script time shows which mod's scripts use the most game time, as measured by the game itself. History compares your game sessions, so you see whether a mod got slower."),
+          TLK(L"Right-click a mod > Explain this position tells you which rules hold it in place and what Auto Sort would do."),
+          TLK(L"Compatch finder lists compatibility patches for mods you use together that you have not subscribed to yet."),
+          TLK(L"Health check tells you before you press Play whether the playset is ready. Clear the shader cache is in Advanced too.")},
+         TLK(L"All of these are in the Advanced menu or the right-click menu.")},
         {L"✉", TLK(L"Share, language and look"),
          TLK(L"A few things that make the program yours."),
          {TLK(L"Export > Copy a share code turns a whole playset into one line of text. Import > Paste a share code builds it again for a friend."),
@@ -4641,6 +4678,7 @@ static void advancedMenu() {
     AppendMenuW(m, MF_STRING, ID_ADV_HEALTH, TL(L"Health check: is this playset ready to play..."));
     AppendMenuW(m, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(m, MF_STRING, ID_ADV_GAMELOG, TL(L"Game log: which mod causes the errors..."));
+    AppendMenuW(m, MF_STRING, ID_ADV_COMPATCH, TL(L"Compatch finder: patches for the mods you use..."));
     AppendMenuW(m, MF_STRING, ID_ADV_SCRIPTTIME, TL(L"Script time: which mod's scripts take the most time..."));
     AppendMenuW(m, MF_STRING, ID_ADV_SINCE, TL(L"What changed since I last pressed Play..."));
     AppendMenuW(m, MF_STRING, ID_ADV_CRASH, TL(L"Crash helper: why did the game crash..."));
@@ -4673,6 +4711,11 @@ static void advancedMenu() {
     if (cmd == ID_FOLDER) ShellExecuteW(hMain, L"open", playsetsDir().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
     else if (cmd == ID_ADV_DELSAVES) deleteAllSaves();
     else if (cmd == ID_ADV_HEALTH) showHealth();
+    else if (cmd == ID_ADV_COMPATCH) {
+        Playset* ps = active();
+        if (!ps) { info(TL(L"Choose or create a playset first.")); return; }
+        showText(TL(L"Compatch finder - The Royal Court"), W(compatText(findCompatches(*ps, g_info), ps->name)));
+    }
     else if (cmd == ID_ADV_SHADER) clearShaders();
     else if (cmd == ID_ADV_PLAYCHECK) { g_settings.playCheck = !g_settings.playCheck; saveSettingsNow(); say(g_settings.playCheck ? TL(L"The health check will run when you press Play.") : TL(L"The health check will no longer run when you press Play. You can still start it from Advanced.")); }
     else if (cmd == ID_ADV_GAMELOG) showReport(0);
@@ -5010,6 +5053,13 @@ static void onCommand(int id, int code) {
                 if (unlock) lk.erase(modId); else lk.insert(modId);
             }
             saveSettingsNow(); populate();
+            break;
+        }
+        case ID_CTX_EXPLAIN: {
+            if (!ps || g_ctxIdx < 0 || g_ctxIdx >= (int)ps->mods.size()) break;
+            SortPlan plan = planSort(*ps, g_info, lockedIds(), g_settings.cats, g_conf.valid ? &g_conf : nullptr, &g_fileIndex, &g_known);
+            bool lk = lockedIds().count(ps->mods[(size_t)g_ctxIdx].id) != 0;
+            showText(TL(L"Why is this mod here? - The Royal Court"), W(explainPosition(plan, *ps, g_info, g_ctxIdx, lk)));
             break;
         }
         case ID_CTX_UNSUB: {
@@ -5438,6 +5488,7 @@ static LRESULT CALLBACK MainProc(HWND h, UINT m, WPARAM w, LPARAM l) {
             AppendMenuW(menu, MF_STRING | (nsel == 1 && !ovr ? MF_CHECKED : 0), ID_CTX_CAT + CAT_COUNT, nsel > 1 ? TL(L"Type for all: automatic") : TL(L"Type: automatic"));
             AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
             bool anyWs = false; for (int i : g_ctxSel) if (i >= 0 && i < (int)ps->mods.size() && !steamIdOf(ps->mods[(size_t)i].id).empty()) anyWs = true;
+            if (nsel == 1) { AppendMenuW(menu, MF_STRING, ID_CTX_EXPLAIN, TL(L"Explain this position...")); AppendMenuW(menu, MF_SEPARATOR, 0, nullptr); }
             if (anyWs) AppendMenuW(menu, MF_STRING, ID_CTX_UNSUB, nsel > 1 ? TLF(L"Unsubscribe from {0} mods on Steam...", {nsel}).c_str() : TL(L"Unsubscribe on Steam..."));
             AppendMenuW(menu, MF_STRING, ID_CTX_REMOVE, nsel > 1 ? TLF(L"Remove {0} mods from list...", {nsel}).c_str() : TL(L"Remove from list..."));
             bool anyDel = false; for (int i : g_ctxSel) if (i >= 0 && i < (int)ps->mods.size()) { auto gi = g_info.find(ps->mods[(size_t)i].id); if (gi != g_info.end() && !gi->second.pending) anyDel = true; }
