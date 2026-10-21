@@ -789,5 +789,12 @@
  "{0} or more": "{0} или больше",
  "Last sessions (share %, oldest first)": "Последние сессии (доля %, сначала старые)",
  "Copy a script time report for this mod's author": "Скопировать отчёт о времени скриптов для автора этого мода",
- "Report for the mod's author copied to the clipboard.": "Отчёт для автора мода скопирован в буфер обмена."
+ "Report for the mod's author copied to the clipboard.": "Отчёт для автора мода скопирован в буфер обмена.",
+ "Peace Deals Expanded - AGOT Compatibility: its page says A Game of Thrones, then Peace Deals Expanded, then this patch": "Peace Deals Expanded - AGOT Compatibility: на странице порядок такой: A Game of Thrones, Peace Deals Expanded, затем этот патч",
+ "AGOT - Dynamic Aesthetics: its page recommends A Game of Thrones, AGOT Submod Core, any clothing mods, Better Barbershop, then this mod": "AGOT - Dynamic Aesthetics: на странице рекомендуется A Game of Thrones, AGOT Submod Core, моды одежды, Better Barbershop, затем этот мод",
+ "Dynamic Aesthetics - Better Barbershop Compatch: its page says to load it after both Better Barbershop and Dynamic Aesthetics": "Dynamic Aesthetics - Better Barbershop Compatch: на странице сказано загружать после Better Barbershop и Dynamic Aesthetics",
+ "Dragon Horn For Adventurers: its page says to place it below A Game of Thrones and its dragon-egg mod": "Dragon Horn For Adventurers: на странице сказано ставить ниже A Game of Thrones и мода с драконьими яйцами",
+ "AGOT - Squire Events (Russian): its page says to place it below Squire Events and below the Russian AGOT translation": "AGOT - Squire Events (русский): на странице сказано ставить ниже Squire Events и ниже русификатора AGOT",
+ "AGOT Dragonpit Levels (Russian add-on): its page says to load it below AGOT Dragonpit Levels": "AGOT Dragonpit Levels (русское дополнение): на странице сказано загружать ниже AGOT Dragonpit Levels",
+ "AGOT: More Actions (Russian): its page says to load it after AGOT: More Actions": "AGOT: More Actions (русский): на странице сказано загружать после AGOT: More Actions"
 }

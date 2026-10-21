@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.21.2";
+inline const char* VERSION = "0.21.3";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -1862,6 +1862,21 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.note = K("Principality immunity (the Chinese-titled duchy-penalty mod): its page says to put it below A Game of Thrones so it overrides it"); v.push_back(k); }
     { KnownMod k; k.names = {"agot dragonkeepers turkce", "agot dragonkeepers t\xC3\xBCrk\xC3\xA7""e"}; k.ids = {"3808352309"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "agot dragonkeepers"};
       k.note = K("AGOT - Dragonkeepers - Turkce: its page says to load it after Dragonkeepers"); v.push_back(k); }
+    { KnownMod k; k.names = {"peace deals expanded agot compatibility"}; k.ids = {"3771381436"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "peace deals expanded"};
+      k.note = K("Peace Deals Expanded - AGOT Compatibility: its page says A Game of Thrones, then Peace Deals Expanded, then this patch"); v.push_back(k); }
+    { KnownMod k; k.names = {"agot dynamic aesthetics by hades and fred", "hades and fred s agot dynamic aesthetics"}; k.ids = {"3793472366"}; k.after = {"a game of thrones", "agot submod core", "better barbershop"};
+      k.note = K("AGOT - Dynamic Aesthetics: its page recommends A Game of Thrones, AGOT Submod Core, any clothing mods, Better Barbershop, then this mod"); v.push_back(k); }
+    { KnownMod k; k.names = {"hades and fred s agot dynamic aesthetics better barbershop compatch"}; k.ids = {"3815803072"}; k.cat = CAT_PATCH; k.rank = 9;
+      k.after = {"a game of thrones", "better barbershop", "agot dynamic aesthetics by hades and fred", "hades and fred s agot dynamic aesthetics"};
+      k.note = K("Dynamic Aesthetics - Better Barbershop Compatch: its page says to load it after both Better Barbershop and Dynamic Aesthetics"); v.push_back(k); }
+    { KnownMod k; k.names = {"dragon horn for adventurers"}; k.ids = {"3810748783"}; k.after = {"a game of thrones"};
+      k.note = K("Dragon Horn For Adventurers: its page says to place it below A Game of Thrones and its dragon-egg mod"); v.push_back(k); }
+    { KnownMod k; k.names = {"agot squire events \xD1\x80\xD1\x83\xD1\x81\xD0\xB8\xD1\x84\xD0\xB8\xD0\xBA\xD0\xB0\xD1\x82\xD0\xBE\xD1\x80"}; k.ids = {"3800913445"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "agot squire events"};
+      k.note = K("AGOT - Squire Events (Russian): its page says to place it below Squire Events and below the Russian AGOT translation"); v.push_back(k); }
+    { KnownMod k; k.names = {"agot dragonpit levels rus"}; k.ids = {"3788886480"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"agot dragonpit levels"};
+      k.note = K("AGOT Dragonpit Levels (Russian add-on): its page says to load it below AGOT Dragonpit Levels"); v.push_back(k); }
+    { KnownMod k; k.names = {"agot more actions \xD1\x80\xD1\x83\xD1\x81\xD1\x81\xD0\xBA\xD0\xB0\xD1\x8F \xD0\xBB\xD0\xBE\xD0\xBA\xD0\xB0\xD0\xBB\xD0\xB8\xD0\xB7\xD0\xB0\xD1\x86\xD0\xB8\xD1\x8F"}; k.ids = {"3792276316"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "agot more actions"};
+      k.note = K("AGOT: More Actions (Russian): its page says to load it after AGOT: More Actions"); v.push_back(k); }
     // ---- round of 2026-10-13: Dynamic Trade Routes and Africa Plus ----
     { KnownMod k; k.names = {"custom title form of address"}; k.ids = {"2653885896"};
       k.after = {"title manager", "randomize coa", "ethnicities and portraits expanded", "community title project", "more cultural names", "community mods for historicity more cultural names", "submission to authority"};
@@ -2010,6 +2025,9 @@ inline const std::vector<CompatPatch>& compatPatches() {
         {"BAP IBL Compatch", "", {{"africa plus"}, {"ibn battutas legacy"}}},
         {"BAP EPE Compatch", "", {{"africa plus"}, {"ethnicities and portraits expanded", "epe"}}},
         {"DTR PoW", "", {{"dynamic trade routes"}, {"prisoners of war"}}},
+        {"Peace Deals Expanded - AGOT Compatibility", "3771381436", {{"a game of thrones"}, {"peace deals expanded"}}},
+        {"Legacy of Valyria - AGOT 0.5.2.1 Compatch", "3788296332", {{"a game of thrones"}, {"legacy of valyria"}}},
+        {"Dynamic Aesthetics - Better Barbershop Compatch", "3815803072", {{"agot dynamic aesthetics by hades and fred", "hades and fred s agot dynamic aesthetics"}, {"better barbershop"}}},
         {"CFP + EPE Compatibility Patch", "2996881191", {{"community flavor pack", "cfp"}, {"ethnicities and portraits expanded", "epe"}}},
         {"AGOT - Better Executions Updated Compatibility", "3817963287", {{"a game of thrones"}, {"better executions updated"}}},
         {"A Special World - Special Building Compatch", "2875587269", {{"a special world"}, {"cities of wonders", "medieval arts", "unique buildings plus", "regional immersion and cultural enrichment", "rice", "more bookmarks plus", "mb plus", "africa plus", "muslim enhancements"}}},

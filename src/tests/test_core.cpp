@@ -724,6 +724,22 @@ int main() {
             assert(pos["3808352309"] > pos["2"] && pos["3808352309"] > pos["3"]);
             assert(pos["3808336193"] > pos["3"]);
         }
+        {   // round of 2026-10-21 (second AGOT batch): orders by name and by Workshop id
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> cs = {mk("ugc_3771381436.mod", "Peace Deals Expanded - AGOT Compatibility"), mk("2", "Peace Deals Expanded"), mk("3", "A Game of Thrones"), mk("4", "AGOT Submod Core"), mk("5", "Better Barbershop"),
+                mk("ugc_3793472366.mod", "AGOT - Dynamic Aesthetics by Hades & Fred"), mk("ugc_3815803072.mod", "Hades' & Fred's AGOT - Dynamic Aesthetics - Better Barbershop Compatch"),
+                mk("ugc_3800913445.mod", "AGOT - Squire Events | \xD0\xA0\xD1\x83\xD1\x81\xD0\xB8\xD1\x84\xD0\xB8\xD0\xBA\xD0\xB0\xD1\x82\xD0\xBE\xD1\x80"), mk("9", "AGOT - Squire Events"), mk("ugc_3810748783.mod", "Dragon Horn For Adventurers")};
+            auto ci = infoMap(cs); Playset cp; cp.name = "g";
+            for (auto& m : cs) cp.mods.push_back({m.id, true, ""});
+            SortPlan cpl = planSort(cp, ci, {}, {}, nullptr, nullptr, &db);
+            std::map<std::string, int> pos; for (size_t i = 0; i < cpl.order.size(); i++) pos[cs[(size_t)cpl.order[i]].id] = (int)i;
+            assert(pos["ugc_3771381436.mod"] > pos["2"] && pos["ugc_3771381436.mod"] > pos["3"]);
+            assert(pos["ugc_3793472366.mod"] > pos["3"] && pos["ugc_3793472366.mod"] > pos["4"] && pos["ugc_3793472366.mod"] > pos["5"]);
+            assert(pos["ugc_3815803072.mod"] > pos["ugc_3793472366.mod"] && pos["ugc_3815803072.mod"] > pos["5"]);
+            assert(pos["ugc_3800913445.mod"] > pos["9"] && pos["ugc_3810748783.mod"] > pos["3"]);
+            std::set<std::string> got; for (auto& h : findCompatches(cp, ci)) got.insert(h.patch);
+            assert(!got.count("Peace Deals Expanded - AGOT Compatibility"));   // already turned on
+        }
         {   // shader cache scan and clear
             fs::path root = fs::temp_directory_path() / "rc_shader_test"; fs::remove_all(root);
             fs::create_directories(root / "ShaderCache" / "sub"); fs::create_directories(root / "save games"); fs::create_directories(root / "mod");

@@ -6,6 +6,12 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.21.3] - 2026-10-21
+### Added
+- **Seven more load orders** from the Workshop's AGOT search: Peace Deals Expanded - AGOT Compatibility (after A Game of Thrones and Peace Deals Expanded), AGOT - Dynamic Aesthetics (after A Game of Thrones, AGOT Submod Core and Better Barbershop), its Better Barbershop compatch (after both), Dragon Horn For Adventurers (below A Game of Thrones), and the Russian add-ons for Squire Events, Dragonpit Levels and More Actions.
+- Compatch finder: Peace Deals Expanded + AGOT, Legacy of Valyria + AGOT (0.5.2.1), Dynamic Aesthetics + Better Barbershop.
+- Workshop ledger: 20 more pages read. Steam blocked again at page 21. Set In Stone replaces GG Terran's Statues, so the two should not run together.
+
 ## [0.21.2] - 2026-10-21
 (0.21.1 was built but never released; its changes are part of this version.)
 ### Added

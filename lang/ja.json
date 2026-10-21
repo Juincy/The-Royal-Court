@@ -789,5 +789,12 @@
  "{0} or more": "{0} 以上",
  "Last sessions (share %, oldest first)": "最近のセッション（割合 %、古い順）",
  "Copy a script time report for this mod's author": "このMOD作者向けのスクリプト時間レポートをコピー",
- "Report for the mod's author copied to the clipboard.": "MOD作者向けのレポートをクリップボードにコピーしました。"
+ "Report for the mod's author copied to the clipboard.": "MOD作者向けのレポートをクリップボードにコピーしました。",
+ "Peace Deals Expanded - AGOT Compatibility: its page says A Game of Thrones, then Peace Deals Expanded, then this patch": "Peace Deals Expanded - AGOT Compatibility：ページの順序は A Game of Thrones、Peace Deals Expanded、このパッチ",
+ "AGOT - Dynamic Aesthetics: its page recommends A Game of Thrones, AGOT Submod Core, any clothing mods, Better Barbershop, then this mod": "AGOT - Dynamic Aesthetics：ページの推奨順は A Game of Thrones、AGOT Submod Core、衣装系MOD、Better Barbershop、このMOD",
+ "Dynamic Aesthetics - Better Barbershop Compatch: its page says to load it after both Better Barbershop and Dynamic Aesthetics": "Dynamic Aesthetics - Better Barbershop Compatch：ページによると Better Barbershop と Dynamic Aesthetics の後に読み込む",
+ "Dragon Horn For Adventurers: its page says to place it below A Game of Thrones and its dragon-egg mod": "Dragon Horn For Adventurers：ページによると A Game of Thrones とドラゴンの卵MODの下に置く",
+ "AGOT - Squire Events (Russian): its page says to place it below Squire Events and below the Russian AGOT translation": "AGOT - Squire Events（ロシア語）：ページによると Squire Events と AGOT ロシア語訳の下に置く",
+ "AGOT Dragonpit Levels (Russian add-on): its page says to load it below AGOT Dragonpit Levels": "AGOT Dragonpit Levels（ロシア語追加）：ページによると AGOT Dragonpit Levels の下に読み込む",
+ "AGOT: More Actions (Russian): its page says to load it after AGOT: More Actions": "AGOT: More Actions（ロシア語）：ページによると AGOT: More Actions の後に読み込む"
 }

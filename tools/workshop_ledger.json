@@ -2836,201 +2836,201 @@
    "id": "3800913445",
    "title": "AGOT - Squire Events (Russian)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "author-stated load order (2026-10-21 batch)",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3813491134",
    "title": "Grand Capital Expansion",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3816857801",
    "title": "AGOT: A Dragon for Every King",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3771381436",
    "title": "Peace Deals Expanded - AGOT Compatibility",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "author-stated load order (2026-10-21 batch)",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3751935754",
    "title": "(Chinese mod)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3720557758",
    "title": "Duels & Blademasters",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3810748783",
    "title": "Dragon Horn For Adventurers",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "author-stated load order (2026-10-21 batch)",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3788296332",
    "title": "Legacy of Valyria - AGOT 0.5.2.1 Compatch (Beta)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3810761892",
    "title": "Set In Stone - Court Statues",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "conflict",
+   "note": "Set In Stone replaces GG Terran's Statues of CK3: do not run both",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3717989134",
    "title": "More Personality Depth",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3491541845",
    "title": "Search & Trade Artifacts (Russian)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "2229480609",
    "title": "Configurable AI Seduction",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3788886480",
    "title": "AGOT Dragonpit Levels (Russian)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "author-stated load order (2026-10-21 batch)",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3800801361",
    "title": "AGOT - Founder's Seats",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3792276316",
    "title": "AGOT: More Actions (Russian)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "author-stated load order (2026-10-21 batch)",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3811090081",
    "title": "Parley: The Negotiating Table",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3815803072",
    "title": "Hades' & Fred's AGOT - Dynamic Aesthetics - Better Barbershop Compatch",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "author-stated load order (2026-10-21 batch)",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3809288964",
    "title": "Uniforms of the Realm",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3793472366",
    "title": "Hades' & Fred's AGOT - Dynamic Aesthetics",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "author-stated load order (2026-10-21 batch)",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3780779762",
    "title": "Weight of Crown Fork",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no load order stated",
+   "date": "2026-10-21",
+   "source": "Workshop page"
   },
   {
    "id": "3528225256",

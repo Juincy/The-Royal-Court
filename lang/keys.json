@@ -2133,7 +2133,7 @@
   "key": "Notes",
   "where": [
    "main.cpp:4166",
-   "core.hpp:2441"
+   "core.hpp:2459"
   ]
  },
  {
@@ -4032,586 +4032,628 @@
   ]
  },
  {
-  "key": "Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority",
+  "key": "Peace Deals Expanded - AGOT Compatibility: its page says A Game of Thrones, then Peace Deals Expanded, then this patch",
+  "where": [
+   "core.hpp:1866"
+  ]
+ },
+ {
+  "key": "AGOT - Dynamic Aesthetics: its page recommends A Game of Thrones, AGOT Submod Core, any clothing mods, Better Barbershop, then this mod",
   "where": [
    "core.hpp:1868"
   ]
  },
  {
-  "key": "Displayed Birth and Death Dates: its page says it should go before Better UI Scaling, Better Character UI and Show More Traits",
+  "key": "Dynamic Aesthetics - Better Barbershop Compatch: its page says to load it after both Better Barbershop and Dynamic Aesthetics",
   "where": [
    "core.hpp:1871"
   ]
  },
  {
-  "key": "Separate Name and Title (UE): its page says In My Humble Opinion, Custom Title Form of Address and Displayed Birth and Death Dates go above it",
+  "key": "Dragon Horn For Adventurers: its page says to place it below A Game of Thrones and its dragon-egg mod",
   "where": [
-   "core.hpp:1874"
+   "core.hpp:1873"
   ]
  },
  {
-  "key": "DTR PoW: its page says to load it after both Dynamic Trade Routes and Prisoners of War",
+  "key": "AGOT - Squire Events (Russian): its page says to place it below Squire Events and below the Russian AGOT translation",
+  "where": [
+   "core.hpp:1875"
+  ]
+ },
+ {
+  "key": "AGOT Dragonpit Levels (Russian add-on): its page says to load it below AGOT Dragonpit Levels",
   "where": [
    "core.hpp:1877"
   ]
  },
  {
-  "key": "Holding Sprawl DTR: its page says to load it after Dynamic Trade Routes",
+  "key": "AGOT: More Actions (Russian): its page says to load it after AGOT: More Actions",
   "where": [
-   "core.hpp:1880"
+   "core.hpp:1879"
   ]
  },
  {
-  "key": "Immersive Personalities: its author says any load order works, since it replaces no vanilla files (overhauls like Princes of Darkness still go first)",
+  "key": "Custom Title Form of Address: its page says it must load after Title Manager, Randomize CoA, Ethnicities & Portraits Expanded, Community Title Project, More Cultural Names and Submission to Authority",
   "where": [
-   "core.hpp:1882"
+   "core.hpp:1883"
   ]
  },
  {
-  "key": "Elder Kings 2 - Nostalgia Music Submod: its page says to place it below Elder Kings 2",
-  "where": [
-   "core.hpp:1884"
-  ]
- },
- {
-  "key": "Search & Trade Artifacts: its page says to put it after the Unofficial Patch",
+  "key": "Displayed Birth and Death Dates: its page says it should go before Better UI Scaling, Better Character UI and Show More Traits",
   "where": [
    "core.hpp:1886"
   ]
  },
  {
-  "key": "AGOT Expanded - Dragons: its page says it works with AGOT More Dragon Eggs if it loads below it",
+  "key": "Separate Name and Title (UE): its page says In My Humble Opinion, Custom Title Form of Address and Displayed Birth and Death Dates go above it",
   "where": [
-   "core.hpp:1888"
+   "core.hpp:1889"
   ]
  },
  {
-  "key": "Better Ruler Designer: its page says to put it below Better UI Scaling and other mods that change the ruler designer window",
+  "key": "DTR PoW: its page says to load it after both Dynamic Trade Routes and Prisoners of War",
   "where": [
-   "core.hpp:1890"
+   "core.hpp:1892"
   ]
  },
  {
-  "key": "AGOT - Armies of Westeros: its page gives the order AGOT, AGOT Submod Core, AGOT+, Legacy of Valyria, then this mod",
+  "key": "Holding Sprawl DTR: its page says to load it after Dynamic Trade Routes",
   "where": [
-   "core.hpp:1893"
+   "core.hpp:1895"
   ]
  },
  {
-  "key": "COW-AGOT 3D Models and Bigger Castles: its page says to always put it after AGOT and the other AGOT submods",
+  "key": "Immersive Personalities: its author says any load order works, since it replaces no vanilla files (overhauls like Princes of Darkness still go first)",
   "where": [
-   "core.hpp:1896"
+   "core.hpp:1897"
   ]
  },
  {
-  "key": "RUI:Character Unofficial: its page lists mods (Hometowns, Separate Name and Title, Weight of Crown and others) that must load before it",
+  "key": "Elder Kings 2 - Nostalgia Music Submod: its page says to place it below Elder Kings 2",
   "where": [
    "core.hpp:1899"
   ]
  },
  {
-  "key": "Knight Manager: its page says that if you use Unified UI it goes at the bottom of the load order",
+  "key": "Search & Trade Artifacts: its page says to put it after the Unofficial Patch",
   "where": [
    "core.hpp:1901"
   ]
  },
  {
+  "key": "AGOT Expanded - Dragons: its page says it works with AGOT More Dragon Eggs if it loads below it",
+  "where": [
+   "core.hpp:1903"
+  ]
+ },
+ {
+  "key": "Better Ruler Designer: its page says to put it below Better UI Scaling and other mods that change the ruler designer window",
+  "where": [
+   "core.hpp:1905"
+  ]
+ },
+ {
+  "key": "AGOT - Armies of Westeros: its page gives the order AGOT, AGOT Submod Core, AGOT+, Legacy of Valyria, then this mod",
+  "where": [
+   "core.hpp:1908"
+  ]
+ },
+ {
+  "key": "COW-AGOT 3D Models and Bigger Castles: its page says to always put it after AGOT and the other AGOT submods",
+  "where": [
+   "core.hpp:1911"
+  ]
+ },
+ {
+  "key": "RUI:Character Unofficial: its page lists mods (Hometowns, Separate Name and Title, Weight of Crown and others) that must load before it",
+  "where": [
+   "core.hpp:1914"
+  ]
+ },
+ {
+  "key": "Knight Manager: its page says that if you use Unified UI it goes at the bottom of the load order",
+  "where": [
+   "core.hpp:1916"
+  ]
+ },
+ {
   "key": "DTR Lite page lists this load order: More Bookmarks+, Dynamic Trade Routes, DTR Lite, then the MB+DTR compatch",
   "where": [
-   "core.hpp:1903",
-   "core.hpp:1905",
-   "core.hpp:1907"
+   "core.hpp:1918",
+   "core.hpp:1920",
+   "core.hpp:1922"
   ]
  },
  {
   "key": "Africa Plus: its page suggests Muslim Enhancements, Ibn Battuta's Legacy 2, Africa Plus, its compatches, then RICE, EPE and Culture Expanded",
   "where": [
-   "core.hpp:1910"
+   "core.hpp:1925"
   ]
  },
  {
   "key": "Africa Plus page: its compatches load right after Africa Plus",
   "where": [
-   "core.hpp:1913"
+   "core.hpp:1928"
   ]
  },
  {
   "key": "Compatibility patches for \"{0}\"",
   "where": [
-   "core.hpp:2057"
+   "core.hpp:2075"
   ]
  },
  {
   "key": "No known compatibility patch is missing. (This only knows patches that name the mods they join.)",
   "where": [
-   "core.hpp:2058"
+   "core.hpp:2076"
   ]
  },
  {
   "key": "for: {0}",
   "where": [
-   "core.hpp:2062"
+   "core.hpp:2080"
   ]
  },
  {
   "key": "It is in your list but turned off (#{0}): tick it so the two mods work together.",
   "where": [
-   "core.hpp:2063"
+   "core.hpp:2081"
   ]
  },
  {
   "key": "Not subscribed. Workshop page:",
   "where": [
-   "core.hpp:2064"
+   "core.hpp:2082"
   ]
  },
  {
   "key": "Not subscribed. Search the Steam Workshop for its name.",
   "where": [
-   "core.hpp:2065"
+   "core.hpp:2083"
   ]
  },
  {
   "key": "Check each page before you subscribe: a patch is only needed when you really use both mods together.",
   "where": [
-   "core.hpp:2067"
+   "core.hpp:2085"
   ]
  },
  {
   "key": "default",
   "where": [
-   "core.hpp:2073"
+   "core.hpp:2091"
   ]
  },
  {
   "key": "name has \"{0}\"",
   "where": [
-   "core.hpp:2082",
-   "core.hpp:2083",
-   "core.hpp:2086"
+   "core.hpp:2100",
+   "core.hpp:2101",
+   "core.hpp:2104"
   ]
  },
  {
   "key": "tag Fixes",
   "where": [
-   "core.hpp:2084"
+   "core.hpp:2102"
   ]
  },
  {
   "key": "tag Translation",
   "where": [
-   "core.hpp:2085"
+   "core.hpp:2103"
   ]
  },
  {
   "key": "tag Total Conversion",
   "where": [
-   "core.hpp:2088"
+   "core.hpp:2106"
   ]
  },
  {
   "key": "replaces {0} vanilla folders",
   "where": [
-   "core.hpp:2090"
+   "core.hpp:2108"
   ]
  },
  {
   "key": "tag Interface",
   "where": [
-   "core.hpp:2091"
+   "core.hpp:2109"
   ]
  },
  {
   "key": "tag Graphics",
   "where": [
-   "core.hpp:2093"
+   "core.hpp:2111"
   ]
  },
  {
   "key": "tag Character Models",
   "where": [
-   "core.hpp:2094"
+   "core.hpp:2112"
   ]
  },
  {
   "key": "tag Sound",
   "where": [
-   "core.hpp:2095"
+   "core.hpp:2113"
   ]
  },
  {
   "key": "files: mostly localization",
   "where": [
-   "core.hpp:2112"
+   "core.hpp:2130"
   ]
  },
  {
   "key": "files: mostly interface",
   "where": [
-   "core.hpp:2113"
+   "core.hpp:2131"
   ]
  },
  {
   "key": "files: mostly graphics/audio",
   "where": [
-   "core.hpp:2114"
+   "core.hpp:2132"
   ]
  },
  {
   "key": "files: rewrites the map and history",
   "where": [
-   "core.hpp:2115"
+   "core.hpp:2133"
   ]
  },
  {
   "key": "not installed",
   "where": [
-   "core.hpp:2153"
+   "core.hpp:2171"
   ]
  },
  {
   "key": "set by you",
   "where": [
-   "core.hpp:2167"
+   "core.hpp:2185"
   ]
  },
  {
   "key": "Needs \"{0}\" to load first",
   "where": [
-   "core.hpp:2185"
+   "core.hpp:2203"
   ]
  },
  {
   "key": "Could not put \"{0}\" below \"{1}\" (it would contradict a dependency).",
   "where": [
-   "core.hpp:2212"
+   "core.hpp:2230"
   ]
  },
  {
   "key": "Could not put \"{0}\" above \"{1}\" (it would contradict a dependency).",
   "where": [
-   "core.hpp:2212"
+   "core.hpp:2230"
   ]
  },
  {
   "key": "loads after \"{0}\"",
   "where": [
-   "core.hpp:2214"
+   "core.hpp:2232"
   ]
  },
  {
   "key": "{0}: loads after \"{1}\"",
   "where": [
-   "core.hpp:2214"
+   "core.hpp:2232"
   ]
  },
  {
   "key": "loads before \"{0}\"",
   "where": [
-   "core.hpp:2215"
+   "core.hpp:2233"
   ]
  },
  {
   "key": "{0}: loads before \"{1}\"",
   "where": [
-   "core.hpp:2215"
+   "core.hpp:2233"
   ]
  },
  {
   "key": "Is a patch for \"{0}\", so it loads after it",
   "where": [
-   "core.hpp:2235"
+   "core.hpp:2253"
   ]
  },
  {
   "key": "Circular dependency around \"{0}\"; the dependency was ignored.",
   "where": [
-   "core.hpp:2284"
+   "core.hpp:2302"
   ]
  },
  {
   "key": "{0} Right now {1} other mod(s) load before it.",
   "where": [
-   "core.hpp:2303"
+   "core.hpp:2321"
   ]
  },
  {
   "key": "\"{0}\" needs \"{1}\" to load first, but a locked mod prevents it.",
   "where": [
-   "core.hpp:2314"
+   "core.hpp:2332"
   ]
  },
  {
   "key": "\"{0}\" loads after \"{1}\", but a locked mod prevents it.",
   "where": [
-   "core.hpp:2315"
+   "core.hpp:2333"
   ]
  },
  {
   "key": "\"{0}\" loads before \"{1}\", but a locked mod prevents it.",
   "where": [
-   "core.hpp:2316"
+   "core.hpp:2334"
   ]
  },
  {
   "key": "\"{0}\" {1}: loads after \"{2}\", but a locked mod prevents it.",
   "where": [
-   "core.hpp:2317"
+   "core.hpp:2335"
   ]
  },
  {
   "key": "\"{0}\" {1}: loads before \"{2}\", but a locked mod prevents it.",
   "where": [
-   "core.hpp:2318"
+   "core.hpp:2336"
   ]
  },
  {
   "key": "Loads after \"{0}\" (they overwrite the same files; this is the smaller mod, so it wins)",
   "where": [
-   "core.hpp:2331"
+   "core.hpp:2349"
   ]
  },
  {
   "key": "{0} group",
   "where": [
-   "core.hpp:2332",
-   "core.hpp:2349"
+   "core.hpp:2350",
+   "core.hpp:2367"
   ]
  },
  {
   "key": "{0} group ({1})",
   "where": [
-   "core.hpp:2332",
-   "core.hpp:2349"
+   "core.hpp:2350",
+   "core.hpp:2367"
   ]
  },
  {
   "key": "\"{0}\" is at position {1} of {2}.",
   "where": [
-   "core.hpp:2344"
+   "core.hpp:2362"
   ]
  },
  {
   "key": "It is turned off: Auto Sort ignores it and no rule about it is applied.",
   "where": [
-   "core.hpp:2345"
+   "core.hpp:2363"
   ]
  },
  {
   "key": "You locked it: Auto Sort never moves this mod.",
   "where": [
-   "core.hpp:2346"
+   "core.hpp:2364"
   ]
  },
  {
   "key": "Auto Sort would move it to position {0}.",
   "where": [
-   "core.hpp:2347"
+   "core.hpp:2365"
   ]
  },
  {
   "key": "Auto Sort would leave it where it is.",
   "where": [
-   "core.hpp:2348"
+   "core.hpp:2366"
   ]
  },
  {
   "key": "Group:",
   "where": [
-   "core.hpp:2350"
+   "core.hpp:2368"
   ]
  },
  {
   "key": "Known mod:",
   "where": [
-   "core.hpp:2351"
+   "core.hpp:2369"
   ]
  },
  {
   "key": "It belongs at the very top of the load order.",
   "where": [
-   "core.hpp:2352"
+   "core.hpp:2370"
   ]
  },
  {
   "key": "It belongs near the top of the load order.",
   "where": [
-   "core.hpp:2353"
+   "core.hpp:2371"
   ]
  },
  {
   "key": "It belongs at the very bottom of the load order.",
   "where": [
-   "core.hpp:2354"
+   "core.hpp:2372"
   ]
  },
  {
   "key": "already true (position {0})",
   "where": [
-   "core.hpp:2360"
+   "core.hpp:2378"
   ]
  },
  {
   "key": "not true yet (it is at position {0})",
   "where": [
-   "core.hpp:2360"
+   "core.hpp:2378"
   ]
  },
  {
   "key": "Loads after \"{0}\": they overwrite the same files and this is the smaller mod, so it wins",
   "where": [
-   "core.hpp:2362"
+   "core.hpp:2380"
   ]
  },
  {
   "key": "\"{0}\" loads after it: they overwrite the same files and \"{0}\" is the smaller mod, so it wins",
   "where": [
-   "core.hpp:2363"
+   "core.hpp:2381"
   ]
  },
  {
   "key": "Rules that fix its place:",
   "where": [
-   "core.hpp:2369"
+   "core.hpp:2387"
   ]
  },
  {
   "key": "Overlap with other mods (a tie-break, not a rule):",
   "where": [
-   "core.hpp:2370"
+   "core.hpp:2388"
   ]
  },
  {
   "key": "No rule ties it to a particular place. Auto Sort keeps it inside its group, in its current order.",
   "where": [
-   "core.hpp:2371"
+   "core.hpp:2389"
   ]
  },
  {
   "key": "No mods are turned on.",
   "where": [
-   "core.hpp:2399",
-   "core.hpp:2427"
+   "core.hpp:2417",
+   "core.hpp:2445"
   ]
  },
  {
   "key": "Two total conversions are turned on (\"{0}\" and \"{1}\"). A total conversion replaces the whole game setting, so they usually cannot be combined.",
   "where": [
-   "core.hpp:2413"
+   "core.hpp:2431"
   ]
  },
  {
   "key": "{0} serious file conflict(s) between mods. Open Conflicts to see who wins.",
   "where": [
-   "core.hpp:2417"
+   "core.hpp:2435"
   ]
  },
  {
   "key": "Health check for \"{0}\": {1} mod(s) turned on",
   "where": [
-   "core.hpp:2425"
+   "core.hpp:2443"
   ]
  },
  {
   "key": "No problems found. This playset looks ready to play.",
   "where": [
-   "core.hpp:2426"
+   "core.hpp:2444"
   ]
  },
  {
   "key": "Problems ({0}): the game will probably not start properly",
   "where": [
-   "core.hpp:2438"
+   "core.hpp:2456"
   ]
  },
  {
   "key": "Warnings ({0}): worth fixing",
   "where": [
-   "core.hpp:2439"
+   "core.hpp:2457"
   ]
  },
  {
   "key": "Tip: the Auto Sort button can fix the load-order warnings above. You see a preview first, and Undo order puts everything back.",
   "where": [
-   "core.hpp:2442"
+   "core.hpp:2460"
   ]
  },
  {
   "key": "That file is too large to be a playset.",
   "where": [
-   "core.hpp:2530"
+   "core.hpp:2548"
   ]
  },
  {
   "key": "That file is not valid JSON.",
   "where": [
-   "core.hpp:2532"
+   "core.hpp:2550"
   ]
  },
  {
   "key": "That playset is for \"{0}\", not Crusader Kings III.",
   "where": [
-   "core.hpp:2534"
+   "core.hpp:2552"
   ]
  },
  {
   "key": "That file is not a playset (no mod list found).",
   "where": [
-   "core.hpp:2538"
+   "core.hpp:2556"
   ]
  },
  {
   "key": "The playset file lists too many mods.",
   "where": [
-   "core.hpp:2539"
+   "core.hpp:2557"
   ]
  },
  {
   "key": "Could not read the downloaded mod \"{0}\".",
   "where": [
-   "core.hpp:2905"
+   "core.hpp:2923"
   ]
  },
  {
   "key": "Could not write {0} into your mod folder.",
   "where": [
-   "core.hpp:2908"
+   "core.hpp:2926"
   ]
  },
  {
   "key": "The CK3 folder is not set.",
   "where": [
-   "core.hpp:2920"
+   "core.hpp:2938"
   ]
  },
  {
   "key": "Could not read your existing dlc_load.json (it may be in use or unusually large), so it was left unchanged.",
   "where": [
-   "core.hpp:2926"
+   "core.hpp:2944"
   ]
  },
  {
   "key": "Could not save a copy of your dlc_load.json, so nothing was changed.",
   "where": [
-   "core.hpp:2931"
+   "core.hpp:2949"
   ]
  },
  {
   "key": "Could not write dlc_load.json (is the CK3 folder writable?).",
   "where": [
-   "core.hpp:2943"
+   "core.hpp:2961"
   ]
  },
  {
   "key": "Loaded \"{0}\": {1} mods ({2} not installed, skipped)",
   "where": [
-   "core.hpp:2945"
+   "core.hpp:2963"
   ]
  },
  {
   "key": "Loaded \"{0}\": {1} mods",
   "where": [
-   "core.hpp:2946"
+   "core.hpp:2964"
   ]
  },
  {

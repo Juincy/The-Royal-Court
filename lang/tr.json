@@ -789,5 +789,12 @@
  "{0} or more": "{0} veya daha fazla",
  "Last sessions (share %, oldest first)": "Son oturumlar (pay %, en eskiden başlayarak)",
  "Copy a script time report for this mod's author": "Bu modun yazarı için betik süresi raporunu kopyala",
- "Report for the mod's author copied to the clipboard.": "Mod yazarı için rapor panoya kopyalandı."
+ "Report for the mod's author copied to the clipboard.": "Mod yazarı için rapor panoya kopyalandı.",
+ "Peace Deals Expanded - AGOT Compatibility: its page says A Game of Thrones, then Peace Deals Expanded, then this patch": "Peace Deals Expanded - AGOT Compatibility: sayfasına göre sıra A Game of Thrones, Peace Deals Expanded, sonra bu yama",
+ "AGOT - Dynamic Aesthetics: its page recommends A Game of Thrones, AGOT Submod Core, any clothing mods, Better Barbershop, then this mod": "AGOT - Dynamic Aesthetics: sayfası A Game of Thrones, AGOT Submod Core, kıyafet modları, Better Barbershop, sonra bu modu öneriyor",
+ "Dynamic Aesthetics - Better Barbershop Compatch: its page says to load it after both Better Barbershop and Dynamic Aesthetics": "Dynamic Aesthetics - Better Barbershop Compatch: sayfasına göre Better Barbershop ve Dynamic Aesthetics'ten sonra yüklenmeli",
+ "Dragon Horn For Adventurers: its page says to place it below A Game of Thrones and its dragon-egg mod": "Dragon Horn For Adventurers: sayfasına göre A Game of Thrones ve ejderha yumurtası modunun altına konmalı",
+ "AGOT - Squire Events (Russian): its page says to place it below Squire Events and below the Russian AGOT translation": "AGOT - Squire Events (Rusça): sayfasına göre Squire Events'in ve Rusça AGOT çevirisinin altına konmalı",
+ "AGOT Dragonpit Levels (Russian add-on): its page says to load it below AGOT Dragonpit Levels": "AGOT Dragonpit Levels (Rusça ek): sayfasına göre AGOT Dragonpit Levels'in altında yüklenmeli",
+ "AGOT: More Actions (Russian): its page says to load it after AGOT: More Actions": "AGOT: More Actions (Rusça): sayfasına göre AGOT: More Actions'tan sonra yüklenmeli"
 }

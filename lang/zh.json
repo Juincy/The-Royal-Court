@@ -789,5 +789,12 @@
  "{0} or more": "{0} 或更多",
  "Last sessions (share %, oldest first)": "最近的会话（占比 %，由旧到新）",
  "Copy a script time report for this mod's author": "复制给此模组作者的脚本耗时报告",
- "Report for the mod's author copied to the clipboard.": "已将给模组作者的报告复制到剪贴板。"
+ "Report for the mod's author copied to the clipboard.": "已将给模组作者的报告复制到剪贴板。",
+ "Peace Deals Expanded - AGOT Compatibility: its page says A Game of Thrones, then Peace Deals Expanded, then this patch": "Peace Deals Expanded - AGOT Compatibility：其页面说明顺序为 A Game of Thrones、Peace Deals Expanded，然后是此补丁",
+ "AGOT - Dynamic Aesthetics: its page recommends A Game of Thrones, AGOT Submod Core, any clothing mods, Better Barbershop, then this mod": "AGOT - Dynamic Aesthetics：其页面建议顺序为 A Game of Thrones、AGOT Submod Core、服装类模组、Better Barbershop，然后是此模组",
+ "Dynamic Aesthetics - Better Barbershop Compatch: its page says to load it after both Better Barbershop and Dynamic Aesthetics": "Dynamic Aesthetics - Better Barbershop Compatch：其页面说明应在 Better Barbershop 和 Dynamic Aesthetics 之后加载",
+ "Dragon Horn For Adventurers: its page says to place it below A Game of Thrones and its dragon-egg mod": "Dragon Horn For Adventurers：其页面说明应放在 A Game of Thrones 及其龙蛋模组之下",
+ "AGOT - Squire Events (Russian): its page says to place it below Squire Events and below the Russian AGOT translation": "AGOT - Squire Events（俄语）：其页面说明应放在 Squire Events 和 AGOT 俄语翻译之下",
+ "AGOT Dragonpit Levels (Russian add-on): its page says to load it below AGOT Dragonpit Levels": "AGOT Dragonpit Levels（俄语附加）：其页面说明应加载在 AGOT Dragonpit Levels 之下",
+ "AGOT: More Actions (Russian): its page says to load it after AGOT: More Actions": "AGOT: More Actions（俄语）：其页面说明应在 AGOT: More Actions 之后加载"
 }
