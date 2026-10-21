@@ -783,5 +783,11 @@
  "Grand Remembrance - AGOT Compatibility Submod: its page says the order is A Game of Thrones, Grand Remembrance, then this submod last": "Grand Remembrance - AGOT Compatibility Submod: 페이지에 순서가 A Game of Thrones, Grand Remembrance, 마지막으로 이 서브모드라고 적혀 있습니다",
  "Animal Characters - AGOT patch: its page says the order is A Game of Thrones, Animal Characters, then this patch": "Animal Characters - AGOT patch: 페이지에 순서가 A Game of Thrones, Animal Characters, 그다음 이 패치라고 적혀 있습니다",
  "Animal Characters - Vanilla patch: its page says to load it after Animal Characters": "Animal Characters - Vanilla patch: 페이지에 Animal Characters 뒤에 로드하라고 적혀 있습니다",
- "Sightseer AGOT Compatibility: its page says to keep it after A Game of Thrones and its submods": "Sightseer AGOT Compatibility: 페이지에 A Game of Thrones와 그 서브모드 뒤에 두라고 적혀 있습니다"
+ "Sightseer AGOT Compatibility: its page says to keep it after A Game of Thrones and its submods": "Sightseer AGOT Compatibility: 페이지에 A Game of Thrones와 그 서브모드 뒤에 두라고 적혀 있습니다",
+ "Principality immunity (the Chinese-titled duchy-penalty mod): its page says to put it below A Game of Thrones so it overrides it": "Principality immunity(중국어 제목의 공작령 페널티 면제 모드): 페이지에 따르면 덮어쓰도록 A Game of Thrones 아래에 둬야 합니다",
+ "AGOT - Dragonkeepers - Turkce: its page says to load it after Dragonkeepers": "AGOT - Dragonkeepers - Turkce: 페이지에 따르면 Dragonkeepers 뒤에 불러와야 합니다",
+ "{0} or more": "{0} 이상",
+ "Last sessions (share %, oldest first)": "최근 세션 (비율 %, 오래된 순)",
+ "Copy a script time report for this mod's author": "이 모드 제작자에게 보낼 스크립트 시간 보고서 복사",
+ "Report for the mod's author copied to the clipboard.": "모드 제작자용 보고서를 클립보드에 복사했습니다."
 }

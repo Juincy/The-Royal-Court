@@ -89,7 +89,7 @@ static std::wstring TLF(const wchar_t* key, std::initializer_list<WA> args) {
 
 enum {
     ID_COMBO = 100, ID_NEW, ID_DUP, ID_REN, ID_DEL, ID_EXPORT, ID_IMPORT, ID_PLAY, ID_LOG, ID_FILTER, ID_ALLON, ID_ALLOFF,
-    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_ADV_HEALTH, ID_ADV_PLAYCHECK, ID_ADV_SHADER, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D, ID_RP_E, ID_ADV_SCRIPTTIME, ID_ADV_COMPATCH, ID_CTX_EXPLAIN, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT,
+    ID_UP, ID_DOWN, ID_FOLDER, ID_LIST, ID_DIR, ID_BROWSE, ID_SAVEDIR, ID_STATUS, ID_COUNT, ID_L1, ID_L2, ID_L3, ID_GAMEVER, ID_RESYNC, ID_THEME, ID_CONFLICTS, ID_CF_PAIR, ID_CF_FILE, ID_CF_FILTER, ID_CF_RESCAN, ID_CF_LIST, ID_ADV, ID_ADV_DELSAVES, ID_ADV_OPENSAVES, ID_ADV_OPENLOGS, ID_SORT, ID_UNDOSORT, ID_ADV_BACKUP, ID_ADV_RESTORE, ID_ADV_OPENBACKUPS, ID_CF_DEF, ID_CTX_REMOVE = 730, ID_CTX_DELFILES, ID_CTX_UNSUB, ID_ADV_LAUNCH, ID_ADV_COMPARE, ID_ADV_UNHIDE, ID_UPDATE, ID_ADV_LOG, ID_ADV_AUTOUPD, ID_ADV_SORTREPORT, ID_CF_VAN, ID_ADV_GAMELOG, ID_ADV_SINCE, ID_ADV_CRASH, ID_ADV_TUTORIAL, ID_ADV_HEALTH, ID_ADV_PLAYCHECK, ID_ADV_SHADER, ID_EXP_FILE, ID_EXP_CODE, ID_EXP_CODEN, ID_IMP_FILE, ID_IMP_CODE, ID_RP_A, ID_RP_B, ID_RP_C, ID_RP_D, ID_RP_E, ID_ADV_SCRIPTTIME, ID_ADV_COMPATCH, ID_CTX_EXPLAIN, ID_RP_COPY, ID_RP_RELOAD, ID_RP_FILTER, ID_RP_LIST, ID_RPM_COPY, ID_RPM_REPORT, ID_RPM_AUTHOR,
     ID_TREE, ID_EXPAND, ID_COLLAPSE,
     ID_LANG, ID_LANG_BASE = 7100   // ID_LANG_BASE: the language menu uses ID_LANG_BASE .. ID_LANG_BASE + LANG_COUNT
 };
@@ -1498,6 +1498,21 @@ static bool isReparsePoint(const fs::path& p) {
     DWORD a = GetFileAttributesW(p.c_str());
     return a == INVALID_FILE_ATTRIBUTES || (a & FILE_ATTRIBUTE_REPARSE_POINT) != 0;
 }
+// True when anything inside the folder is a link or junction (those could point outside it, so a recursive delete must not touch such a folder).
+static bool hasLinkInside(const fs::path& root) {
+    std::vector<fs::path> todo{root};
+    while (!todo.empty()) {
+        fs::path d = todo.back(); todo.pop_back();
+        std::error_code ec;
+        for (fs::directory_iterator it(d, fs::directory_options::skip_permission_denied, ec), end; !ec && it != end; it.increment(ec)) {
+            if (isReparsePoint(it->path())) return true;
+            std::error_code e2;
+            if (it->is_directory(e2)) todo.push_back(it->path());
+        }
+        if (ec) return true;   // could not look inside: do not delete blindly
+    }
+    return false;
+}
 // A mod that is removed or deleted disappears from every playset, so every playset that has it is backed up first.
 static void backupAffected(const std::vector<std::string>& ids, const std::string& reason) {
     std::set<std::string> want(ids.begin(), ids.end());
@@ -2731,7 +2746,7 @@ static void showConflicts() {
 // ---------- report window: the game log helper and "since you last pressed Play" ----------
 // One window, two contents. The game log helper reads the game's own log and shows which mod each message points at.
 // "Since last Play" lists the mods that were updated, are now older than the game, or were turned on or off.
-struct RepRow { std::vector<std::wstring> cells; std::wstring hay, key; int sev = 0; int mod = -1; std::string copy; double frac = -1; };   // frac: bar length (0..1) in the Script time window, -1 = no bar
+struct RepRow { std::vector<std::wstring> cells; std::wstring hay, key; int sev = 0; int mod = -1; std::string copy, author; double frac = -1; };   // frac: bar length (0..1) in the Script time window, -1 = no bar
 static HWND hRep = nullptr, hRepList = nullptr, hRepFilter = nullptr, hRepStatus = nullptr;
 static int g_repKind = 0;            // 0 game log, 1 since last Play, 2 script time
 static int g_repBarCol = -1;         // script time window: the column that is drawn as a bar
@@ -2894,6 +2909,7 @@ static std::wstring countText(long long n) {
     for (int i = (int)s.size() - 3; i > 0; i -= 3) s.insert((size_t)i, L",");
     return s;
 }
+static std::wstring errCountText(double v) { return v >= 100000 ? TLF(L"{0} or more", {countText(100000)}) : countText((long long)v); }   // the game's counter stops at 100,000
 static void repBuildTime() {
     g_repRows.clear(); g_repReport.clear(); g_repBarCol = -1; g_repWaitIndex = false;
     Playset* ps = active();
@@ -2941,10 +2957,10 @@ static void repBuildTime() {
     double errs = years.empty() ? 0 : years.back().v["errors"];
     g_repStatusText = TLF(L"Statistics from {0}", {when ? repWhen(when) : std::wstring(L"?")}) + L" · " + TLF(L"{0} events and {1} on_actions measured", {tr.events.rows.size(), tr.onActions.rows.size()}) + same
         + (waiting ? std::wstring(L" · ") + TL(L"still reading your mods' files, this updates by itself") : std::wstring())
-        + (errs >= 1000 ? std::wstring(L" · ") + TLF(L"the game counted {0} script errors in that session (error messages cost time too: see the Game log)", {countText((long long)errs)}) : std::wstring());
+        + (errs >= 1000 ? std::wstring(L" · ") + TLF(L"the game counted {0} script errors in that session (error messages cost time too: see the Game log)", {errCountText(errs)}) : std::wstring());
     g_repReport = "Script time report (" + U(std::wstring(L"time as written by the game, share of all measured script time"))+ ")\n";
     const double all = tr.all > 0 ? tr.all : 1;
-    auto push = [&](RepRow r, const std::wstring& line) { r.copy = U(line); g_repReport += r.copy + "\n"; repAddRow(std::move(r)); };
+    auto push = [&](RepRow&& r, const std::wstring& line) { r.copy = U(line); g_repReport += r.copy + "\n"; repAddRow(std::move(r)); };
     auto addBar = [&](RepRow& r, double v, double mx) { r.frac = mx > 0 ? v / mx : 0; };
     if (g_repViewForBtn == 0) {                                                   // by mod
         g_repBarCol = 2;
@@ -2954,6 +2970,11 @@ static void repBuildTime() {
             RepRow r; r.mod = m.mod; r.key = W(modName(m.mod));
             r.cells = {modLabel(m.mod), timeText(m.time), shareText(m.time / all), countText(m.runs), W(m.slowest)};
             addBar(r, m.time, mx);
+            if (m.mod >= 0 && m.mod < (int)ps->mods.size()) {
+                const std::string& mid = ps->mods[(size_t)m.mod].id;
+                auto mi = g_info.find(mid);
+                r.author = authorReport(tr, m.mod, modName(m.mod), steamIdOf(mid), mi != g_info.end() ? mi->second.version : std::string(), g_gameVer, VERSION, trendText(hist, mid), m.time, m.runs);
+            }
             push(std::move(r), modLabel(m.mod) + L": " + timeText(m.time) + L" (" + shareText(m.time / all) + L"), slowest: " + W(m.slowest));
         }
         if (tr.baseEvents > 0) {
@@ -3008,7 +3029,7 @@ static void repBuildTime() {
             if (!r.inBefore) ch = TL(L"new"); else if (!r.inNow) ch = TL(L"gone");
             else { swprintf(b, 32, L"%+.1f", r.change * 100.0); ch = std::wstring(b) + L" pts"; }
             RepRow row; row.key = nm;
-            row.cells = {nm, r.inNow ? shareText(r.now) : std::wstring(L"-"), r.inBefore ? shareText(r.before) : std::wstring(L"-"), ch, std::to_wstring(r.seen)};
+            row.cells = {nm, r.inNow ? shareText(r.now) : std::wstring(L"-"), r.inBefore ? shareText(r.before) : std::wstring(L"-"), ch, std::to_wstring(r.seen), W(trendText(hist, r.id))};
             addBar(row, r.now, mx);
             std::wstring line = nm + L": " + row.cells[1] + L" (before " + row.cells[2] + L", " + ch + L")";
             push(std::move(row), line);
@@ -3018,7 +3039,7 @@ static void repBuildTime() {
         g_repBarCol = 1;
         double mx = 0;
         for (auto& y : years) mx = std::max(mx, y.v["living characters"]);
-        auto num = [&](YearStats& y, const char* k) { auto it = y.v.find(k); return it == y.v.end() ? std::wstring(L"") : countText((long long)it->second); };
+        auto num = [&](YearStats& y, const char* k) { auto it = y.v.find(k); return it == y.v.end() ? std::wstring(L"") : std::strcmp(k, "errors") == 0 ? errCountText(it->second) : countText((long long)it->second); };
         for (size_t i = years.size(); i-- > 0;) {
             YearStats& y = years[i];
             RepRow r; r.key = std::to_wstring(y.year);
@@ -3057,7 +3078,7 @@ static void repColumns() {
     if (g_repKind == 2) {
         auto add = [&](const wchar_t* t, int w) { cols.push_back({t, w}); };
         if (g_repViewForBtn == 0) { add(TLK(L"Mod"), 330); add(TLK(L"Time"), 80); add(TLK(L"Share of script time"), 260); add(TLK(L"Runs"), 100); add(TLK(L"Slowest event or on_action"), 360); }
-        else if (g_repViewForBtn == 4) { add(TLK(L"Mod"), 330); add(TLK(L"Share now"), 220); add(TLK(L"Share before"), 110); add(TLK(L"Change"), 100); add(TLK(L"Sessions seen"), 110); }
+        else if (g_repViewForBtn == 4) { add(TLK(L"Mod"), 330); add(TLK(L"Share now"), 220); add(TLK(L"Share before"), 110); add(TLK(L"Change"), 100); add(TLK(L"Sessions seen"), 110); add(TLK(L"Last sessions (share %, oldest first)"), 300); }
         else if (g_repViewForBtn == 3) { add(TLK(L"Year"), 70); add(TLK(L"Living characters"), 260); add(TLK(L"Court"), 90); add(TLK(L"Rulers"), 90); add(TLK(L"Opinions"), 100); add(TLK(L"Schemes"), 90); add(TLK(L"Wars"), 70); add(TLK(L"Errors"), 90); }
         else { add(g_repViewForBtn == 1 ? TLK(L"Event") : TLK(L"On_action"), 330); add(TLK(L"Mod"), 300); add(TLK(L"Time"), 80); add(TLK(L"Share of script time"), 200); add(TLK(L"Runs"), 100); }
     }
@@ -3159,7 +3180,7 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                     if (!copyToClipboard(g_repReport.empty() ? "(nothing to copy)" : g_repReport)) info(TL(L"Could not copy to the clipboard (another program may be holding it). Try again."));
                     else SetWindowTextW(hRepStatus, TL(L"Report copied to the clipboard."));
                     break;
-                case ID_RPM_COPY: case ID_RPM_REPORT: break;
+                case ID_RPM_COPY: case ID_RPM_REPORT: case ID_RPM_AUTHOR: break;
             }
             return 0;
         case WM_NOTIFY: {
@@ -3196,11 +3217,13 @@ static LRESULT CALLBACK RepProc(HWND h, UINT m, WPARAM w, LPARAM l) {
                 const auto& row = g_repRows[(size_t)g_repShown[(size_t)it]];
                 HMENU mn = CreatePopupMenu();
                 AppendMenuW(mn, MF_STRING, ID_RPM_COPY, TL(L"Copy this line"));
+                if (g_repKind == 2 && !row.author.empty()) AppendMenuW(mn, MF_STRING, ID_RPM_AUTHOR, TL(L"Copy a script time report for this mod's author"));
                 if (g_repKind == 0 && row.mod >= 0) AppendMenuW(mn, MF_STRING, ID_RPM_REPORT, TL(L"Copy all messages for this mod (to send to its author)"));
                 POINT pt; GetCursorPos(&pt);
                 int cmd = trackMenu(mn, TPM_RETURNCMD | TPM_RIGHTBUTTON, pt.x, pt.y, h);
                 DestroyMenu(mn);
                 if (cmd == ID_RPM_COPY) copyToClipboard(row.copy.empty() ? U(row.cells.empty() ? L"" : row.cells[0]) : row.copy);
+                else if (cmd == ID_RPM_AUTHOR) { if (copyToClipboard(row.author)) SetWindowTextW(hRepStatus, TL(L"Report for the mod's author copied to the clipboard.")); }
                 else if (cmd == ID_RPM_REPORT && g_logRep) {
                     Playset* ps = active();
                     if (ps && row.mod >= 0 && row.mod < (int)ps->mods.size()) {
@@ -5146,7 +5169,7 @@ static void onCommand(int id, int code) {
                 for (const std::string& mid : ids) {
                     auto mit = g_info.find(mid);
                     if (mit == g_info.end()) continue;
-                    bool bad = false;
+                    bool bad = false, refused = false;
                     fs::path desc = modDir / mid;
                     // the mod's own folder is erased only if it really lies inside the CK3 mod folder (never the folder itself, never a link)
                     if (!mit->second.contentDir.empty()) {
@@ -5154,10 +5177,11 @@ static void onCommand(int id, int code) {
                         fs::path content = fs::weakly_canonical(P(mit->second.contentDir), e1);
                         fs::path rel = content.lexically_relative(modDir);
                         bool inside = !e1 && !rel.empty() && rel != "." && *rel.begin() != ".." && fs::is_directory(content, e1) && !fs::is_symlink(P(mit->second.contentDir), e1) && !isReparsePoint(P(mit->second.contentDir));
-                        if (inside) { fs::remove_all(content, e1); if (e1 || fs::exists(content, e1)) bad = true; }
+                        if (inside && hasLinkInside(content)) { bad = refused = true; logLine("delete refused for " + mid + ": the folder contains a link"); }
+                        else if (inside) { fs::remove_all(content, e1); if (e1 || fs::exists(content, e1)) bad = true; }
                     }
                     std::error_code e2;
-                    fs::remove(desc, e2);
+                    if (!refused) fs::remove(desc, e2);   // a refused folder keeps its descriptor, so nothing is left half deleted
                     if (e2 || fs::exists(desc, e2)) bad = true;
                     if (bad) { failed++; g_fileIndex.erase(mid); logLine("delete failed for " + mid); }
                     else { done.push_back(mid); logLine("deleted mod " + mid); }

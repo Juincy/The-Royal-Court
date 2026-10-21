@@ -263,6 +263,48 @@ inline std::vector<HistRow> historyRows(const std::vector<TimeSnap>& v, bool* ha
     return rows;
 }
 
+// One mod's share of script time over the last sessions of the same playset, oldest first, in percent: "3.8 \xC2\xB7 4.1 \xC2\xB7 -" (- = the mod was not in that session).
+inline std::string trendText(const std::vector<TimeSnap>& v, const std::string& id, size_t maxN = 6) {
+    if (v.empty()) return "";
+    std::vector<const TimeSnap*> pick;
+    for (size_t i = v.size(); i-- > 0 && pick.size() < maxN;) if (v[i].playset == v.back().playset) pick.push_back(&v[i]);
+    std::string out;
+    for (size_t k = pick.size(); k-- > 0;) {
+        std::string cell = "-";
+        for (auto& m : pick[k]->mods) if (m.id == id) { char b[24]; std::snprintf(b, sizeof b, "%.1f", m.share * 100.0); cell = b; break; }
+        out += (out.empty() ? "" : " \xC2\xB7 ") + cell;
+    }
+    return out;
+}
+
+// A plain-English note a player can send to a mod's author: what was measured, how much of the script time the mod took, and its slowest scripts.
+// Events are credited to the last enabled mod that defines them; on_actions only when one mod alone defines them (see attributeTime).
+inline std::string authorReport(const TimeReport& tr, int mod, const std::string& modName, const std::string& workshopId, const std::string& modVersion,
+                                const std::string& gameVer, const std::string& toolVer, const std::string& trend, double modTime, long long modRuns) {
+    char b[160];
+    std::string o = "Script time report for \"" + modName + "\"" + (workshopId.empty() ? "" : " (Steam Workshop id " + workshopId + ")") + "\n";
+    if (!modVersion.empty()) o += "Mod version: " + modVersion + "\n";
+    if (!gameVer.empty()) o += "Game version: " + gameVer + "\n";
+    o += "Measured with The Royal Court " + toolVer + ", from the game's own statistics files (eventstats.csv and onactionstats.csv).\n";
+    double all = tr.all > 0 ? tr.all : 1;
+    std::snprintf(b, sizeof b, "Share of all measured script time in this session: %.1f%% (%lld runs)\n", modTime / all * 100.0, modRuns);
+    o += b;
+    if (!trend.empty()) o += "Share over the last sessions with the same playset (percent, oldest first): " + trend + "\n";
+    auto list = [&](const TimeTable& t, const std::vector<int>& owner, const char* head) {
+        std::string s; int n = 0;
+        for (size_t i = 0; i < t.rows.size() && i < owner.size() && n < 5; i++) {
+            if (owner[i] != mod) continue;
+            std::snprintf(b, sizeof b, "  %d. %s: %.1f%% of all script time, %lld runs\n", ++n, t.rows[i].id.c_str(), t.rows[i].own / all * 100.0, t.rows[i].count);
+            s += b;
+        }
+        return s.empty() ? std::string() : std::string(head) + "\n" + s;
+    };
+    o += list(tr.events, tr.eventMod, "Slowest events:");
+    o += list(tr.onActions, tr.actionMod, "Slowest on_actions (counted for this mod only because no other mod and not the base game defines them):");
+    o += "A high share only means these scripts take a large part of the measured time; it is not a fault by itself. The time unit is the game's own and is not stated by it.\n";
+    return o;
+}
+
 // ---------- yearly counts ----------
 struct YearStats { int year = 0; std::map<std::string, double> v; };
 inline std::vector<YearStats> parseYearStats(const std::string& text) {

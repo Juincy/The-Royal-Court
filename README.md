@@ -1,4 +1,4 @@
-# The Royal Court | CK3 Mod Manager  v0.20.4
+# The Royal Court | CK3 Mod Manager  v0.21.2
 
 Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desktop program: no installer, no browser, no internet access.
 
@@ -17,7 +17,7 @@ Double-click `TheRoyalCourt.exe` (Windows 10 or 11, 64-bit). It is a normal desk
 - **Game log** (Advanced menu) reads the game's own log and shows which mod each error and warning comes from, by mod or as a full list, with a filter and a copy button for sending a mod's messages to its author.
 - **Crash helper** (Advanced menu) reads the folder the game writes when it crashes and says what kind of crash it was, which of your mods the last log messages point at, whether the playset changed since, and what to try. It only reads.
 - **Health check** (Advanced menu, and on Play unless you turn it off) lists what would go wrong before the game starts: missing or turned-off dependencies, wrong load order, mods made for another game version, two total conversions, serious file conflicts.
-- **Script time** (Advanced menu) reads the stopwatch the game keeps for every event and on_action and shows which mod's scripts take the most time, the slowest events and on_actions, how the game grew over the years, and a **History** view that compares game sessions (one is saved each time you open the window after playing). An on_action is credited to a mod only when no guess is needed: when only one of your mods defines it and the base game does not have it.
+- **Script time** (Advanced menu) reads the stopwatch the game keeps for every event and on_action and shows which mod's scripts take the most time, the slowest events and on_actions, how the game grew over the years, and a **History** view that compares game sessions (one is saved each time you open the window after playing). An on_action is credited to a mod only when no guess is needed: when only one of your mods defines it and the base game does not have it. The History view shows each mod's share over its last sessions, and right-clicking a mod copies a short report you can send to its author.
 - Right-click a mod > **Explain this position** shows which rules hold it where it is (dependencies, the author's stated load order, patch links, file overlaps) and where Auto Sort would put it.
 - **Compatch finder** (Advanced menu) lists compatibility patches for mods you use together that you have not subscribed to or turned on yet.
 - Advanced > **Clear the shader cache** empties the game's shader cache folder after you confirm (the game rebuilds it).

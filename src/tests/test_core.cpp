@@ -648,6 +648,13 @@ int main() {
             bool hb = false; auto hr = historyRows(back, &hb);
             assert(hb && hr.size() == 3);
             for (auto& r : hr) { if (r.id == "1") assert(std::fabs(r.change - (-0.3)) < 1e-9 && r.seen == 2); if (r.id == "2") assert(r.inNow && !r.inBefore && r.seen == 1); if (r.id == "*shared") assert(!r.inNow && r.inBefore); }
+            assert(trendText(back, "1") == "80.0 \xC2\xB7 50.0" && trendText(back, "2") == "- \xC2\xB7 50.0" && trendText(back, "nope") == "- \xC2\xB7 -" && trendText({}, "1").empty());
+            assert(trendText(back, "1", 1) == "50.0");                                                // only the newest
+            { std::string rep = authorReport(withBase, 0, "Mod One", "123", "2.0", "1.20.1.1", "0.21.2", trendText(back, "1"), 8.0, 5);
+              assert(rep.find("\"Mod One\"") != std::string::npos && rep.find("Workshop id 123") != std::string::npos && rep.find("zeta_unique") != std::string::npos && rep.find("80.0 \xC2\xB7 50.0") != std::string::npos);
+              assert(rep.find("Slowest events") == std::string::npos);                                 // this mod has no timed events
+              std::string rep2 = authorReport(withBase, 0, "Local", "", "", "", "0.21.2", "", 8.0, 5);
+              assert(rep2.find("Workshop") == std::string::npos && rep2.find("Mod version") == std::string::npos); }
             for (size_t i = 0; i < 40; i++) { TimeSnap x = s1; x.when = 1000 + (long long)i; snapAdd(hv, x, 30); }
             assert(hv.size() == 30);
             // explain this position
@@ -678,6 +685,24 @@ int main() {
             assert(findCompatches(cpp, cmi).empty());                                          // a parent is off: nothing to suggest
             assert(compatText(hits, "c").find("2509797306") != std::string::npos);
         }
+        {   // compatch table: shape, and the three entries added 2026-10-21
+            std::set<std::string> seen;
+            for (auto& cp : compatPatches()) {
+                assert(cp.parents.size() >= 2);                                   // a patch joins at least two mods
+                for (auto& g : cp.parents) { assert(!g.empty()); for (auto* n : g) assert(normName(n) == n); }   // names are written already normalised
+                std::string id = cp.id; for (char ch : id) assert(ch >= '0' && ch <= '9');
+                assert(seen.insert(cp.name).second);                              // no patch listed twice
+            }
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> cs = {mk("1", "A Game of Thrones"), mk("2", "Better Executions Updated"), mk("3", "A Special World"), mk("4", "Medieval Arts"), mk("5", "Community Flavor Pack"), mk("6", "Ethnicities & Portraits Expanded")};
+            auto ci = infoMap(cs); Playset p; p.name = "x";
+            for (auto& m : cs) p.mods.push_back({m.id, true, ""});
+            std::set<std::string> got; for (auto& h : findCompatches(p, ci)) got.insert(h.patch);
+            assert(got.count("AGOT - Better Executions Updated Compatibility") && got.count("A Special World - Special Building Compatch") && got.count("CFP + EPE Compatibility Patch"));
+            p.mods[3].enabled = false;                                            // no building mod left on: the Special World patch is not needed
+            got.clear(); for (auto& h : findCompatches(p, ci)) got.insert(h.patch);
+            assert(!got.count("A Special World - Special Building Compatch"));
+        }
         {   // round of 2026-10-17 (AGOT search): Grand Remembrance submod, Animal Characters patches, Sightseer AGOT
             auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
             std::vector<ModInfo> cs = {mk("1", "Grand Remembrance - AGOT Compatibility Submod"), mk("2", "Grand Remembrance"), mk("3", "A Game of Thrones"), mk("4", "Animal Characters - AGOT patch"), mk("5", "Animal Characters (Horses & Dogs)"), mk("6", "Sightseer AGOT Compatibility"), mk("7", "Sightseer")};
@@ -688,6 +713,16 @@ int main() {
             assert(pos["Grand Remembrance - AGOT Compatibility Submod"] > pos["Grand Remembrance"] && pos["Grand Remembrance - AGOT Compatibility Submod"] > pos["A Game of Thrones"]);
             assert(pos["Animal Characters - AGOT patch"] > pos["A Game of Thrones"] && pos["Animal Characters - AGOT patch"] > pos["Animal Characters (Horses & Dogs)"]);
             assert(pos["Sightseer AGOT Compatibility"] > pos["A Game of Thrones"] && pos["Sightseer AGOT Compatibility"] > pos["Sightseer"]);
+        }
+        {   // round of 2026-10-21 (AGOT search): Dragonkeepers Turkish, duchy-penalty mod after AGOT
+            auto mk = [](const char* id, const char* name) { ModInfo m; m.id = id; m.name = name; return m; };
+            std::vector<ModInfo> cs = {mk("3808352309", "AGOT - Dragonkeepers - T\xC3\xBCrk\xC3\xA7""e"), mk("2", "AGOT - Dragonkeepers"), mk("3", "A Game of Thrones"), mk("3808336193", "Principality immunity")};
+            auto ci = infoMap(cs); Playset cp; cp.name = "g";
+            for (auto& m : cs) cp.mods.push_back({m.id, true, ""});
+            SortPlan cpl = planSort(cp, ci, {}, {}, nullptr, nullptr, &db);
+            std::map<std::string, int> pos; for (size_t i = 0; i < cpl.order.size(); i++) pos[cs[(size_t)cpl.order[i]].id] = (int)i;
+            assert(pos["3808352309"] > pos["2"] && pos["3808352309"] > pos["3"]);
+            assert(pos["3808336193"] > pos["3"]);
         }
         {   // shader cache scan and clear
             fs::path root = fs::temp_directory_path() / "rc_shader_test"; fs::remove_all(root);

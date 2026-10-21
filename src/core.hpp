@@ -29,7 +29,7 @@ namespace fs = std::filesystem;
 
 namespace rc {
 
-inline const char* VERSION = "0.21.0";
+inline const char* VERSION = "0.21.2";
 inline std::string g_appData;  // set by the GUI (%APPDATA%), UTF-8
 
 // ---------- small helpers ----------
@@ -1857,6 +1857,11 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.note = K("Animal Characters - Vanilla patch: its page says to load it after Animal Characters"); v.push_back(k); }
     { KnownMod k; k.names = {"sightseer agot compatibility"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "sightseer"};
       k.note = K("Sightseer AGOT Compatibility: its page says to keep it after A Game of Thrones and its submods"); v.push_back(k); }
+    // ---- round of 2026-10-21 (AGOT search) ----
+    { KnownMod k; k.names = {"principality immunity", "agot principality immunity", "公国无惩罚 玩家专属"}; k.ids = {"3808336193"}; k.after = {"a game of thrones"};
+      k.note = K("Principality immunity (the Chinese-titled duchy-penalty mod): its page says to put it below A Game of Thrones so it overrides it"); v.push_back(k); }
+    { KnownMod k; k.names = {"agot dragonkeepers turkce", "agot dragonkeepers t\xC3\xBCrk\xC3\xA7""e"}; k.ids = {"3808352309"}; k.cat = CAT_PATCH; k.rank = 9; k.after = {"a game of thrones", "agot dragonkeepers"};
+      k.note = K("AGOT - Dragonkeepers - Turkce: its page says to load it after Dragonkeepers"); v.push_back(k); }
     // ---- round of 2026-10-13: Dynamic Trade Routes and Africa Plus ----
     { KnownMod k; k.names = {"custom title form of address"}; k.ids = {"2653885896"};
       k.after = {"title manager", "randomize coa", "ethnicities and portraits expanded", "community title project", "more cultural names", "community mods for historicity more cultural names", "submission to authority"};
@@ -1879,7 +1884,7 @@ inline std::vector<KnownMod> builtinKnownMods() {
       k.note = K("Elder Kings 2 - Nostalgia Music Submod: its page says to place it below Elder Kings 2"); v.push_back(k); }
     { KnownMod k; k.names = {"search and trade artifacts", "search trade artifacts"}; k.ids = {"2962238514"}; k.after = {"unofficial patch", "ck3 unofficial patch"};
       k.note = K("Search & Trade Artifacts: its page says to put it after the Unofficial Patch"); v.push_back(k); }
-    { KnownMod k; k.names = {"agot expanded dragons", "agot expanded - dragons"}; k.ids = {"3466228580"}; k.after = {"agot more dragon eggs", "a game of thrones", "agot"};
+    { KnownMod k; k.names = {"agot expanded dragons"}; k.ids = {"3466228580"}; k.after = {"agot more dragon eggs", "a game of thrones", "agot"};
       k.note = K("AGOT Expanded - Dragons: its page says it works with AGOT More Dragon Eggs if it loads below it"); v.push_back(k); }
     { KnownMod k; k.names = {"better ruler designer"}; k.ids = {"3275318194"}; k.cat = CAT_UI; k.after = {"better ui scaling"};
       k.note = K("Better Ruler Designer: its page says to put it below Better UI Scaling and other mods that change the ruler designer window"); v.push_back(k); }
@@ -2002,9 +2007,12 @@ inline const std::vector<CompatPatch>& compatPatches() {
         {"Love Marriage Family + Travel the Distance + Immersive Chaste Trait Compatch", "3049846007", {{"love marriage family"}, {"travel the distance"}, {"immersive chaste trait"}}},
         {"MB Plus DTR Compatch", "", {{"more bookmarks plus", "mb plus"}, {"dynamic trade routes", "dtr lite"}}},
         {"BAP ME Compatch", "", {{"africa plus"}, {"muslim enhancements"}}},
-        {"BAP IBL Compatch", "", {{"africa plus"}, {"ibn battutas legacy 2"}}},
+        {"BAP IBL Compatch", "", {{"africa plus"}, {"ibn battutas legacy"}}},
         {"BAP EPE Compatch", "", {{"africa plus"}, {"ethnicities and portraits expanded", "epe"}}},
         {"DTR PoW", "", {{"dynamic trade routes"}, {"prisoners of war"}}},
+        {"CFP + EPE Compatibility Patch", "2996881191", {{"community flavor pack", "cfp"}, {"ethnicities and portraits expanded", "epe"}}},
+        {"AGOT - Better Executions Updated Compatibility", "3817963287", {{"a game of thrones"}, {"better executions updated"}}},
+        {"A Special World - Special Building Compatch", "2875587269", {{"a special world"}, {"cities of wonders", "medieval arts", "unique buildings plus", "regional immersion and cultural enrichment", "rice", "more bookmarks plus", "mb plus", "africa plus", "muslim enhancements"}}},
         {"Grand Remembrance - AGOT Compatibility Submod", "3683507542", {{"grand remembrance"}, {"a game of thrones"}}},
         {"Animal Characters - AGOT patch", "3820075861", {{"animal characters"}, {"a game of thrones"}}},
         {"Sightseer AGOT Compatibility", "", {{"sightseer"}, {"a game of thrones"}}},

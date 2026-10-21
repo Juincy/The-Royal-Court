@@ -31,6 +31,11 @@ jobs:
           g++ -std=c++17 -O1 -fsanitize=address,undefined -o "$RUNNER_TEMP/fuzz" src/tests/fuzz_core.cpp
           "$RUNNER_TEMP/fuzz" 30000
 
+      - name: Sort property test (random playsets must sort cleanly and idempotently)
+        run: |
+          g++ -std=c++17 -O1 -fsanitize=address,undefined -o "$RUNNER_TEMP/prop_sort" src/tests/prop_sort.cpp
+          "$RUNNER_TEMP/prop_sort" 600
+
       - name: Build TheRoyalCourt.exe
         run: sh src/build.sh
 

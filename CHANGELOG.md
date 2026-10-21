@@ -6,6 +6,21 @@ This file ships inside the EXE (Changelog button) and in the zip.
 ## [Unreleased]
 - Nothing yet.
 
+## [0.21.2] - 2026-10-21
+(0.21.1 was built but never released; its changes are part of this version.)
+### Added
+- **Script time: report for a mod's author.** Right-click a mod in the Script time window and copy a plain-English note for its author: mod and game version, its share of script time, the last sessions' shares and its slowest events and on_actions.
+- **Script time: History trend.** A new column shows each mod's share over its last six sessions (same playset, oldest first).
+- **Compatch finder: three more patches** (CFP + EPE, A Special World building patch, AGOT + Better Executions Updated). The table is now checked by a test (every patch joins at least two mods, no repeats).
+- **Two more load orders** from the Workshop's AGOT search: the Turkish Dragonkeepers translation (after Dragonkeepers and A Game of Thrones) and the Principality immunity mod (below A Game of Thrones). Workshop ledger: 20 more pages read (266 in all, 68 left); the rest state no order. Steam blocked at page 21.
+
+### Changed
+- The game's script error counter stops at 100,000; the Script time window now says "100,000 or more" instead of looking exact.
+- Audit and performance pass (400 and 1,200 mod synthetic playsets, 60,000 and 144,000 files): cold indexing 0.8 s and 1.9 s, warm 0.2 s and 0.6 s, conflict finding 18 ms and 44 ms, Auto Sort 6 ms and 20 ms, memory 51 MB and 122 MB. Nothing needed changing for speed.
+- **Deleting a mod's folder now refuses if the folder contains a link or junction** (it could point outside the mod folder). The mod is left as it was and the Game log says why.
+- Script time rows no longer depend on the order the compiler evaluates arguments (a fragile spot the static analyser found).
+- The build on GitHub now also runs the random-playset sort test; README title shows the right version; a repeated alias in the database removed.
+
 ## [0.21.0] - 2026-10-17
 ### Added
 - **Script time: History.** A fifth view saves one snapshot per game session (only when the game ran with the mods you have now and all their files are read) and compares the newest with the one before it: each mod's share of script time now and before, the change, and in how many sessions it showed up. The snapshots are kept in `scripttime_history.txt` in the program's data folder (the last 30).
