@@ -20,6 +20,8 @@ public static class KnownConflicts
             "\"{0}\" and \"{1}\" should not be used together: the LITE page says it is incompatible with the full Zoom Scale Map."),
         new(new[] { "3508281279" }, new[] { "bg other graphics zoom scale map lite" }, new[] { "3369079355" }, new[] { "bg other graphics battleground commanders" },
             "\"{0}\" and \"{1}\" should not be used together: the LITE page says it is incompatible with BG Other Graphics: Battleground Commanders."),
+        new(new[] { "3780269495" }, new[] { "agot the long night and azor ahai" }, Array.Empty<string>(), new[] { "agot the long night", "the long night" },
+            "\"{0}\" and \"{1}\" should not be used together: the page of \"{0}\" says every other Long Night mod must be switched off (it is a fork of both and ships the same files)."),
         new(new[] { "3664900993" }, new[] { "agot nobility of westeros" }, new[] { "2950245430" }, new[] { "agot plus" },
             "\"{0}\" and \"{1}\" crash together, according to the author of Seastar's AGOT Collection (September): use one or the other."),
         new(new[] { "3768208851" }, new[] { "understated elegance in graphics agot edition" }, new[] { "3254254511" }, new[] { "agot micro" },

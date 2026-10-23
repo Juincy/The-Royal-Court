@@ -14,8 +14,18 @@ public static class Anim
     static DispatcherTimer? timer;
     static TopLevel? host;
     static double last, lastFrameAt;
-    static int holds; static bool pending;
+    static int holds, chk; static bool pending;
     public static bool Active = true;
+    /// <summary>Re-reads whether any window of the app is in front (call after a window gains or loses focus).</summary>
+    public static void Refresh()
+    {
+        bool any = true;
+        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime l)
+        { any = false; foreach (var w in l.Windows) if (w.IsVisible && w.IsActive) { any = true; break; } }
+        if (any == Active) return;
+        Active = any;
+        if (any && timer != null) { last = Skin.Sec; timer.Interval = TimeSpan.FromMilliseconds(33); }
+    }
     /// <summary>True while something asked for smooth motion (Hold without Release).</summary>
     public static bool Moving => holds > 0;
     public static void Hold() { if (holds++ == 0) Kick(); }
@@ -29,8 +39,11 @@ public static class Anim
         {
             // while the frame callback runs it does the work; the timer only steps in when the callback has stopped (window hidden or minimised)
             if (holds > 0 && Skin.Sec - lastFrameAt < 0.1) return;
+            // nothing is moving and no window of the app is in front: stand still (the clock only checks back twice a second)
+            if (!Active || (++chk & 15) == 0) Refresh();   // tool windows and other apps do not raise the main window's events
+            if (holds == 0 && !Active) { last = Skin.Sec; if ((int)timer!.Interval.TotalMilliseconds != 500) timer.Interval = TimeSpan.FromMilliseconds(500); return; }
             Pulse();
-            int want = holds > 0 ? 50 : Active ? 33 : 250;
+            int want = holds > 0 ? 50 : 33;
             if ((int)timer!.Interval.TotalMilliseconds != want) timer.Interval = TimeSpan.FromMilliseconds(want);
         };
         timer.Start();

@@ -4425,22 +4425,22 @@
   {
    "id": "3298801239",
    "title": "EK2 Alessian Dynasty",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Author prefers it at the bottom of the list",
    "date": "2026-10-23",
-   "source": "AGOT search p14"
+   "source": "Workshop page"
   },
   {
    "id": "3446329162",
    "title": "LC13 CoA",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "AGOT search p14"
+   "source": "Workshop page"
   },
   {
    "id": "3274041798",
@@ -4486,21 +4486,21 @@
    "id": "3769230891",
    "title": "AGOT: Fire Made Flesh",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "AGOT search p14"
+   "source": "Workshop page"
   },
   {
    "id": "3621472324",
    "title": "AGOT Great Councils",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "AGOT search p14"
+   "source": "Workshop page"
   },
   {
    "id": "3412222811",
@@ -4886,81 +4886,81 @@
    "id": "3676293022",
    "title": "Expanded Court Position - Search and Recruit",
    "inDatabase": false,
-   "status": "blocked",
+   "status": "read",
    "found": "none",
-   "note": "Error page (rate limit); retry",
+   "note": "No order stated",
    "date": "2026-10-23",
    "source": "Workshop page"
   },
   {
    "id": "3409168338",
    "title": "AGOT+ - Purple Eyes Restoration",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "After AGOT+ and House Velaryon",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3459771174",
    "title": "AGOT Clothes Adjustment",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3765282284",
    "title": "AGOT: Fire and Blood",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "note",
+   "note": "F&B page lists NoW, AGOT+ Canon Children, Canon Traits as incompatible, but the NoW compatch (3778473717) fixes NoW; no conflict added",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3778473717",
    "title": "AGOT Fire and Blood - NOW Compatch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Compatch loads below both Fire and Blood and Nobility of Westeros; with it F&B+NoW work together",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3753608966",
    "title": "AGOT NOW-Season of Ice and Fire Compatch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Below AGOT NOW (which loads last)",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3013743552",
    "title": "AGOT - Holdings Art",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3742055253",
    "title": "COW-AGOT: Nobility of Westeros Compatch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Below AGOT NoW and COW-AGOT",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3371173142",
@@ -4975,42 +4975,42 @@
   {
    "id": "3712620554",
    "title": "LoW & Additonal Models and Special Buildings Compatch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Additional Models, Landmarks of Westeros, then this",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3768208851",
    "title": "Understated Elegance In Graphics (AGOT Edition)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated (conflict with AGOT Micro already recorded)",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3780269495",
    "title": "AGOT: The Long Night & Azor Ahai",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "conflict",
+   "note": "Incompatible with every other Long Night mod (AGOT: The Long Night, The Long Night+); Supernatural compatch always last",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3766971799",
    "title": "AGOT Seasons + Bookmarked + Fire and Blood Compatch",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated; patch for Seasons + Bookmarked + F&B",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   }
  ]
 }

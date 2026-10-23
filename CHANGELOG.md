@@ -3,6 +3,10 @@
 Every change to the mod manager is logged here, newest first, starting 2026-10-06.
 This file ships inside the EXE (Changelog button) and in the zip.
 
+## [Unreleased]
+- **Animations stop when you click out**: the animation clock no longer ticks at all while no window of the program is in front (before, the banner and button fades kept running at a slower rate); it wakes up the moment you come back, and the tool windows count as "in front" too.
+- **Eight more load orders and a Long Night warning** from the AGOT collection pass: AGOT+ - Purple Eyes Restoration (after AGOT+), the AGOT Fire and Blood - NOW compatch (below both mods), the NOW - Seasons of Ice and Fire compatch, the COW-AGOT - Nobility of Westeros compatch, the LoW & Additional Models compatch, EK2 Alessian Dynasty (bottom), and the health check now warns when AGOT: The Long Night & Azor Ahai is on with another Long Night mod. Workshop ledger: 15 more pages read; the collection is now fully read.
+
 ## [0.24.0] - 2026-10-23
 - **Two more load orders**: AGOT Micro (below AGOT, it overwrites AGOT's textures) and Armies of Westeros REMASTERED (after Armies of Westeros). Workshop ledger: 9 more pages read; Steam blocked on the next page.
 - **Seven more load orders** from the AGOT collection pass: Landmarks of Westeros & COW-AGOT Compatch, [AGOT] Knights & Banners and its Armies of Westeros edition, AGOT - Dragonpit For Dukes, the Battle Graphics ZSM and Battleground Commanders AGOT compatches, and the Battle Events AGOT compatch (below Battle Events). Workshop ledger: 7 more pages read.

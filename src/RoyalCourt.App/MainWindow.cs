@@ -373,8 +373,8 @@ public partial class MainWindow : Window
 
         Opened += (_, _) => OnOpened();
         Closing += (_, _) => OnClosing();
-        Activated += (_, _) => { Anim.Active = true; Dispatcher.UIThread.Post(() => mm.OnActivated(Dialogs.Open > 0)); };
-        Deactivated += (_, _) => Anim.Active = false;
+        Activated += (_, _) => { Anim.Refresh(); Dispatcher.UIThread.Post(() => mm.OnActivated(Dialogs.Open > 0)); };
+        Deactivated += (_, _) => Dispatcher.UIThread.Post(Anim.Refresh, DispatcherPriority.Background);
         PropertyChanged += (_, e) => { if (e.Property == BoundsProperty || e.Property == WindowStateProperty) SaveStateSoon(); };
         PositionChanged += (_, _) => SaveStateSoon();
         KeyDown += (_, e) => { if (e.Key == Key.F5) { mm.RescanAll(); e.Handled = true; } };
