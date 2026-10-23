@@ -4795,42 +4795,42 @@
   {
    "id": "3254254511",
    "title": "AGOT Micro",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Below AGOT; needs to overwrite its textures",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3328141802",
    "title": "Armies of Westeros REMASTERED (big update soon)",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "After Armies of Westeros",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3571431456",
    "title": "The Red Keep",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order; overwrites no files",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3662281614",
    "title": "The Red Keep (Hegemony Updates)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No stated order; patch for Red Keep",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3692949151",
@@ -4846,51 +4846,51 @@
    "id": "3700835663",
    "title": "AGOT Courts of Westeros",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3439278803",
    "title": "Gift More GOLD",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3422767115",
    "title": "AGOT Music++",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3541596590",
    "title": "AGOT Dragon Wives",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3676293022",
    "title": "Expanded Court Position - Search and Recruit",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "blocked",
+   "found": "none",
+   "note": "Error page (rate limit); retry",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3409168338",

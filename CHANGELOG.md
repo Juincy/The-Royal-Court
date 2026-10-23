@@ -4,6 +4,7 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+- **Two more load orders**: AGOT Micro (below AGOT, it overwrites AGOT's textures) and Armies of Westeros REMASTERED (after Armies of Westeros). Workshop ledger: 9 more pages read; Steam blocked on the next page.
 - **Seven more load orders** from the AGOT collection pass: Landmarks of Westeros & COW-AGOT Compatch, [AGOT] Knights & Banners and its Armies of Westeros edition, AGOT - Dragonpit For Dukes, the Battle Graphics ZSM and Battleground Commanders AGOT compatches, and the Battle Events AGOT compatch (below Battle Events). Workshop ledger: 7 more pages read.
 
 ## [0.23.0] - 2026-10-23
