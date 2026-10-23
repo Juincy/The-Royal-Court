@@ -4696,101 +4696,101 @@
    "id": "3425828418",
    "title": "Better Population Control",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "Better Population Control: should work with every mod; no order",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3697008412",
    "title": "Landmarks of Westeros & COW-AGOT Compatch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "LoW + COW-AGOT compatch: COW-AGOT, Landmarks of Westeros, this",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3692879370",
    "title": "AGOT - Landmarks of Westeros",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "Landmarks of Westeros: description gives no order (compatches listed)",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3541693392",
    "title": "AGOT Citadel University",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "Citadel University: no order",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3496313878",
    "title": "[AGOT] Knights & Banners",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Knights & Banners: AGOT, K&B, (Armies of Westeros)",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3457401824",
    "title": "Oathbound",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "Oathbound: compatible with everything, no order",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3329680499",
    "title": "AGOT - Dragonpit For Dukes",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Dragonpit For Dukes: AGOT, other submods, this",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3371609961",
    "title": "BG Other Graphics: BC AGOT Compatibility Patch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "BG BC AGOT compat: after Battle Graphics AGOT compat, ZSM AGOT compat, BG BC; added",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3415188429",
    "title": "Battle Events - AGOT Compatibility Patch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Place below Battle Events",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3287741117",
    "title": "Battle Events",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "No order; needs AGOT compatch with AGOT",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3254254511",
@@ -4835,12 +4835,12 @@
   {
    "id": "3692949151",
    "title": "[AGOT] Knights & Banners (AoW)",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "K&B (AoW): beneath main K&B",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3700835663",
@@ -4965,12 +4965,12 @@
   {
    "id": "3371173142",
    "title": "BG Other Graphics: ZSM AGOT Compatibility Patch",
-   "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "ZSM AGOT compat: after AGOT, BG ZSM, BG AGOT compat",
    "date": "2026-10-23",
-   "source": "Seastar's AGOT Collection 3608639287"
+   "source": "Workshop page"
   },
   {
    "id": "3712620554",

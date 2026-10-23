@@ -3,6 +3,9 @@
 Every change to the mod manager is logged here, newest first, starting 2026-10-06.
 This file ships inside the EXE (Changelog button) and in the zip.
 
+## [Unreleased]
+- **Seven more load orders** from the AGOT collection pass: Landmarks of Westeros & COW-AGOT Compatch, [AGOT] Knights & Banners and its Armies of Westeros edition, AGOT - Dragonpit For Dukes, the Battle Graphics ZSM and Battleground Commanders AGOT compatches, and the Battle Events AGOT compatch (below Battle Events). Workshop ledger: 7 more pages read.
+
 ## [0.23.0] - 2026-10-23
 - **Collection pass** (Seastar's AGOT Collection, September: 87 mods; 51 were new to the ledger and were added, 20 read so far): orders for Mari's AGOT Makeovers (below AGOT and AGOT+), AGOT House Founders and More Actions, the Additional Models / AGOT+ compatch, Seasons of Ice and Fire (bottom), and the Dynamic Family Portrait (AGOT) compatch. The health check now also warns about pairs that the pages or the collection's author say do not work together: Nobility of Westeros with AGOT+ (crashes) and with Legacy of Valyria, Understated Elegance with AGOT Micro, More Valyrian Steel with AGOT - Valyrian Houses, and Bloodlines: Legacies of AGOT with Minor House Flavour and with Brightboar Westerosi House Flavor.
 - **Nine more load orders** from the Workshop: AGOT Vanilla Courts, Dragonpit Levels, DragonAItweaks, Slower Fights and Mayham (after AGOT); the AGOT IMHO compatch (IMHO, AGOT, patch); the AGOT Compatch Bundle (after AGOT); House of the Dragon Dragonpit (below Additional Models); the AGOT Architecture Expanded patch (after AGOT and Architecture Expanded). Workshop ledger: 26 more pages read; Steam blocked on the next page.
