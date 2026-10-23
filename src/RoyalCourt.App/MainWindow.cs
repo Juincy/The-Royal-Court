@@ -60,7 +60,7 @@ public partial class MainWindow : Window
     readonly RcEdit filter = new(), dir = new();
     readonly RcButton bAllOn = new(), bAllOff = new(), bConflicts = new(), bSort = new(), bUndo = new(), bUp = new(), bDown = new();
     readonly RcButton bBrowse = new(), bSaveDir = new();
-    readonly RcList list = new();
+    public readonly RcList list = new();
     int lastBase = Look.IDark;
     double needClientW = 1200;
     int[] shownIdx = Array.Empty<int>();
@@ -113,6 +113,9 @@ public partial class MainWindow : Window
             return null;
         };
         list.Focusable = true;
+        list.Icon = r => r < mm.Rows.Count ? Thumbs.Get(mm.ThumbPath(mm.Rows[r].Id)) : null;
+        list.IconCol = mm.St.Pictures ? 1 : -1;
+        Thumbs.Loaded += () => list.InvalidateVisual();
         filter.Width = 230;
         bPlay.Primary = true;
     }
@@ -277,7 +280,8 @@ public partial class MainWindow : Window
         RequestedThemeVariant = Skin.Dark ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
         togFrom = picker.TogT; togTo = id == Look.ILight ? 0 : 1; hwFrom = picker.HwT; hwTo = id == Look.IHalloween ? 1 : 0;
         if (!animate) { Skin.Repaint(Look.Of(id)); picker.TogT = togTo; picker.HwT = hwTo; ApplyBackground(); return; }
-        fromTheme = from; slideStart = Skin.Sec; Anim.Moving = true;
+        if (slideStart < 0) Anim.Hold();
+        fromTheme = from; slideStart = Skin.Sec;
         Log.Line("theme change to " + Skin.Name(id));
     }
     void SlideStep(double dt)
@@ -286,7 +290,7 @@ public partial class MainWindow : Window
         double p = Gfx.Ease((Skin.Sec - slideStart) / SlideSec);
         Skin.Repaint(Look.Between(fromTheme!, Look.Of(Skin.Id), p));
         picker.TogT = togFrom + (togTo - togFrom) * p; picker.HwT = hwFrom + (hwTo - hwFrom) * p;
-        if (p >= 1) { slideStart = -1; Anim.Moving = false; Skin.Repaint(Look.Of(Skin.Id)); }
+        if (p >= 1) { slideStart = -1; Anim.Release(); Skin.Repaint(Look.Of(Skin.Id)); }
     }
     void ApplyBackground() { Background = new SolidColorBrush(Skin.Cur.Bg); }
     void OnSkin()
@@ -438,7 +442,7 @@ public partial class MainWindow : Window
         {
             new(1, Tr("Health check: is this playset ready to play...")), MenuDef.Separator,
             new(2, Tr("Game log: which mod causes the errors...")), new(3, Tr("Compatch finder: patches for the mods you use...")),
-            new(4, Tr("Script time: which mod's scripts take the most time...")), new(5, Tr("What changed since I last pressed Play...")), new(6, Tr("Crash helper: why did the game crash...")), MenuDef.Separator,
+            new(4, Tr("Script time: which mod's scripts take the most time...")), new(5, Tr("What changed since I last pressed Play...")), new(6, Tr("Crash helper: why did the game crash...")), new(23, Tr("Bisect: find the mod causing a problem by testing...")), MenuDef.Separator,
             new(7, Tr("Open playsets folder")), MenuDef.Separator,
             new(8, Tr("Back up this playset now")), new(9, Tr("Restore this playset from a backup...")), new(10, Tr("Open backups folder")), MenuDef.Separator,
             new(11, Tr("Compare with another playset...")), new(12, Tr("Game launch options for this playset...")),
@@ -449,6 +453,7 @@ public partial class MainWindow : Window
         items.Add(new(15, Tr("Open saves folder"))); items.Add(new(16, Tr("Open game logs folder")));
         items.Add(new(17, Tr("Clear the shader cache (the game rebuilds it)..."))); items.Add(new(18, Tr("Show the quick tour again...")));
         items.Add(MenuDef.Separator);
+        items.Add(new(24, Tr("Show the mod pictures in the list"), mm.St.Pictures));
         items.Add(new(19, Tr("Run the health check when I press Play"), mm.St.PlayCheck));
         items.Add(new(20, Tr("Check for updates when the program starts"), mm.St.CheckUpdates));
         items.Add(new(21, Tr("Report a sort problem (copy details)...")));
@@ -462,6 +467,7 @@ public partial class MainWindow : Window
             case 4: ReportWindow.Open(this, ReportView.KindTime); break;
             case 5: ReportWindow.Open(this, ReportView.KindSince); break;
             case 6: await mm.CrashHelper(); break;
+            case 23: BisectWindow.Open(this); break;
             case 7: Platform.OpenShell(Util.PlaysetsDir()); break;
             case 8: mm.BackupNow(); break;
             case 9: await mm.RestoreBackup(); break;
@@ -474,6 +480,7 @@ public partial class MainWindow : Window
             case 16: await mm.OpenUserFolder("logs"); break;
             case 17: await mm.ClearShaders(); break;
             case 18: TourWindow.Open(this); break;
+            case 24: mm.TogglePictures(); list.IconCol = mm.St.Pictures ? 1 : -1; list.InvalidateVisual(); break;
             case 19: mm.TogglePlayCheck(); break;
             case 20: mm.ToggleAutoUpdate(); break;
             case 21: await mm.SortReport(); break;
@@ -597,7 +604,7 @@ public partial class MainWindow : Window
         root.InvalidateArrange();
         EnsureWide();
         ready = true;
-        Anim.Start();
+        Anim.Start(this);
         if (!mm.St.TutorialDone) Dispatcher.UIThread.Post(() => { if (!mm.St.TutorialDone) TourWindow.Open(this); });
         oldTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
         oldTimer.Tick += (_, _) => { oldTimer!.Stop(); ModManager.RemoveOldCopy(); };

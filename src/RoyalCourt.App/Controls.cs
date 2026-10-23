@@ -6,29 +6,53 @@ using Avalonia.Media;
 using Avalonia.Threading;
 namespace RoyalCourt.Ui;
 
-/// <summary>One clock for every animation. 60 Hz while something moves, 30 Hz while the window is in front, slow otherwise.</summary>
+/// <summary>One clock for every animation. While something moves (a fade, the theme slide) it is driven by the screen's own frame callback, so every step
+/// lands exactly on a screen refresh (a timer cannot: on Windows it ticks in 15.6 ms steps, which looks like sticking). Otherwise a slow timer: 30 Hz while the window is in front, 4 Hz behind.</summary>
 public static class Anim
 {
     public static event Action<double>? Frame;
     static DispatcherTimer? timer;
-    static double last;
-    public static bool Moving, Active = true;
-    public static int Fps = 30;
-    public static void Start()
+    static TopLevel? host;
+    static double last, lastFrameAt;
+    static int holds; static bool pending;
+    public static bool Active = true;
+    /// <summary>True while something asked for smooth motion (Hold without Release).</summary>
+    public static bool Moving => holds > 0;
+    public static void Hold() { if (holds++ == 0) Kick(); }
+    public static void Release() { if (holds > 0) holds--; }
+    public static void Start(TopLevel top)
     {
         if (timer != null) return;
-        last = Skin.Sec;
+        host = top; last = Skin.Sec;
         timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(33) };
         timer.Tick += (_, _) =>
         {
-            double now = Skin.Sec, dt = Math.Min(0.25, now - last); last = now;
-            Frame?.Invoke(dt);
-            int want = Moving ? 16 : Active ? 33 : 250;
+            // while the frame callback runs it does the work; the timer only steps in when the callback has stopped (window hidden or minimised)
+            if (holds > 0 && Skin.Sec - lastFrameAt < 0.1) return;
+            Pulse();
+            int want = holds > 0 ? 50 : Active ? 33 : 250;
             if ((int)timer!.Interval.TotalMilliseconds != want) timer.Interval = TimeSpan.FromMilliseconds(want);
         };
         timer.Start();
     }
-    public static void Stop() { timer?.Stop(); timer = null; }
+    public static void Stop() { timer?.Stop(); timer = null; host = null; }
+    static void Pulse()
+    {
+        double now = Skin.Sec, dt = Math.Min(0.25, now - last); last = now;
+        Frame?.Invoke(dt);
+    }
+    static void Kick()
+    {
+        if (pending || host == null) return;
+        pending = true;
+        host.RequestAnimationFrame(OnFrame);
+    }
+    static void OnFrame(TimeSpan _)
+    {
+        pending = false; lastFrameAt = Skin.Sec;
+        if (holds <= 0) return;
+        Pulse(); Kick();
+    }
 }
 
 /// <summary>Text drawing and measuring with the app's fonts.</summary>
@@ -67,7 +91,7 @@ public sealed class RcButton : Control
     public Func<bool>? PrimaryIf;
     public double MinW = 76;
     public event Action? Click;
-    double hov; bool hot, down;
+    double hov; bool hot, down, held;
     public RcButton() { Focusable = true; Cursor = new Cursor(StandardCursorType.Hand); }
     public void SetText(string label, string tip) { Label = label; Tip = tip; ToolTip.SetTip(this, tip.Length == 0 ? null : tip); InvalidateMeasure(); InvalidateVisual(); }
     bool IsPrimary => Primary || (PrimaryIf?.Invoke() ?? false);
@@ -78,16 +102,19 @@ public sealed class RcButton : Control
     }
     protected override Size MeasureOverride(Size s) => new(WantW(), 30);
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) { base.OnAttachedToVisualTree(e); Anim.Frame += Step; Skin.Changed += InvalidateVisual; }
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) { base.OnDetachedFromVisualTree(e); Anim.Frame -= Step; Skin.Changed -= InvalidateVisual; }
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) { base.OnDetachedFromVisualTree(e); Anim.Frame -= Step; Skin.Changed -= InvalidateVisual; if (held) { held = false; Anim.Release(); } }
     void Step(double dt)
     {
         double target = hot ? 1 : 0;
-        if (hov == target) return;
-        hov = hot ? Math.Min(1, hov + dt / 0.10) : Math.Max(0, hov - dt / 0.15);
-        InvalidateVisual();
+        if (hov != target)
+        {
+            hov = hot ? Math.Min(1, hov + dt / 0.10) : Math.Max(0, hov - dt / 0.15);
+            InvalidateVisual();
+        }
+        if (hov == target && !hot && held) { held = false; Anim.Release(); }   // the fade is over: back to the slow clock
     }
-    protected override void OnPointerEntered(PointerEventArgs e) { hot = true; Anim.Moving = true; base.OnPointerEntered(e); }
-    protected override void OnPointerExited(PointerEventArgs e) { hot = false; down = false; Anim.Moving = false; InvalidateVisual(); base.OnPointerExited(e); }
+    protected override void OnPointerEntered(PointerEventArgs e) { hot = true; if (!held) { held = true; Anim.Hold(); } base.OnPointerEntered(e); }
+    protected override void OnPointerExited(PointerEventArgs e) { hot = false; down = false; InvalidateVisual(); base.OnPointerExited(e); }
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         if (!IsEnabled || !e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
@@ -150,6 +177,7 @@ public sealed class RcList : Control
     public Func<int, int, Color?>? CellFg;                // null colour: the row's own
     public Func<int, int>? RowKind;                        // 0 normal, 1 muted (disabled), 2 faint (pending)
     public Func<int, bool>? IsChecked;
+    public Func<int, IImage?>? Icon; public int IconCol = -1;    // a small picture before the text of this column (a grey square while it is not loaded)
     public Func<int, Color?>? RowBg;                       // extra tint (conflict severity etc.)
     public Func<int, int, double>? CellBar;                // >= 0: a bar of that length (0..1) behind the cell text
     public int SortCol = -1; public bool SortAsc = true;
@@ -226,6 +254,14 @@ public sealed class RcList : Control
                             dc.DrawGeometry(null, Gfx.P(t.AccentText, 2, 255, true), g);
                         }
                         tx = x + CheckW + 6;
+                    }
+                    if (c == IconCol)
+                    {
+                        var ir = new Rect(tx, y + 2, 20, 20);
+                        var img = Icon?.Invoke(r);
+                        if (img != null) { using (dc.PushClip(ir)) dc.DrawImage(img, new Rect(img.Size), ir); }
+                        else dc.DrawRectangle(Gfx.Br(Look.Mix(sel ? t.Sel : bg, t.Muted, 22)), null, Gfx.RR(ir.X, ir.Y, 20, 20, 3));
+                        tx += 26;
                     }
                     string s = Cell(r, c);
                     if (CellBar?.Invoke(r, c) is double fr && fr >= 0)

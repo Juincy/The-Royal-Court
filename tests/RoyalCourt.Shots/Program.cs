@@ -46,6 +46,25 @@ class P
         if (a.Contains("conf")) { ConflictsWindow.Open(w); Pump(800); var cw = w.SubWindows.OfType<ConflictsWindow>().First(); Shot(cw, Path.Combine(outDir, "conflicts.png")); cw.Close(); }
         if (a.Contains("log")) { ChangelogWindow.Open(w); Pump(300); var cw = w.SubWindows.OfType<ChangelogWindow>().First(); Shot(cw, Path.Combine(outDir, "changelog.png")); cw.Close(); }
         if (a.Contains("rep")) { ReportWindow.Open(w, 2); Pump(500); var cw = w.SubWindows.OfType<ReportWindow>().First(); Shot(cw, Path.Combine(outDir, "scripttime.png")); cw.Close(); }
+        if (a.Contains("anim"))
+        {
+            w.SetTheme(Look.ILight, true); Console.WriteLine("moving during slide: " + Anim.Moving); Pump(900);
+            Console.WriteLine("moving after slide: " + Anim.Moving);
+            w.SetTheme(Look.IDark, true); w.SetTheme(Look.IHalloween, true); Pump(1200);
+            Console.WriteLine("moving after quick switches: " + Anim.Moving + " theme " + Skin.Id);
+        }
+        if (a.Contains("thumbs"))
+        {
+            int ri = w.mm.Rows.FindIndex(r => r.Installed); w.list.Off = Math.Max(0, ri - 1) * RcList.RowH; w.list.Refresh(); Pump(800); w.list.Refresh(); Pump(300);
+            Shot(w, Path.Combine(outDir, "thumbs.png"));
+        }
+        if (a.Contains("bisect"))
+        {
+            w.mm.SetShown(true); Pump(500);
+            BisectWindow.Open(w); Pump(1500);
+            var bw = w.SubWindows.OfType<BisectWindow>().First(); Shot(bw, Path.Combine(outDir, "bisect1.png"));
+            bw.Test_Begin(); Pump(300); bw.Test_Report(false); Pump(300); Shot(bw, Path.Combine(outDir, "bisect2.png")); bw.Close();
+        }
         if (a.Contains("e2e"))
         {
             var mm = w.mm;

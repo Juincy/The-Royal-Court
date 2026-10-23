@@ -15,7 +15,7 @@ public static partial class KnownData
     { var k = new KnownMod(); k.Names = new() {"community flavor pack", "cfp"}; k.Ids = new() {"2220098919"}; k.Cat = Cat.Content; k.Note = K("Community Flavor Pack (known mod)"); v.Add(k); }
     { var k = new KnownMod(); k.Names = new() {"ethnicities and portraits expanded", "epe"}; k.Ids = new() {"2507209632"}; k.Cat = Cat.Graphics; k.Note = K("Ethnicities & Portraits Expanded (known mod)"); v.Add(k); }
     { var k = new KnownMod(); k.Names = new() {"better character ui"}; k.Ids = new() {"2222540784"}; k.Cat = Cat.Ui; k.Rank = 5; k.Note = K("Better Character UI: its page says it must be placed under other UI mods"); v.Add(k); }
-    { var k = new KnownMod(); k.Names = new() {"a game of thrones", "agot"}; k.Ids = new() {"2962333032"}; k.Cat = Cat.Overhaul; k.Pos = -2;
+    { var k = new KnownMod(); k.Names = new() {"a game of thrones", "agot"}; k.Ids = new() {"2962333032"}; k.Cat = Cat.Overhaul; k.Pos = -2; k.Rank = -5;
       k.Note = K("A Game of Thrones: the AGOT Submod Core page says it must remain at the top of the load order"); v.Add(k); }
     // Total conversions replace the whole game setting, so they always go first. Their own Workshop pages give no load-order
     // sentence (checked), so this is the standard rule for total conversions rather than a quote.
@@ -237,6 +237,95 @@ public static partial class KnownData
       k.Note = K("Battle Graphics AGOT Compatibility Patch: its page says AGOT, then Battle Graphics, then this patch"); v.Add(k); }
     { var k = new KnownMod(); k.Names = new() {"agot royal guards"}; k.Ids = new() {"3733779333"}; k.After = new() {"a game of thrones", "valyrian steel", "agot knighting ceremony"};
       k.Note = K("AGOT: Royal Guards: its page says required mods go above it, it goes below AGOT: Knighting Ceremony, and compatches go below both mods they patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"mts for agot ancient birthright patch"}; k.Ids = new() {"3771351073"}; k.Cat = Cat.Patch; k.Rank = 9;
+      k.After = new() {"a game of thrones", "legacy of valyria", "ancient birthright more valyrian faiths and flavours", "more tenet slots for a game of thrones"};
+      k.Note = K("MTS for AGoT - Ancient Birthright Patch: its page says A Game of Thrones, Legacy of Valyria, its AGOT compatch, Ancient Birthright, More Tenet Slots for AGOT, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot aelyrion dynasty mod"}; k.Ids = new() {"3771234229"}; k.After = new() {"a game of thrones", "agot more dragon eggs", "agot armies of westeros", "nobility of westeros"};
+      k.Note = K("AGOT Aelyrion Dynasty Mod: its page says to load it after its dependencies and their compatibility patches (the author says: load it last)"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"commander plus 1 20", "commander 1 20", "commanders plus"}; k.Ids = new() {"3716251917"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("Commander+ 1.20: its page gives the order A Game of Thrones, Commander+ 1.20, then the Commander+ AGOT compatibility patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"adoption options agot", "adoption options agot beta", "adoption options agot compatibility beta"}; k.Ids = new() {"3811591240"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"a game of thrones", "adoption options"};
+      k.Note = K("Adoption Options - AGOT BETA: its page says AGOT, then Adoption Options, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"ck3 archipelago randomization", "crusader kings iii x archipelago integration"}; k.Ids = new() {"3776198575"}; k.Pos = 1; k.Before = new() {"rise and fall"};
+      k.Note = K("Archipelago integration: its page says to put it at the VERY BOTTOM of the load order"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"bg other graphics zoom scale map"}; k.Ids = new() {"3232842149"}; k.Cat = Cat.Graphics; k.After = new() {"battle graphics"};
+      k.Note = K("BG Other Graphics: Zoom Scale Map: its page's examples put it after Battle Graphics"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"bg other graphics battleground commanders"}; k.Ids = new() {"3369079355"}; k.Cat = Cat.Graphics; k.After = new() {"battle graphics", "bg other graphics zoom scale map", "battleground commanders"};
+      k.Note = K("BG Other Graphics: Battleground Commanders: its page lists Battle Graphics, Zoom Scale Map and Battleground Commanders first, then this mod"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"extra more building slots 16 slots", "extra more building slots"}; k.Ids = new() {"2240104972"}; k.After = new() {"realms in exile"};
+      k.Note = K("Extra More Building Slots (16 slots): its page says to place it after (below) Realms in Exile"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"lotr founder s seats", "lotr founders seats"}; k.Ids = new() {"3806109976"}; k.After = new() {"realms in exile"};
+      k.Note = K("LotR: Founder's Seats: its page says to place it below LotR: Realms in Exile"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot regnal numbers lifespans", "agot regnal numbers and lifespans"}; k.Ids = new() {"3808463175"}; k.Pos = 1; k.Before = new() {"rise and fall"};
+      k.Note = K("AGOT: Regnal Numbers & Lifespans: its page says to place it last so its aging settings take priority"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot dance of the dragons bookmark"}; k.Ids = new() {"3807879576"}; k.After = new() {"a game of thrones", "agot", "agot submod core", "agot plus"};
+      k.Note = K("AGOT Dance of the Dragons Bookmark: its page gives AGOT, AGOT Submod Core, AGOT+ and then this mod"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot crowns of westeros german translation"}; k.Ids = new() {"3672960144"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"agot crowns of westeros"};
+      k.Note = K("AGOT Crowns of Westeros German Translation: its page says to load it after AGOT - Crowns of Westeros"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot additional models and special buildings german"}; k.Ids = new() {"3772842052"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"agot additional models and special buildings"};
+      k.Note = K("AGOT Additional Models and Special Buildings German: its page says to load it after the main mod"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"leo vi s mass vassal directives a game of thrones", "leo vi s mass vassal directives agot"}; k.Ids = new() {"3767330440"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("Leo VI's Mass Vassal Directives (A Game of Thrones): its page says to load it after A Game of Thrones"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"pyrates agot compatibility"}; k.Ids = new() {"3804313719"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"a game of thrones", "agot", "pyrates"};
+      k.Note = K("Pyrates AGOT Compatibility: its page gives A Game of Thrones, Pyrates, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"dragons alive lotr compatch"}; k.Ids = new() {"3794662001"}; k.Cat = Cat.Patch; k.Pos = 1; k.After = new() {"dragons alive", "realms in exile"};
+      k.Note = K("Dragons Alive - LOTR Compatch: its page gives Dragons Alive, LotR: Realms in Exile and its submods, then this patch, which must load last"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot mde lov updated compatch"}; k.Ids = new() {"3801630101"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"agot more dragon eggs", "more dragon eggs", "legacy of valyria"};
+      k.Note = K("AGOT - MDE + LoV Updated Compatch: its author says it goes below More Dragon Eggs (and so below Legacy of Valyria)"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot invitations filter"}; k.Ids = new() {"3802031384"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("AGOT - Invitations Filter: its page says to load it after AGOT"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot faster maturity reuploaded compatch", "faster maturity reuploaded agot compatch"}; k.Ids = new() {"3798025076"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"a game of thrones", "agot", "faster maturity reuploaded"};
+      k.Note = K("Faster Maturity Reuploaded - AGOT Compatch: its page gives AGOT, Faster Maturity Reuploaded, then this compatch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot battlefield duel dynamic family portrait compatch"}; k.Ids = new() {"3788948322"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"dynamic family portrait", "agot battlefield duel plus"};
+      k.Note = K("AGOT Battlefield Duel + Dynamic Family Portrait Compatch: its page gives Dynamic Family Portrait, Dynamic Family Portrait (AGOT), Battlefield Duel +, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot battlefield duel more dragon eggs compatch"}; k.Ids = new() {"3789556721"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"agot more dragon eggs", "more dragon eggs", "agot battlefield duel plus"};
+      k.Note = K("AGOT Battlefield Duel + - More Dragon Eggs Compatch: its page gives More Dragon Eggs, Battlefield Duel +, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot vanilla courts"}; k.Ids = new() {"3800957484"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("AGOT Vanilla Courts: its page says to load it below AGOT"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot dragonpit levels"}; k.Ids = new() {"3774904401"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("AGOT Dragonpit Levels: its page says to load it after AGOT, with no other order requirement"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"dragonaitweaks"}; k.Ids = new() {"3795253056"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("DragonAItweaks: its page says anywhere after AGOT"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot slower fights"}; k.Ids = new() {"3672635655"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("AGOT Slower Fights: its page gives AGOT, then this mod"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot mayham"}; k.Ids = new() {"3352171144"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("AGOT Mayham: its page gives AGOT, then this mod"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot imho compatch"}; k.Ids = new() {"3321339396"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"imho", "a game of thrones", "agot"};
+      k.Note = K("AGOT IMHO Compatch: its page gives IMHO, AGOT, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot compatch bundle"}; k.Ids = new() {"3325733330"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"a game of thrones", "agot", "anime core lib"};
+      k.Note = K("AGOT Compatch Bundle: its page puts it after AGOT (and below Anime Core Lib if you use it)"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot house of the dragon dragonpit"}; k.Ids = new() {"3690974801"}; k.After = new() {"a game of thrones", "agot", "agot additional models and special buildings"};
+      k.Note = K("AGOT: House of the Dragon Dragonpit: its page says to load it below Additional Models if you use that mod"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot patch architecture expanded"}; k.Ids = new() {"3786931632"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"a game of thrones", "agot", "architecture expanded", "ck3 architecture expanded"};
+      k.Note = K("AGOT Patch Architecture Expanded: its page gives AGOT, Architecture Expanded, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"mari s agot makeovers"}; k.Ids = new() {"3462342647"}; k.After = new() {"a game of thrones", "agot", "agot plus"};
+      k.Note = K("Mari's AGOT Makeovers: its page says to load it below AGOT and AGOT+ (and below other mods that change appearances)"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot house founders"}; k.Ids = new() {"2967263410"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("AGOT: House Founders: its page says to load it after AGOT"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot more actions"}; k.Ids = new() {"3059021049"}; k.After = new() {"a game of thrones", "agot", "agot house founders"};
+      k.Note = K("AGOT: More Actions: its page says after AGOT, and last among the author's other submods (House Founders)"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"additional models agot plus compatch"}; k.Ids = new() {"3587967020"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"agot submod core", "agot plus", "agot additional models and special buildings"};
+      k.Note = K("Additional Models / AGOT+ Compatch: its page gives AGOT Submod Core, AGOT+, Additional Models and Special Buildings, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"agot seasons of ice and fire"}; k.Ids = new() {"3377641022"}; k.Pos = 1; k.Before = new() {"rise and fall"}; k.After = new() {"a game of thrones", "agot"};
+      k.Note = K("AGOT: Seasons of Ice and Fire: its author recommends the bottom of the load order, or as close as you can"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"dynamyc family portrait agot"}; k.Ids = new() {"3609763696"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"a game of thrones", "agot", "agot more dragon eggs", "dynamic family portrait"};
+      k.Note = K("Dynamic Family Portrait (AGOT): its page gives AGOT, More Dragon Eggs (optional), Dynamic Family Portrait, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"the witcher s realms", "the witchers realms"}; k.Ids = new() {"2882431747"}; k.Cat = Cat.Overhaul; k.Pos = -2;
+      k.Note = K("The Witcher's Realms: its page calls it a fantasy total conversion, so it loads first"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"the winter king"}; k.Ids = new() {"3771827282"}; k.Cat = Cat.Overhaul; k.Pos = -2;
+      k.Note = K("The Winter King: its page calls it a total conversion, so it loads first"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"new era old world", "1 19 new era old world"}; k.Ids = new() {"3679787783"}; k.Cat = Cat.Overhaul; k.Pos = -2;
+      k.Note = K("New Era Old World: its page calls it a total conversion, so it loads first"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"ate southern land release", "after the end southern land"}; k.Ids = new() {"3477963134"}; k.Cat = Cat.Overhaul; k.Pos = -2;
+      k.Note = K("After the End: Southern Land: its page calls it a total conversion, so it loads first"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"battle for agatharia"}; k.Ids = new() {"3376598776"}; k.Cat = Cat.Overhaul; k.Pos = -2;
+      k.Note = K("Battle for Agatharia: its page calls it a total conversion, so it loads first"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"official cow agot legacy of valyria compatch", "offical cow agot legacy of valyria compatch"}; k.Ids = new() {"3337903092"}; k.Cat = Cat.Patch; k.Rank = 9; k.After = new() {"a game of thrones", "legacy of valyria"};
+      k.Note = K("Official COW:AGOT - Legacy of Valyria Compatch: its page's tested order is AGOT, other AGOT submods, COW:AGOT, Legacy of Valyria, the LoV AGOT compatch, then this patch"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"ruler designer unlocked"}; k.Ids = new() {"2478202444"}; k.Pos = 1; k.Before = new() {"rise and fall"};
+      k.Note = K("Ruler Designer Unlocked: its page says to place it at the bottom of the load order (Rise and Fall stays below it)"); v.Add(k); }
+    { var k = new KnownMod(); k.Names = new() {"smaller world map"}; k.Ids = new() {"2882223898"}; k.Pos = 1; k.Before = new() {"rise and fall"};
+      k.Note = K("Smaller World Map: its page says it is better loaded last (Rise and Fall stays below it)"); v.Add(k); }
         foreach (var k in v) { k.Names = k.Names.Select(Names.Norm).ToList(); k.After = k.After.Select(Names.Norm).ToList(); k.Before = k.Before.Select(Names.Norm).ToList(); }
         return v;
     }
@@ -271,6 +360,7 @@ public static partial class KnownData
         new("A Special World - Special Building Compatch", "2875587269", new[] {new[] {"a special world"}, new[] {"cities of wonders", "medieval arts", "unique buildings plus", "regional immersion and cultural enrichment", "rice", "more bookmarks plus", "mb plus", "africa plus", "muslim enhancements"}}),
         new("Grand Remembrance - AGOT Compatibility Submod", "3683507542", new[] {new[] {"grand remembrance"}, new[] {"a game of thrones"}}),
         new("Animal Characters - AGOT patch", "3820075861", new[] {new[] {"animal characters"}, new[] {"a game of thrones"}}),
+        new("Adoption Options - AGOT BETA", "3811591240", new[] {new[] {"a game of thrones"}, new[] {"adoption options"}}),
         new("Battle Graphics AGOT Compatibility Patch", "3235061780", new[] {new[] {"a game of thrones"}, new[] {"battle graphics"}}),
         new("Sightseer AGOT Compatibility", "", new[] {new[] {"sightseer"}, new[] {"a game of thrones"}}),
     };

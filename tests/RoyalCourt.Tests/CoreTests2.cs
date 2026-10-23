@@ -178,7 +178,7 @@ public class CoreTests2
         string sums = new string('A', 64) + "  TheRoyalCourt.exe\r\n" + new string('b', 64) + " *other.zip\n";
         Assert.True(Release.FindSumFor(sums, "TheRoyalCourt.exe") == new string('a', 64) && Release.FindSumFor(sums, "other.zip") == new string('b', 64) && Release.FindSumFor(sums, "nope").Length == 0);
         using var e = new TestEnv();
-        var st = new Settings { CheckUpdates = true }; Assert.True(st.Save()); Assert.True(Settings.Load().CheckUpdates);
+        var st = new Settings { CheckUpdates = true, Pictures = false }; Assert.True(st.Save()); Assert.True(Settings.Load().CheckUpdates); Assert.False(Settings.Load().Pictures); st.Pictures = true; Assert.True(st.Save()); Assert.True(Settings.Load().Pictures);
         st.CheckUpdates = false; st.Save(); Assert.False(Settings.Load().CheckUpdates);
         Log.Line("test line"); Assert.True(Util.ReadFile(Log.LogPath(), out var lg) && lg.Contains("test line"));
     }

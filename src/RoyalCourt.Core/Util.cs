@@ -3,7 +3,7 @@ namespace RoyalCourt.Core;
 
 public static class Env
 {
-    public const string Version = "0.22.0";
+    public const string Version = "0.23.0";
     /// <summary>%APPDATA% (set by the program on start). Empty: the current folder.</summary>
     public static string AppData = "";
 }

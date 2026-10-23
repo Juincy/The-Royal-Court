@@ -584,24 +584,52 @@ public sealed partial class ModManager
     }
 
     // ---- Play ----
-    public async Task Play()
+    /// <summary>The checks before any start of the game: folder, ck3.exe, game and Steam running. Null when something was shown to the user and the start is off.</summary>
+    async Task<(string dir, string exe)?> LaunchCheck()
     {
-        var ps = Active();
-        if (ps == null || Dlg == null) return;
+        if (Dlg == null) return null;
         string dir = EffectiveDir();
-        if (dir.Length == 0) { await Dlg.Info(Tr("The CK3 folder is not set. Enter it at the bottom (the folder that contains \"mod\") and press Save folder.")); return; }
+        if (dir.Length == 0) { await Dlg.Info(Tr("The CK3 folder is not set. Enter it at the bottom (the folder that contains \"mod\") and press Save folder.")); return null; }
         string exe = (St.GameExe.Length > 0 && Util.FileExists(St.GameExe)) ? St.GameExe : Platform.FindGameExeInSteam();
         if (exe.Length == 0)
         {
             var chosen = await Dlg.PickGameExe();
-            if (chosen == null) return;
-            if (!string.Equals(Path.GetFileName(chosen), "ck3.exe", StringComparison.OrdinalIgnoreCase)) { await Dlg.Info(Tr("Please choose ck3.exe (it is in the \"binaries\" folder of your Crusader Kings III install).")); return; }
+            if (chosen == null) return null;
+            if (!string.Equals(Path.GetFileName(chosen), "ck3.exe", StringComparison.OrdinalIgnoreCase)) { await Dlg.Info(Tr("Please choose ck3.exe (it is in the \"binaries\" folder of your Crusader Kings III install).")); return null; }
             exe = chosen;
         }
         if (exe != St.GameExe) { St.GameExe = exe; SaveSettingsNow(); }
         if (GameVer.Length == 0) { RefreshGameVersion(exe); Populate(); }
-        if (Platform.ProcessRunning("ck3")) { await Dlg.Info(Tr("Crusader Kings III is already running. Close the game first, then press Play again.")); return; }
-        if (!Platform.ProcessRunning("steam")) { await Dlg.Info(Tr("Steam needs to be running to start the game without the launcher. Start Steam, then press Play again.")); return; }
+        if (Platform.ProcessRunning("ck3")) { await Dlg.Info(Tr("Crusader Kings III is already running. Close the game first, then press Play again.")); return null; }
+        if (!Platform.ProcessRunning("steam")) { await Dlg.Info(Tr("Steam needs to be running to start the game without the launcher. Start Steam, then press Play again.")); return null; }
+        return (dir, exe);
+    }
+
+    sealed class StartResult { public string Message = ""; public int Registered, NotAdded; }
+    /// <summary>Writes the mod list for this playset and starts the game. Null when it failed (the user was told).</summary>
+    async Task<StartResult?> StartGame(Playset ps, string dir, string exe)
+    {
+        var inst = new HashSet<string>(Mods.Select(m => m.Id), StringComparer.Ordinal);
+        int registered = Steam.RegisterPendingMods(dir, ps, Info, out string regErr);
+        if (registered > 0) Log.Line($"registered {registered} Workshop mod(s) that the launcher had not set up yet");
+        if (regErr.Length > 0) Log.Line("register failed: " + regErr);
+        int notAdded = 0;
+        foreach (var m in ps.Mods)   // a Steam download that could not be written into the mod folder cannot be loaded: leave it out and say so
+            if (m.Enabled && inst.Contains(m.Id) && Info.TryGetValue(m.Id, out var mi) && mi.Pending && !Util.Exists(Path.Combine(dir, "mod", m.Id))) { inst.Remove(m.Id); notAdded++; }
+        var r = Steam.WriteGameModList(dir, ps, inst);
+        if (!r.Ok) { await Dlg!.Info(r.Message); return null; }
+        St.Launch.TryGetValue(ps.Name, out var args);
+        if (!Platform.StartProgram(exe, args ?? "", out string err)) { await Dlg!.Info(Trf("Could not start the game ({0}).", err)); return null; }
+        return new StartResult { Message = r.Message, Registered = registered, NotAdded = notAdded };
+    }
+
+    public async Task Play()
+    {
+        var ps = Active();
+        if (ps == null || Dlg == null) return;
+        var chk = await LaunchCheck();
+        if (chk == null) return;
+        var (dir, exe) = chk.Value;
         if (St.PlayCheck)
         {
             var hr = RunHealth();
@@ -622,17 +650,10 @@ public sealed partial class ModManager
             }
         }
         ps = Active()!;
-        var inst = new HashSet<string>(Mods.Select(m => m.Id), StringComparer.Ordinal);
-        int registered = Steam.RegisterPendingMods(dir, ps, Info, out string regErr);
-        if (registered > 0) Log.Line($"registered {registered} Workshop mod(s) that the launcher had not set up yet");
-        if (regErr.Length > 0) Log.Line("register failed: " + regErr);
-        int notAdded = 0;
-        foreach (var m in ps.Mods)   // a Steam download that could not be written into the mod folder cannot be loaded: leave it out and say so
-            if (m.Enabled && inst.Contains(m.Id) && Info.TryGetValue(m.Id, out var mi) && mi.Pending && !Util.Exists(Path.Combine(dir, "mod", m.Id))) { inst.Remove(m.Id); notAdded++; }
-        var r = Steam.WriteGameModList(dir, ps, inst);
-        if (!r.Ok) { await Dlg.Info(r.Message); return; }
-        St.Launch.TryGetValue(ps.Name, out var args);
-        if (!Platform.StartProgram(exe, args ?? "", out string err)) { await Dlg.Info(Trf("Could not start the game ({0}).", err)); return; }
+        var started = await StartGame(ps, dir, exe);
+        if (started == null) return;
+        int registered = started.Registered, notAdded = started.NotAdded;
+        var r = new ApplyResult { Message = started.Message };
         foreach (var k in St.Seen.Keys.ToList()) if (!Info.ContainsKey(k)) St.Seen.Remove(k);   // forget mods that are gone
         var fp = FpNow();
         foreach (var m in ps.Mods) if (m.Enabled && fp.TryGetValue(m.Id, out var f)) St.Seen[m.Id] = f;

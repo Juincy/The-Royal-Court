@@ -9,6 +9,7 @@ public sealed class ModRow
     public int NoteSev;                      // 0 none, 1 warning, 2 problem, 3 checked and fine
     public int VerState;                     // 0 unknown, 1 matches the game, 2 may be outdated
     public bool Enabled, Locked, Pending, Installed;
+    public string Id = "";
 }
 
 /// <summary>The dialogs the controller needs. The window implements them; tests use a scripted version.</summary>
@@ -341,7 +342,7 @@ public sealed partial class ModManager
     {
         var m = ps.Mods[i];
         bool inst = Info.TryGetValue(m.Id, out var mi);
-        var r = new ModRow { Idx = i, Enabled = m.Enabled, Installed = inst, Pending = inst && mi!.Pending };
+        var r = new ModRow { Idx = i, Id = m.Id, Enabled = m.Enabled, Installed = inst, Pending = inst && mi!.Pending };
         r.Num = (i + 1).ToString();
         r.Locked = St.Locks.TryGetValue(ps.Name, out var lk) && lk.Contains(m.Id);
         if (r.Locked) r.Num += " \U0001F512";

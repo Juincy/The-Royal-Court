@@ -16,6 +16,22 @@ public static class KnownConflicts
             "\"{0}\" and \"{1}\" should not be used together: Set In Stone replaces GG Terran's Statues of CK3, according to its page."),
         new(new[] { "3571438676" }, new[] { "zeitgeist situation and struggle" }, Array.Empty<string>(), new[] { "regional destiny" },
             "\"{0}\" and \"{1}\" should not be used together: the Zeitgeist page says it is not compatible with Regional Destiny."),
+        new(new[] { "3508281279" }, new[] { "bg other graphics zoom scale map lite" }, new[] { "3232842149" }, new[] { "bg other graphics zoom scale map" },
+            "\"{0}\" and \"{1}\" should not be used together: the LITE page says it is incompatible with the full Zoom Scale Map."),
+        new(new[] { "3508281279" }, new[] { "bg other graphics zoom scale map lite" }, new[] { "3369079355" }, new[] { "bg other graphics battleground commanders" },
+            "\"{0}\" and \"{1}\" should not be used together: the LITE page says it is incompatible with BG Other Graphics: Battleground Commanders."),
+        new(new[] { "3664900993" }, new[] { "agot nobility of westeros" }, new[] { "2950245430" }, new[] { "agot plus" },
+            "\"{0}\" and \"{1}\" crash together, according to the author of Seastar's AGOT Collection (September): use one or the other."),
+        new(new[] { "3768208851" }, new[] { "understated elegance in graphics agot edition" }, new[] { "3254254511" }, new[] { "agot micro" },
+            "\"{0}\" and \"{1}\" should not be used together, according to the author of Seastar's AGOT Collection (September): the collection turns AGOT Micro off when Understated Elegance is on."),
+        new(new[] { "3573203384" }, new[] { "more valyrian steel" }, Array.Empty<string>(), new[] { "agot valyrian houses" },
+            "\"{0}\" and \"{1}\" should not be used together: the More Valyrian Steel page says it is incompatible with AGOT - Valyrian Houses."),
+        new(new[] { "3522779004" }, new[] { "bloodlines legacies of agot" }, Array.Empty<string>(), new[] { "agot minor house flavour" },
+            "\"{0}\" and \"{1}\" should not be used together: the Bloodlines page says it is not compatible with AGOT: Minor House Flavour."),
+        new(new[] { "3522779004" }, new[] { "bloodlines legacies of agot" }, Array.Empty<string>(), new[] { "agot brightboar westerosi house flavor" },
+            "\"{0}\" and \"{1}\" should not be used together: the Bloodlines page says to choose one or the other."),
+        new(new[] { "3664900993" }, new[] { "agot nobility of westeros" }, Array.Empty<string>(), new[] { "legacy of valyria" },
+            "\"{0}\" and \"{1}\" should not be used together: the Nobility of Westeros page says it is currently not compatible with Legacy of Valyria."),
     };
 
     static bool Is(ModInfo m, string[] ids, string[] names)

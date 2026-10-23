@@ -30,6 +30,8 @@ internal static class Program
         else if (!created && Environment.GetEnvironmentVariable("RC_ALLOW_SECOND") != "1") return 0;
         AppDomain.CurrentDomain.UnhandledException += (_, e) => { try { Log.Line("CRASH: " + e.ExceptionObject); } catch { } };
         TaskScheduler.UnobservedTaskException += (_, e) => { try { Log.Line("task error: " + e.Exception); } catch { } e.SetObserved(); };
+        // a UI program: avoid blocking full garbage collections (they show up as stutter); the memory is small anyway
+        try { System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency; } catch { }
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

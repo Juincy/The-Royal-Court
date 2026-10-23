@@ -965,11 +965,11 @@
   {
    "id": "2218867072",
    "title": "Advanced Cheat Menu",
-   "status": "title-only",
+   "status": "blocked",
    "found": "",
-   "note": "page returned no title or text (removed or hidden); still unread",
-   "source": "Workshop (comments/changelog page)",
-   "date": "2026-10-17",
+   "note": "Steam error page (item may be removed); retry later",
+   "source": "Workshop page",
+   "date": "2026-10-23",
    "inDatabase": true
   },
   {
@@ -3436,81 +3436,1581 @@
    "id": "3548614933",
    "title": "Court Alchemist",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no order stated",
+   "date": "2026-10-22",
+   "source": "Workshop page"
   },
   {
    "id": "3811095156",
    "title": "AGOT - Army Dragon Counter",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no order stated; compatibility with dragon mods unconfirmed",
+   "date": "2026-10-22",
+   "source": "Workshop page"
   },
   {
    "id": "3771351073",
    "title": "MTS for AGoT - Ancient Birthright Patch",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "MTS for AGoT Ancient Birthright Patch: AGOT, Legacy of Valyria, LoV AGOT compatch, Ancient Birthright, More Tenet Slots for AGOT, then this patch",
+   "date": "2026-10-22",
+   "source": "Workshop page"
   },
   {
    "id": "3771234229",
    "title": "AGOT Aelyrion Dynasty Mod",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "order",
+   "note": "AGOT Aelyrion Dynasty: after AGOT, AGOT More Dragon Eggs, Armies of Westeros, Nobility of Westeros and their compatches; author: load it last",
+   "date": "2026-10-22",
+   "source": "Workshop page"
   },
   {
    "id": "3743237914",
    "title": "Forbidden Lineage",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "no order stated",
+   "date": "2026-10-22",
+   "source": "Workshop page"
   },
   {
    "id": "3367377674",
    "title": "[1.20]Interactive Commanders",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "does not overwrite vanilla; no order",
+   "date": "2026-10-22",
+   "source": "Workshop page"
   },
   {
    "id": "3479895415",
    "title": "Balada de Sangre y Esquirlas",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "status": "read",
+   "found": "none",
+   "note": "standalone, works with or without AGOT; no order",
+   "date": "2026-10-22",
+   "source": "Workshop page"
   },
   {
    "id": "3716251917",
    "title": "Commander+ 1.20",
    "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Commander+ 1.20: intended order AGOT, Commander+ 1.20, Commander+ AGOT patch (patch not yet updated for 1.20); do not mix with older versions",
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3811591240",
+   "title": "Adoption Options - AGOT BETA",
+   "status": "read",
+   "found": "order",
+   "note": "After AGOT and Adoption Options (page): added",
+   "inDatabase": true,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3776198575",
+   "title": "Ck3 Archipelago randomization",
+   "status": "read",
+   "found": "order",
+   "note": "Very bottom of load order (page): added",
+   "inDatabase": true,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3617758035",
+   "title": "All Realms Keep Internal Borders on Succession",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3598298601",
+   "title": "Faster Maturity",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated (AGOT compatch exists)",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3372943430",
+   "title": "Immersive Succession",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3425938217",
+   "title": "CK3 - Council Experience ( TFE, PoD, AtE )",
+   "status": "read",
+   "found": "none",
+   "note": "Says below the TC mods: already how we sort; no specific order",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3340494852",
+   "title": "Grant Cadet Branch",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3326085679",
+   "title": "For the Peace of the Realm",
+   "status": "read",
+   "found": "none",
+   "note": "Only a vague near-the-bottom hint if it conflicts; not applied",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3765958897",
+   "title": "Dragons Alive",
+   "status": "read",
+   "found": "none",
+   "note": "Dragons Alive: read the first part; no order seen",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3508281279",
+   "title": "BG Other Graphics: Zoom Scale Map LITE",
+   "status": "read",
+   "found": "conflict",
+   "note": "Any position; incompatible with ZSM and BG Battleground Commanders: added as known conflict",
+   "inDatabase": true,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3369079355",
+   "title": "BG Other Graphics: Battleground Commanders",
+   "status": "read",
+   "found": "order",
+   "note": "After Battle Graphics, Zoom Scale Map, Battleground Commanders: added",
+   "inDatabase": true,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3232842149",
+   "title": "BG Other Graphics: Zoom Scale Map",
+   "status": "read",
+   "found": "order",
+   "note": "After Battle Graphics (page examples): added",
+   "inDatabase": true,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3805537540",
+   "title": "Founder's Seats - Vanilla",
+   "status": "read",
+   "found": "none",
+   "note": "Founder's Seats Vanilla: no order",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3806109976",
+   "title": "LotR: Founder's Seats",
+   "status": "read",
+   "found": "order",
+   "note": "Founder's Seats LotR: below Realms in Exile; added",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2240104972",
+   "title": "Extra More Building Slots(16 slots)",
+   "status": "read",
+   "found": "order",
+   "note": "After Realms in Exile (page): added",
+   "inDatabase": true,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3796928749",
+   "title": "AGOT Canon Wars",
+   "status": "read",
+   "found": "none",
+   "note": "Canon Wars: only says recommended high; not applied",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800270049",
+   "title": "Ultrawide Fog Tint Fix",
+   "status": "read",
+   "found": "none",
+   "note": "Ultrawide Fog Tint Fix: no order in first part",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800395737",
+   "title": "Smooth Zoom Transitions",
+   "status": "read",
+   "found": "none",
+   "note": "Smooth Zoom: no order in first part",
+   "inDatabase": false,
+   "date": "2026-10-22",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2882431747",
+   "title": "The Witcher's Realms",
+   "status": "read",
+   "found": "order",
+   "note": "Total conversion: loads first, AGOT stays first",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3337903092",
+   "title": "Offical COW:AGOT - Legacy of Valyria Compatch",
+   "status": "read",
+   "found": "order",
+   "note": "Legacy of Valyria compatch: load order added",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3475614211",
+   "title": "Architect of Holdings: Mini Holding Manager",
+   "status": "read",
+   "found": "none",
+   "note": "Architect of Holdings: no order; conflicts with other county-UI mods only",
+   "inDatabase": false,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3376598776",
+   "title": "Battle for Agatharia",
+   "status": "read",
+   "found": "order",
+   "note": "Total conversion: loads first, AGOT stays first",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3173823584",
+   "title": "Immersive Negative Trait Removal",
+   "status": "read",
+   "found": "none",
+   "note": "Immersive Negative Trait Removal: touches no base files, no order",
+   "inDatabase": false,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3339038543",
+   "title": "Veritas - Lifestyle Perks Overhaul",
+   "status": "read",
+   "found": "none",
+   "note": "Veritas: partial read, no order",
+   "inDatabase": false,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2478202444",
+   "title": "Ruler Designer Unlocked",
+   "status": "read",
+   "found": "order",
+   "note": "Ruler Designer Unlocked: order added",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3477963134",
+   "title": "ATE Southern Land Release",
+   "status": "read",
+   "found": "order",
+   "note": "Total conversion: loads first, AGOT stays first",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3503817265",
+   "title": "Norse Coat of Arms",
+   "status": "read",
+   "found": "none",
+   "note": "Norse Coat of Arms: compatible with everything, no order",
+   "inDatabase": false,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3771827282",
+   "title": "The Winter King",
+   "status": "read",
+   "found": "order",
+   "note": "Total conversion: loads first, AGOT stays first",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3679787783",
+   "title": "[1.19] New Era Old World",
+   "status": "read",
+   "found": "order",
+   "note": "Total conversion: loads first, AGOT stays first",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3659558162",
+   "title": "Age of Heroes",
+   "status": "read",
+   "found": "none",
+   "note": "Age of Heroes: conditional order, not applied",
+   "inDatabase": false,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2882223898",
+   "title": "Smaller World Map",
+   "status": "read",
+   "found": "order",
+   "note": "Smaller World Map: order added",
+   "inDatabase": true,
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800108169",
+   "title": "Dominant Genes - Russian",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Dominant Genes Russian translation: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3757312162",
+   "title": "[AGOT] Reduced Eugenics",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Reduced Eugenics: no order (meant for use with Mayham)",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3808463175",
+   "title": "AGOT Regnal Numbers & Lifespans",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Regnal Numbers & Lifespans: place last; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3796509304",
+   "title": "AGOT El Esplendor del Feudo Franco",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "El Esplendor del Feudo Franco: alpha Valyria campaign (Spanish); first part read, no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3807879576",
+   "title": "AGOT Dance of the Dragons Bookmark",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Dance of the Dragons Bookmark: after AGOT, Submod Core, AGOT+; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3792024939",
+   "title": "Gasing Tools",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Gasing Tools: standalone modding tool page, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3672960144",
+   "title": "AGOT Crowns of Westeros German Translation",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "German translation: after AGOT Crowns of Westeros; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3772842052",
+   "title": "AGOT Additional Models and Special Buildings German",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "German translation: after AGOT Additional Models and Special Buildings; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3806358277",
+   "title": "CoA Warehouse by Hades & Fred",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "CoA Warehouse: emblems only, compatible with most AGOT submods, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3792698340",
+   "title": "AGOT A Living Westeros",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "A Living Westeros: first 2600 chars read, no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3807365739",
+   "title": "More Personality Traits",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "More Personality Traits: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2965154314",
+   "title": "AGOT Chinese localization collection",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "Chinese AGOT localisation collection; not read",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3731651990",
+   "title": "AGOT Samiellius Turkish",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "AGOT Turkish translation: first part read, no order; warns to disable Strategyturk translation",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3773563237",
+   "title": "FR-AGOT Fire and Blood",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "FR-AGOT Fire and Blood French translation: first part read, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3463729959",
+   "title": "A Game of Thrones en Espanol",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "AGOT Spanish translation: needs AGOT enabled; no explicit order read",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3715402249",
+   "title": "Grand Remembrance Russian",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Grand Remembrance Russian: includes AGOT/EK2 texts; no order read",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2971117695",
+   "title": "Armies of Westeros Spanish",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Armies of Westeros Spanish: no order read",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3756248103",
+   "title": "After the End JP localization",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "After the End JP localization: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3803393932",
+   "title": "Knights and Squires [Early Release]",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Knights and Squires: vanilla knighthood mod, no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3767330440",
+   "title": "Leo VI's Mass Vassal Directives (AGOT)",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Leo VI Mass Vassal Directives AGOT: after AGOT; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3804313719",
+   "title": "Pyrates AGOT Compatibility",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Pyrates AGOT Compatibility: AGOT, Pyrates, this; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3786572131",
+   "title": "AGOT: Diverse Spouse Mod",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "AGOT Diverse Spouse Mod: no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3794662001",
+   "title": "Dragons Alive - LOTR Compatch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Dragons Alive LOTR Compatch: after Dragons Alive and Realms in Exile, last; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800957484",
+   "title": "AGOT Vanilla Courts",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT Vanilla Courts: below AGOT; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3801630101",
+   "title": "AGOT - MDE + LoV Updated Compatch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "MDE + LoV compatch: below More Dragon Eggs (author comment); added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3802031384",
+   "title": "AGOT - Invitations Filter",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Invitations Filter: after AGOT; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3798011803",
+   "title": "AGOT - Burn your Enemies Capital (Dragons)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Burn your Enemies Capital: requires AGOT, brand-new files, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3788144219",
+   "title": "Gravedigger",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Gravedigger: companion to Kiss of Life, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3798025076",
+   "title": "AGOT: Faster Maturity Reuploaded Compatch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Faster Maturity AGOT compatch: AGOT, FMR, this; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3788948322",
+   "title": "AGOT - Battlefield Duel + Dynamic Family Portrait Compatch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Battlefield Duel+ Dynamic Family Portrait compatch; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3789556721",
+   "title": "AGOT - Battlefield Duel + - More Dragon Eggs Compatch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Battlefield Duel+ More Dragon Eggs compatch; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3445965581",
+   "title": "AGOT expanded - Death and birth",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "AGOT expanded Death and birth: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3716287038",
+   "title": "Pear's New Men-at-Arms Traditions",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Pear's New MAA Traditions: no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3770136858",
+   "title": "Tales of Westeros",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Tales of Westeros: no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3799359707",
+   "title": "AGOT: Magic of Westeros",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "AGOT Magic of Westeros: first part read, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3788162323",
+   "title": "House Reviver",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "House Reviver: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3786911369",
+   "title": "AGOT After-Start Customizer Suite",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "AGOT After-Start Customizer Suite: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3446353510",
+   "title": "AGOT - Secrets of the Higher Mysteries",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Secrets of the Higher Mysteries: 'load low in your mod list' (UI edit), too vague to apply",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3796498934",
+   "title": "Milites Regis",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Milites Regis: no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3774904401",
+   "title": "AGOT Dragonpit Levels",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Dragonpit Levels: after AGOT; added (MDE compatch goes after both)",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3266989016",
+   "title": "COW-AGOT Submod: Holding Art Expansion Updated",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "COW-AGOT Holding Art Expansion Updated: needs Valaddar's mod; no explicit order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3771217032",
+   "title": "[RETIRED] Ancient Birthright + Landmarks of Westeros Compatch (No COW)",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "retired, skipped",
+   "date": "2026-10-23",
+   "source": "AGOT search p12"
+  },
+  {
+   "id": "3769429758",
+   "title": "[RETIRED] Ancient Birthright + Landmarks of Westeros Compatch",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "retired, skipped",
+   "date": "2026-10-23",
+   "source": "AGOT search p12"
+  },
+  {
+   "id": "3778473787",
+   "title": "[RETIRED] COW-AGOT 3D Models - TempLoV Compatch",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "retired, skipped",
+   "date": "2026-10-23",
+   "source": "AGOT search p12"
+  },
+  {
+   "id": "3776084574",
+   "title": "[RETIRED] Seasons of Valyria - TempLoV/EE Seasons Compatch",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "retired, skipped",
+   "date": "2026-10-23",
+   "source": "AGOT search p12"
+  },
+  {
+   "id": "3766107346",
+   "title": "[RETIRED] Divine Intervention Ancient Birthright - LoV Temporary Cheat Menu",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "retired, skipped",
+   "date": "2026-10-23",
+   "source": "AGOT search p12"
+  },
+  {
+   "id": "3258378317",
+   "title": "Agot Alessian Dynasty",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Agot Alessian Dynasty: no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3795253056",
+   "title": "DragonAItweaks",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "DragonAItweaks: anywhere after AGOT; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2962803371",
+   "title": "A Game of Thrones Russian",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "retired, skipped",
+   "date": "2026-10-23",
+   "source": "AGOT search p12"
+  },
+  {
+   "id": "3672635655",
+   "title": "[AGOT] Slower Fights",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Slower Fights: AGOT then this; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3352171144",
+   "title": "[AGOT] Mayham",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Mayham: AGOT then this; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3321339396",
+   "title": "[AGOT][IMHO] Compatch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "IMHO compatch: IMHO, AGOT, this; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3325733330",
+   "title": "AGOT Compatch Bundle",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Compatch Bundle: after AGOT (Anime Core Lib above patch); added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3661682352",
+   "title": "AGOT Sub Mod Korean",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "AGOT search p13"
+  },
+  {
+   "id": "3508269730",
+   "title": "AGOT - Treasure hunt contract extra destinations",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Treasure hunt extra destinations: no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3664962140",
+   "title": "AGOT: Canon Children EZ Mode",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Canon Children EZ Mode: no order seen",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3690974801",
+   "title": "AGOT: House of the Dragon Dragonpit",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "HotD Dragonpit: below Additional Models; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3677879923",
+   "title": "AGOT: Regnal Numbering for Empire Titles",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Regnal Numbering for Empire Titles: single defines line, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3581161352",
+   "title": "AGOT - New Dragon Horns Only",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "New Dragon Horns Only: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3794149181",
+   "title": "AGOT Aggressive AI - Claim Acquisition",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Aggressive AI Claim Acquisition: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3298801239",
+   "title": "EK2 Alessian Dynasty",
+   "inDatabase": false,
    "status": "unread",
    "found": "",
-   "note": "from the AGOT search sorted by last updated (pages 1-4, 120 items); not read yet",
-   "date": "2026-10-17",
-   "source": "Workshop page (AGOT search, last updated)"
+   "note": "",
+   "date": "2026-10-23",
+   "source": "AGOT search p14"
+  },
+  {
+   "id": "3446329162",
+   "title": "LC13 CoA",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "AGOT search p14"
+  },
+  {
+   "id": "3274041798",
+   "title": "AGOT: King at the Wall",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "King at the Wall: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3786931632",
+   "title": "AGOT Patch Architecture Expanded",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Patch Architecture Expanded: AGOT, Architecture Expanded, this; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3783514987",
+   "title": "CK3 Architecture Expanded",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "CK3 Architecture Expanded: compatible with any mod, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3673468355",
+   "title": "AGOT: The Knighting Ceremony",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Knighting Ceremony: first part read, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3769230891",
+   "title": "AGOT: Fire Made Flesh",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "AGOT search p14"
+  },
+  {
+   "id": "3621472324",
+   "title": "AGOT Great Councils",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "AGOT search p14"
+  },
+  {
+   "id": "3412222811",
+   "title": "The Golden Company",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Golden Company: load order is an image; already a Submod Core sub (after AGOT Submod Core)",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3462342647",
+   "title": "Mari's AGOT Makeovers",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Mari's Makeovers: below AGOT and AGOT+; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3324579171",
+   "title": "AGOT - Suggest Dragon Bonding",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Suggest Dragon Bonding: 'generally put low', too vague",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3573203384",
+   "title": "More Valyrian Steel",
+   "inDatabase": false,
+   "status": "read",
+   "found": "note",
+   "note": "More Valyrian Steel: page says incompatible with AGOT - Valyrian Houses; conflict added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3319167091",
+   "title": "AGOT - Council Experience",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Council Experience: lite, compatible with listed AGOT submods; no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3586934156",
+   "title": "AGOT - Unbound",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "AGOT Unbound: no order in description",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3637024006",
+   "title": "AGOT - House Modifiers",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "House Modifiers: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3305687550",
+   "title": "[LOT] Legitimacy Over Time",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Legitimacy Over Time: compatible with all, no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3437814875",
+   "title": "Faster Transitions",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Faster Transitions: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2869221069",
+   "title": "Designate Heir - freely",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Designate Heir freely: place after other designate-heir mods; no fixed pair",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3522779004",
+   "title": "Bloodlines: Legacies of AGOT",
+   "inDatabase": false,
+   "status": "read",
+   "found": "note",
+   "note": "Bloodlines Legacies of AGOT: NOT compatible with AGOT Minor House Flavour and Brightboar Westerosi House Flavor; conflicts added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2967263410",
+   "title": "AGOT: House Founders",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "House Founders: load after AGOT",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3059021049",
+   "title": "AGOT: More Actions",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "More Actions: after AGOT; last among the author's own submods",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3713902872",
+   "title": "Succession Crisis",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Succession Crisis: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3587967020",
+   "title": "Additional Models / AGOT+ Compatch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Additional Models / AGOT+ Compatch: Submod Core, AGOT+, Additional Models, this",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3377641022",
+   "title": "AGOT : Seasons of Ice and Fire",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "Seasons of Ice and Fire: at the bottom or as close as possible; added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3036454680",
+   "title": "Faster Activities",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "Faster Activities: no order",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3664900993",
+   "title": "AGOT Nobility of Westeros",
+   "inDatabase": false,
+   "status": "read",
+   "found": "note",
+   "note": "Nobility of Westeros: not compatible with Legacy of Valyria; load order is an image; conflict added",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3609763696",
+   "title": "Dynamyc Family Portrait (AGOT)",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "DFP (AGOT): AGOT, More Dragon Eggs (optional), Dynamic Family Portrait, this",
+   "date": "2026-10-23",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3425828418",
+   "title": "Better Population Control",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3697008412",
+   "title": "Landmarks of Westeros & COW-AGOT Compatch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3692879370",
+   "title": "AGOT - Landmarks of Westeros",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3541693392",
+   "title": "AGOT Citadel University",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3496313878",
+   "title": "[AGOT] Knights & Banners",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3457401824",
+   "title": "Oathbound",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3329680499",
+   "title": "AGOT - Dragonpit For Dukes",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3371609961",
+   "title": "BG Other Graphics: BC AGOT Compatibility Patch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3415188429",
+   "title": "Battle Events - AGOT Compatibility Patch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3287741117",
+   "title": "Battle Events",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3254254511",
+   "title": "AGOT Micro",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3328141802",
+   "title": "Armies of Westeros REMASTERED (big update soon)",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3571431456",
+   "title": "The Red Keep",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3662281614",
+   "title": "The Red Keep (Hegemony Updates)",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3692949151",
+   "title": "[AGOT] Knights & Banners (AoW)",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3700835663",
+   "title": "AGOT Courts of Westeros",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3439278803",
+   "title": "Gift More GOLD",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3422767115",
+   "title": "AGOT Music++",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3541596590",
+   "title": "AGOT Dragon Wives",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3676293022",
+   "title": "Expanded Court Position - Search and Recruit",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3409168338",
+   "title": "AGOT+ - Purple Eyes Restoration",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3459771174",
+   "title": "AGOT Clothes Adjustment",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3765282284",
+   "title": "AGOT: Fire and Blood",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3778473717",
+   "title": "AGOT Fire and Blood - NOW Compatch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3753608966",
+   "title": "AGOT NOW-Season of Ice and Fire Compatch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3013743552",
+   "title": "AGOT - Holdings Art",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3742055253",
+   "title": "COW-AGOT: Nobility of Westeros Compatch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3371173142",
+   "title": "BG Other Graphics: ZSM AGOT Compatibility Patch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3712620554",
+   "title": "LoW & Additonal Models and Special Buildings Compatch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3768208851",
+   "title": "Understated Elegance In Graphics (AGOT Edition)",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3780269495",
+   "title": "AGOT: The Long Night & Azor Ahai",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
+  },
+  {
+   "id": "3766971799",
+   "title": "AGOT Seasons + Bookmarked + Fire and Blood Compatch",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "",
+   "date": "2026-10-23",
+   "source": "Seastar's AGOT Collection 3608639287"
   }
  ]
 }

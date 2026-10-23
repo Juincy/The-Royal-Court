@@ -218,14 +218,121 @@ public class SortTests
     }
 
     [Fact]
+    public void WorkshopBatchNamesMatch()
+    {
+        var db = Known.Builtin();
+        foreach (var (id, name) in new[] { ("ugc_3716251917.mod", "Commander+ 1.20"), ("ugc_3771234229.mod", "AGOT Aelyrion Dynasty Mod"), ("ugc_3771351073.mod", "MTS for AGoT - Ancient Birthright Patch"), ("ugc_3811591240.mod", "Adoption Options - AGOT BETA"), ("ugc_3776198575.mod", "Ck3 Archipelago randomization"), ("ugc_3232842149.mod", "BG Other Graphics: Zoom Scale Map"), ("ugc_3369079355.mod", "BG Other Graphics: Battleground Commanders"), ("ugc_2240104972.mod", "Extra More Building Slots(16 slots)"), ("ugc_2882431747.mod", "The Witcher's Realms"), ("ugc_3771827282.mod", "The Winter King"), ("ugc_3679787783.mod", "[1.19] New Era Old World"), ("ugc_3477963134.mod", "ATE Southern Land Release"), ("ugc_3376598776.mod", "Battle for Agatharia"), ("ugc_3337903092.mod", "Offical COW:AGOT - Legacy of Valyria Compatch"), ("ugc_2478202444.mod", "Ruler Designer Unlocked"), ("ugc_2882223898.mod", "Smaller World Map") })
+            Assert.True(Known.Find(db, H.Mk(id, name)) >= 0, name);
+    }
+
+    static int Run(BisectSession b, Func<IReadOnlyList<int>, bool> broken)
+    {
+        int rounds = 0;
+        while (!b.Done) { b.Report(broken(b.Off)); Assert.True(++rounds <= 20); }
+        return rounds;
+    }
+
+    [Fact]
     public void BisectFindsCulprit()
     {
         for (int culprit = 0; culprit < 13; culprit++)
         {
-            var b = new Bisect(Enumerable.Range(0, 13)); int rounds = 0;
-            while (!b.Done) { b.Report(!b.Off.Contains(culprit)); Assert.True(++rounds <= 4); }
+            var b = new BisectSession(13, _ => 1);
+            int rounds = Run(b, off => !off.Contains(culprit));
+            Assert.Equal(culprit, b.Culprit);
+            Assert.True(rounds <= 6, "rounds " + rounds);   // all-off check, 4 halvings, confirmation
+        }
+    }
+
+    [Fact]
+    public void BisectTriesHeavySuspectFirst()
+    {
+        var b = new BisectSession(40, i => i == 17 ? 100 : 1);
+        b.Report(false);                                  // the all-off check: fixed
+        Assert.Equal(new[] { 17 }, b.Group);              // the very suspicious mod is tested alone
+        Assert.Equal(17, ((IReadOnlyList<int>)b.Off)[0]);
+        b.Report(false);                                  // fixed with it off
+        Assert.Equal(BisectPhase.Confirming, b.Phase);
+        b.Report(false);
+        Assert.Equal(17, b.Culprit); Assert.Equal(3, b.Rounds);
+        var c = new BisectSession(40, i => i == 17 ? 100 : 1);   // a wrong guess still finishes
+        Run(c, off => !off.Contains(30));
+        Assert.Equal(30, c.Culprit);
+    }
+
+    [Fact]
+    public void BisectKeepsDependenciesTogether()
+    {
+        var deps = new Dictionary<int, int[]> { [1] = new[] { 0 }, [2] = new[] { 1 }, [5] = new[] { 4 } };
+        IEnumerable<int> D(int i) => deps.TryGetValue(i, out var d) ? d : Array.Empty<int>();
+        for (int culprit = 0; culprit < 8; culprit++)
+        {
+            var b = new BisectSession(8, _ => 1, D);
+            while (!b.Done)
+            {
+                var off = new HashSet<int>(b.Off);
+                foreach (var kv in deps) if (!off.Contains(kv.Key)) foreach (var d in kv.Value) Assert.False(off.Contains(d), $"{d} is off while {kv.Key} is on");
+                b.Report(!off.Contains(culprit));
+            }
             Assert.Equal(culprit, b.Culprit);
         }
+    }
+
+    [Fact]
+    public void BisectIsFastOnBigLists()
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var b = new BisectSession(1200, i => 1 + i % 7, i => i % 5 == 0 && i > 10 ? new[] { i - 10, i - 5 } : Array.Empty<int>());
+        Run(b, off => !off.Contains(777));
+        Assert.True(b.Culprit == 777);
+        Assert.True(sw.ElapsedMilliseconds < 5000, sw.ElapsedMilliseconds + " ms");
+    }
+
+    [Fact]
+    public void BisectFuzz()
+    {
+        var rnd = new Random(12345);
+        for (int round = 0; round < 400; round++)
+        {
+            int n = rnd.Next(2, 60);
+            var deps = new Dictionary<int, int[]>();
+            for (int i = 1; i < n; i++) if (rnd.Next(4) == 0) deps[i] = Enumerable.Range(0, rnd.Next(1, 3)).Select(_ => rnd.Next(0, i)).Distinct().ToArray();
+            var keep = Enumerable.Range(0, n).Where(_ => rnd.Next(10) == 0).ToList();
+            var w = Enumerable.Range(0, n).Select(_ => rnd.NextDouble() * 5 + 0.1).ToArray();
+            var b = new BisectSession(n, i => w[i], i => deps.TryGetValue(i, out var d) ? d : Array.Empty<int>(), keep);
+            var cand = Enumerable.Range(0, n).Where(i => !b.Locked.Contains(i)).ToList();
+            if (cand.Count == 0) { Assert.True(b.Done); continue; }
+            int culprit = cand[rnd.Next(cand.Count)];
+            int steps = 0;
+            while (!b.Done)
+            {
+                var off = new HashSet<int>(b.Off);
+                foreach (var k in b.Locked) Assert.DoesNotContain(k, off);                                                 // kept mods and what they need stay on
+                foreach (var kv in deps) if (!off.Contains(kv.Key)) foreach (var d in kv.Value) Assert.DoesNotContain(d, off);   // nothing off under a mod that is on
+                // the problem is gone when the culprit, or something it needs, is off
+                bool gone = off.Contains(culprit);
+                b.Report(!gone);
+                Assert.True(++steps < 4 * Math.Log2(n) + 12, "too many steps " + steps + " of " + n);
+            }
+            Assert.Equal(BisectPhase.Found, b.Phase);
+            // the answer is the culprit, or a mod it needs (turning that off also turns the culprit off)
+            var found = b.Culprit!.Value;
+            var needs = new HashSet<int> { culprit }; bool grew = true;
+            while (grew) { grew = false; foreach (var x in needs.ToList()) if (deps.TryGetValue(x, out var d)) foreach (var y in d) if (needs.Add(y)) grew = true; }
+            Assert.Contains(found, needs);
+        }
+    }
+
+    [Fact]
+    public void BisectKeepOnMultipleCulpritsAndNotMods()
+    {
+        var b = new BisectSession(10, _ => 1, null, new[] { 3 });
+        Assert.DoesNotContain(3, b.Remaining);
+        while (!b.Done) { Assert.DoesNotContain(3, b.Off); b.Report(!(b.Off.Contains(2) && b.Off.Contains(7))); }   // only turning off both fixes it
+        Assert.Contains(2, b.AllCulprits); Assert.Contains(7, b.AllCulprits); Assert.Equal(2, b.AllCulprits.Count);
+        var nm = new BisectSession(10, _ => 1); nm.Report(true);
+        Assert.True(nm.Done && nm.NotMods && nm.Culprit == null);
+        var u = new BisectSession(6, _ => 1); u.Report(false); int g = u.Group.Count; u.Report(true); Assert.True(u.CanUndo); u.Undo(); Assert.Equal(g, u.Group.Count);
     }
 
     [Fact]
@@ -240,6 +347,29 @@ public class SortTests
         Assert.True(r.Items.Count(i => i.Text.Contains("should not be used together")) == 2);
         p.Mods[1].Enabled = false; p.Mods[3].Enabled = false;
         Assert.Empty(KnownConflicts.Find(p, inf));
+    }
+
+    [Fact]
+    public void TotalConversionsAndBottomMods()
+    {
+        var all = new List<ModInfo> { H.Mk("ugc_2478202444.mod", "Ruler Designer Unlocked"), H.Mk("ugc_3554844335.mod", "Rise and Fall"), H.Mk("x1.mod", "Some Content"), H.Mk("ugc_2882431747.mod", "The Witcher's Realms"),
+                                     H.Mk("ugc_2962333032.mod", "A Game of Thrones"), H.Mk("ugc_3771827282.mod", "The Winter King"), H.Mk("ugc_2882223898.mod", "Smaller World Map"), H.Mk("ugc_2291024373.mod", "LOTR: Realms in Exile") };
+        for (int rot = 0; rot < all.Count; rot++)    // every starting order: AGOT first, Rise and Fall last, content after the conversions
+        {
+            var ms = all.Skip(rot).Concat(all.Take(rot)).ToList();
+            var inf = Playsets.InfoMap(ms); var ps = H.PS("t", ms);
+            var ids = H.Ids(H.Plan(ps, inf, null, null, H.Db), ps);
+            Assert.True(ids[0] == "ugc_2962333032.mod", string.Join(",", ids));
+            Assert.Equal("ugc_3554844335.mod", ids[^1]);
+            Assert.True(ids.IndexOf("x1.mod") > ids.IndexOf("ugc_2882431747.mod") && ids.IndexOf("x1.mod") > ids.IndexOf("ugc_2291024373.mod"));
+        }
+    }
+
+    [Fact]
+    public void ZoomScaleLiteConflicts()
+    {
+        var ms = new List<ModInfo> { H.Mk("ugc_3508281279.mod", "BG Other Graphics: Zoom Scale Map LITE"), H.Mk("ugc_3232842149.mod", "BG Other Graphics: Zoom Scale Map"), H.Mk("ugc_3369079355.mod", "BG Other Graphics: Battleground Commanders") };
+        Assert.Equal(2, KnownConflicts.Find(H.PS("z", ms), Playsets.InfoMap(ms)).Count);
     }
 
     [Fact]

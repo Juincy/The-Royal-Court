@@ -248,6 +248,13 @@ public sealed partial class ModManager
         await Dlg.ShowText(Tr("Compatch finder - The Royal Court"), Known.CompatText(Known.FindCompatches(ps, Info), ps.Name));
     }
 
+    /// <summary>The mod's own picture: thumbnail.png in its folder ("" when unknown or in an archive). Nothing is downloaded.</summary>
+    public string ThumbPath(string id) => Info.TryGetValue(id, out var mi) && mi.ContentState == 1 && mi.ContentDir.Length > 0 ? Path.Combine(mi.ContentDir, "thumbnail.png") : "";
+    public void TogglePictures()
+    {
+        St.Pictures = !St.Pictures; SaveSettingsNow();
+        Say(St.Pictures ? Tr("Mod pictures are shown in the list.") : Tr("Mod pictures are hidden."));
+    }
     public void TogglePlayCheck()
     {
         St.PlayCheck = !St.PlayCheck; SaveSettingsNow();
