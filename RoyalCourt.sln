@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AAC89F6F-64CD-4AAB-8012-8F2A9AA560EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoyalCourt.Core", "src\RoyalCourt.Core\RoyalCourt.Core.csproj", "{75F2F70B-F032-4C06-84C8-E745D79EA349}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoyalCourt.App", "src\RoyalCourt.App\RoyalCourt.App.csproj", "{9548A77F-36D8-42FF-88EC-37421E12D98F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{92C8906E-791E-445B-83BF-BADD266CF152}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoyalCourt.Tests", "tests\RoyalCourt.Tests\RoyalCourt.Tests.csproj", "{FDC4A4F4-5BD6-4AFA-9267-9DD88AC6B006}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoyalCourt.Oracle", "tests\RoyalCourt.Oracle\RoyalCourt.Oracle.csproj", "{D294E8EB-861E-4A3D-87E7-6DC169537476}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{75F2F70B-F032-4C06-84C8-E745D79EA349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75F2F70B-F032-4C06-84C8-E745D79EA349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75F2F70B-F032-4C06-84C8-E745D79EA349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75F2F70B-F032-4C06-84C8-E745D79EA349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9548A77F-36D8-42FF-88EC-37421E12D98F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9548A77F-36D8-42FF-88EC-37421E12D98F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9548A77F-36D8-42FF-88EC-37421E12D98F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9548A77F-36D8-42FF-88EC-37421E12D98F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDC4A4F4-5BD6-4AFA-9267-9DD88AC6B006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDC4A4F4-5BD6-4AFA-9267-9DD88AC6B006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDC4A4F4-5BD6-4AFA-9267-9DD88AC6B006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDC4A4F4-5BD6-4AFA-9267-9DD88AC6B006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D294E8EB-861E-4A3D-87E7-6DC169537476}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D294E8EB-861E-4A3D-87E7-6DC169537476}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D294E8EB-861E-4A3D-87E7-6DC169537476}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D294E8EB-861E-4A3D-87E7-6DC169537476}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{75F2F70B-F032-4C06-84C8-E745D79EA349} = {AAC89F6F-64CD-4AAB-8012-8F2A9AA560EF}
+		{9548A77F-36D8-42FF-88EC-37421E12D98F} = {AAC89F6F-64CD-4AAB-8012-8F2A9AA560EF}
+		{FDC4A4F4-5BD6-4AFA-9267-9DD88AC6B006} = {92C8906E-791E-445B-83BF-BADD266CF152}
+		{D294E8EB-861E-4A3D-87E7-6DC169537476} = {92C8906E-791E-445B-83BF-BADD266CF152}
+	EndGlobalSection
+EndGlobal

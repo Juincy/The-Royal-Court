@@ -3,8 +3,19 @@
 Every change to the mod manager is logged here, newest first, starting 2026-10-06.
 This file ships inside the EXE (Changelog button) and in the zip.
 
-## [Unreleased]
-- Nothing yet.
+## [0.22.0] - 2026-10-22
+- Port: the whole manager rewritten in C# (.NET 10, Avalonia) with the same look, themes, tour, conflicts, reports and Auto Sort. Not released; being tested on Windows.
+- Port: runs on .NET 10 (long-term support until 2028; .NET 8 ends support in November 2026). The release is one self-contained exe, so nothing needs installing; the Updates button keeps downloading and verifying that same TheRoyalCourt.exe.
+- Health check: warns when two enabled mods say on their own Workshop pages that they must not be used together (Barbershop For All Characters and its AGOT version; Set In Stone and GG Terran's Statues of CK3). A very large conflict list now gets a note.
+- Bisect helper logic (halving the enabled mods to find the one behind a crash) added to the core with tests; the window for it is not built yet.
+- Audit: 300,000-iteration parser fuzz clean; 51 tests pass; speed on 400 and 1,200 synthetic mods is in the same range as the C++ version (see PORT_STATUS.md); Windows-only code (folder delete, single copy, Recycle Bin) read through, no changes needed.
+- **Nine more load orders** from the Workshop (Simple Graphic Pack (typed as Graphics only: its above-AGOT advice clashes with AGOT staying first); CK3 Expanded compatch; Immersive Realm Laws; SIS Legacy Poses; Legend of the Sacred Spring; AGOT: DireWolves; Holding Art by CaFka; Battle Graphics AGOT Compatibility Patch; AGOT: Royal Guards), one more compatch, and a "not compatible" warning for Zeitgeist and Regional Destiny. Workshop ledger: 19 more pages read; Steam blocked at the 20th.
+- The filter box is a little narrower so the 'N of M enabled' text fits.
+
+## [0.21.4] - 2026-10-22
+### Added
+- **One more load order** from the Workshop's AGOT search: the Duel Overlay compatch for AGOT Battlefield Duel + (after A Game of Thrones, Battlefield Duel + and Duel Overlay). The compatch finder also knows it and the Elf Destiny Lite V2 AGOT compatch.
+- Workshop ledger: 20 more pages read. Any New Traditions says to put it at the very bottom only as one optional fix for building conflicts, so it is not a rule.
 
 ## [0.21.3] - 2026-10-21
 ### Added

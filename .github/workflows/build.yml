@@ -1,11 +1,11 @@
 name: Build
 
-# Every push and pull request: run the tests and build the exe (download it from the run's "Artifacts").
-# Pushing a tag like v0.14.1, or pressing "Run workflow" on the Actions tab: also creates a DRAFT release (tag v<VERSION from src/core.hpp)
-# with TheRoyalCourt.exe, SHA256SUMS.txt and the release zip attached. You then open the draft on GitHub, check the notes, and press Publish.
+# Every push and pull request: run the tests and build TheRoyalCourt.exe (download it from the run's "Artifacts").
+# Pushing a tag like v0.22.0, or pressing "Run workflow" on the Actions tab: also creates a DRAFT release
+# (tag v<Version from src/RoyalCourt.Core/Util.cs>) with TheRoyalCourt.exe and SHA256SUMS.txt. You check the notes and press Publish.
 on:
   push:
-    branches: [main]
+    branches: [main, csharp-port]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -14,42 +14,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # needed to create the draft release on tag pushes
+      contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
-      - name: Install the Windows cross-compiler
-        run: sudo apt-get update && sudo apt-get install -y g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 zip
+      - name: Tests
+        run: dotnet test tests/RoyalCourt.Tests -c Release
 
-      - name: Core tests (address + undefined-behaviour sanitizers)
-        run: |
-          g++ -std=c++17 -fsanitize=address,undefined -o "$RUNNER_TEMP/core_tests" src/tests/test_core.cpp
-          "$RUNNER_TEMP/core_tests"
-
-      - name: Fuzz the file parsers (short run)
-        run: |
-          g++ -std=c++17 -O1 -fsanitize=address,undefined -o "$RUNNER_TEMP/fuzz" src/tests/fuzz_core.cpp
-          "$RUNNER_TEMP/fuzz" 30000
-
-      - name: Sort property test (random playsets must sort cleanly and idempotently)
-        run: |
-          g++ -std=c++17 -O1 -fsanitize=address,undefined -o "$RUNNER_TEMP/prop_sort" src/tests/prop_sort.cpp
-          "$RUNNER_TEMP/prop_sort" 600
-
-      - name: Build TheRoyalCourt.exe
-        run: sh src/build.sh
+      - name: Publish the single-file exe
+        run: >
+          dotnet publish src/RoyalCourt.App -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o out
 
       - name: Package
         id: pkg
         run: |
-          VER=$(grep -oP 'VERSION = "\K[^"]+' src/core.hpp)
+          VER=$(grep -oP 'Version = "\K[^"]+' src/RoyalCourt.Core/Util.cs | head -1)
           echo "version=$VER" >> "$GITHUB_OUTPUT"
-          mkdir -p dist pkg/TheRoyalCourt
-          cp TheRoyalCourt.exe dist/
+          mkdir -p dist
+          cp out/TheRoyalCourt.exe dist/
           (cd dist && sha256sum TheRoyalCourt.exe > SHA256SUMS.txt)
-          cp TheRoyalCourt.exe README.md CHANGELOG.md LICENSE dist/SHA256SUMS.txt pkg/TheRoyalCourt/
-          (cd pkg && zip -qr "../dist/TheRoyalCourt-v$VER-release.zip" TheRoyalCourt)
-          # release notes = this version's section of CHANGELOG.md
           awk -v v="$VER" 'BEGIN{h="## [" v "]"} index($0,"## [")==1 { if (found) exit; if (index($0,h)==1) { found=1; next } } found' CHANGELOG.md > notes.md
           ls -l dist
 
@@ -64,6 +52,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VER: ${{ steps.pkg.outputs.version }}
         run: |
-          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "v$VER" != "$GITHUB_REF_NAME" ]; then echo "Tag $GITHUB_REF_NAME does not match VERSION $VER in src/core.hpp"; exit 1; fi
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "v$VER" != "$GITHUB_REF_NAME" ]; then echo "Tag $GITHUB_REF_NAME does not match version $VER"; exit 1; fi
           if gh release view "v$VER" >/dev/null 2>&1; then echo "Release v$VER already exists - nothing to do"; exit 1; fi
           gh release create "v$VER" dist/* --draft --target "$GITHUB_SHA" --title "The Royal Court v$VER" --notes-file notes.md

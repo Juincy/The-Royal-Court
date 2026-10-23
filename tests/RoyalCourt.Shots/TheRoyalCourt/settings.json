@@ -1,0 +1,23 @@
+{
+	"ck3Dir": "/tmp/shots_ck3/ck3",
+	"active": "Default",
+	"gameExe": "",
+	"theme": "dark",
+	"tutorialDone": true,
+	"window": {
+		"x": 330,
+		"y": 310,
+		"w": 1260,
+		"h": 660,
+		"max": false,
+		"cols": [
+			64,
+			490,
+			100,
+			110,
+			90,
+			90,
+			280
+		]
+	}
+}
