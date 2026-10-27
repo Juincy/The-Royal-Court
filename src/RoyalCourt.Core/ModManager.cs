@@ -173,7 +173,7 @@ public sealed partial class ModManager
         foreach (var mid in done)
         {
             FileIndex.Remove(mid); DefIndex.Remove(mid);
-            if (purge) { St.Seen.Remove(mid); St.Hidden.Remove(mid); St.Unsubbed.Remove(mid); St.Cats.Remove(mid); foreach (var lk in St.Locks.Values) lk.Remove(mid); }
+            if (purge) { St.Seen.Remove(mid); St.Hidden.Remove(mid); St.Unsubbed.Remove(mid); St.Cats.Remove(mid); foreach (var lk in St.Locks.Values) lk.Remove(mid); foreach (var bk in St.BisectKeep.Values) bk.Remove(mid); }
         }
     }
 
@@ -203,7 +203,7 @@ public sealed partial class ModManager
             St.Unsubbed.Remove(id);
         }
         if (cleared.Count == 0) return;
-        foreach (var id in cleared) { St.Seen.Remove(id); St.Hidden.Remove(id); St.Cats.Remove(id); foreach (var lk in St.Locks.Values) lk.Remove(id); }
+        foreach (var id in cleared) { St.Seen.Remove(id); St.Hidden.Remove(id); St.Cats.Remove(id); foreach (var lk in St.Locks.Values) lk.Remove(id); foreach (var bk in St.BisectKeep.Values) bk.Remove(id); }
         Mods.RemoveAll(m => cleared.Contains(m.Id));
     }
 

@@ -73,6 +73,24 @@ public class DatabaseTests
     }
 
     [Fact]
+    public void EveryEntryHasANameThatMatchesItsRealTitle()
+    {
+        // A rule that points at another mod by name only works if one of that mod's names matches its real Workshop title ("[AGOT] Mayham" reads as "mayham": the bracket tag is dropped).
+        string? p = RepoFile("tools", "workshop_ledger.json"); if (p == null) return;
+        var titleById = new Dictionary<string, string>();
+        using (var doc = JsonDocument.Parse(File.ReadAllText(p)))
+            foreach (var e in doc.RootElement.GetProperty("items").EnumerateArray())
+                if (e.TryGetProperty("id", out var i) && e.TryGetProperty("title", out var t) && t.GetString() is string s && s.Length > 0) titleById[i.GetString()!] = Names.Norm(s);
+        // Reviewed: translations (the ledger title carries our own "(Russian)" label), a modlist, a Chinese title kept as pinyin, and two mods whose real title reads the same as another entry ("[AGOT] Knights & Banners (AoW)" -> "knights and banners") or is just "Compatch".
+        var reviewed = new HashSet<string> { "3800913445", "3788886480", "3792276316", "2857204827", "3808336193", "3692949151", "3321339396" };
+        var bad = new List<string>();
+        foreach (var k in KnownData.Builtin())
+            foreach (var id in k.Ids)
+                if (!reviewed.Contains(id) && titleById.TryGetValue(id, out var title) && !k.Names.Any(n => Names.NameIs(title, n))) bad.Add($"{id}: real title reads \"{title}\", names are {string.Join(" / ", k.Names)}");
+        Assert.True(bad.Count == 0, "Entries whose names cannot match the mod's real title:\n  " + string.Join("\n  ", bad));
+    }
+
+    [Fact]
     public void NamesAndIdsAreUnique()
     {
         var names = new Dictionary<string, string>(); var ids = new Dictionary<string, string>(); var dup = new List<string>();
@@ -90,5 +108,19 @@ public class DatabaseTests
     {
         var self = KnownData.Builtin().Where(k => k.After.Concat(k.Before).Any(n => k.Names.Contains(n))).Select(k => k.Names[0]).ToList();
         Assert.True(self.Count == 0, "Rules that say a mod goes after/before itself: " + string.Join(", ", self));
+    }
+}
+
+public class NameNormTests
+{
+    [Fact]
+    public void TypographicPunctuationSeparatesWords()
+    {
+        Assert.Equal("better ai education agot patch", Names.Norm("Better AI Education – AGoT Patch"));
+        Assert.Equal("hades and fred s agot dynamic aesthetics", Names.Norm("Hades’ & Fred’s AGOT - Dynamic Aesthetics"));
+        Assert.Equal("mari s agot makeovers", Names.Norm("Mari’s AGOT Makeovers"));
+        Assert.Equal("a b", Names.Norm("a b"));
+        Assert.Equal("мод", Names.Norm("МОД"));                    // letters of other scripts stay
+        Assert.Equal("武器 mod", Names.Norm("武器 Mod ✦"));
     }
 }

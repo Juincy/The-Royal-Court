@@ -33,8 +33,12 @@ public sealed class ModInfo
 
 public sealed class Settings
 {
-    public string Ck3Dir = "", Active = "", GameExe = "", Theme = "";                         // theme: "dark", "light", "halloween" or "" (follow Windows)
+    public string Ck3Dir = "", Active = "", GameExe = "", Theme = "";                         // theme: "dark", "light", "halloween", "agot" or "" (follow Windows)
     public SortedDictionary<string, SortedSet<string>> Locks = new(StringComparer.Ordinal);   // playset name -> mod ids that Auto Sort never moves
+    /// <summary>What the last finished Bisect found, per playset (the Crash helper shows it).</summary>
+    public sealed class BisectFind { public List<string> Ids = new(), Names = new(); public long When; public bool TurnedOff; }
+    public SortedDictionary<string, BisectFind> BisectLast = new(StringComparer.Ordinal);
+    public SortedDictionary<string, SortedSet<string>> BisectKeep = new(StringComparer.Ordinal);   // playset name -> mod ids Bisect never turns off
     public SortedDictionary<string, int> Cats = new(StringComparer.Ordinal);                  // mod id -> category chosen by the user (overrides the guess)
     public SortedSet<string> Hidden = new(StringComparer.Ordinal);                            // mods the user removed from the list (never touched on disk)
     public SortedDictionary<string, long> Unsubbed = new(StringComparer.Ordinal);             // Workshop mods the user unsubscribed from -> when (seconds since 1970)
@@ -105,7 +109,7 @@ public sealed class Settings
         if (root.Get("ck3Dir") is { IsStr: true } d) st.Ck3Dir = d.S;
         if (root.Get("active") is { IsStr: true } a) st.Active = a.S;
         if (root.Get("gameExe") is { IsStr: true } g) st.GameExe = g.S;
-        if (root.Get("theme") is { IsStr: true } th && (th.S == "dark" || th.S == "light" || th.S == "halloween")) st.Theme = th.S;
+        if (root.Get("theme") is { IsStr: true } th && (th.S == "dark" || th.S == "light" || th.S == "halloween" || th.S == "agot")) st.Theme = th.S;
         if (root.Get("crashSeen") is { IsStr: true } cs && cs.S.Length < 100) st.CrashSeen = cs.S;
         if (root.Get("tutorialDone") is { IsBool: true } td) st.TutorialDone = td.B;
         if (root.Get("language") is { IsStr: true } lg && (lg.S == "auto" || Lang.FromCode(lg.S) >= 0)) st.Language = lg.S;
@@ -118,6 +122,26 @@ public sealed class Settings
                             if (!st.Locks.TryGetValue(lk.Keys[i], out var set)) st.Locks[lk.Keys[i]] = set = new SortedSet<string>(StringComparer.Ordinal);
                             set.Add(e.S);
                         }
+        if (root.Get("bisectKeep") is { IsObj: true } bk)
+            for (int i = 0; i < bk.Keys.Count; i++)
+                if (bk.Vals[i].IsArr)
+                    foreach (var e in bk.Vals[i].A)
+                        if (e.IsStr)
+                        {
+                            if (!st.BisectKeep.TryGetValue(bk.Keys[i], out var set)) st.BisectKeep[bk.Keys[i]] = set = new SortedSet<string>(StringComparer.Ordinal);
+                            set.Add(e.S);
+                        }
+        if (root.Get("bisectLast") is { IsObj: true } bl)
+            for (int i = 0; i < bl.Keys.Count; i++)
+                if (bl.Vals[i].IsObj)
+                {
+                    var f = new BisectFind(); var o = bl.Vals[i];
+                    if (o.Get("ids") is { IsArr: true } ia) foreach (var e in ia.A) if (e.IsStr) f.Ids.Add(e.S);
+                    if (o.Get("names") is { IsArr: true } na) foreach (var e in na.A) if (e.IsStr) f.Names.Add(e.S);
+                    if (o.Get("when") is { IsNum: true } wn) f.When = (long)wn.N;
+                    if (o.Get("off") is { IsBool: true } ob) f.TurnedOff = ob.B;
+                    if (f.Ids.Count > 0) st.BisectLast[bl.Keys[i]] = f;
+                }
         if (root.Get("categories") is { IsObj: true } ct)
             for (int i = 0; i < ct.Keys.Count; i++)
                 if (ct.Vals[i].IsNum && ct.Vals[i].N >= 0 && ct.Vals[i].N < 7) st.Cats[ct.Keys[i]] = (int)ct.Vals[i].N;
@@ -145,6 +169,25 @@ public sealed class Settings
             lk.Set(kv.Key, a);
         }
         if (lk.Keys.Count > 0) root.Set("locks", lk);
+        var bkj = J.Obj();
+        foreach (var kv in BisectKeep)
+        {
+            if (kv.Value.Count == 0) continue;
+            var a = J.Arr();
+            foreach (var id in kv.Value) a.A.Add(J.Str(id));
+            bkj.Set(kv.Key, a);
+        }
+        if (bkj.Keys.Count > 0) root.Set("bisectKeep", bkj);
+        var blj = J.Obj();
+        foreach (var kv in BisectLast)
+        {
+            var o = J.Obj(); var ia = J.Arr(); var na = J.Arr();
+            foreach (var id in kv.Value.Ids) ia.A.Add(J.Str(id));
+            foreach (var n in kv.Value.Names) na.A.Add(J.Str(n));
+            o.Set("ids", ia); o.Set("names", na); o.Set("when", J.Num(kv.Value.When)); o.Set("off", J.Bool(kv.Value.TurnedOff));
+            blj.Set(kv.Key, o);
+        }
+        if (blj.Keys.Count > 0) root.Set("bisectLast", blj);
         var ct = J.Obj();
         foreach (var kv in Cats) ct.Set(kv.Key, J.Num(kv.Value));
         if (ct.Keys.Count > 0) root.Set("categories", ct);

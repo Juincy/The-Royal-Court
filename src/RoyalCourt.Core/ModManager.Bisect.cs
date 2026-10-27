@@ -67,6 +67,7 @@ public sealed partial class ModManager
         var ps = Active();
         if (ps == null) return res;
         string dir = EffectiveDir();
+        var kept = St.BisectKeep.TryGetValue(ps.Name, out var keptSet) ? keptSet : new SortedSet<string>(StringComparer.Ordinal);
         var byName = new Dictionary<string, int>(StringComparer.Ordinal);
         var posToIdx = new Dictionary<int, int>();
         for (int p = 0; p < ps.Mods.Count; p++)
@@ -74,7 +75,7 @@ public sealed partial class ModManager
             var pm = ps.Mods[p];
             if (!pm.Enabled) continue;
             string name = Info.TryGetValue(pm.Id, out var mi) && mi.Name.Length > 0 ? mi.Name : (pm.Name.Length == 0 ? pm.Id : pm.Name);
-            var b = new BisectMod { Pos = p, Id = pm.Id, Name = name, Cat = CatOfMod(pm.Id) };
+            var b = new BisectMod { Pos = p, Id = pm.Id, Name = name, Cat = CatOfMod(pm.Id), Keep = kept.Contains(pm.Id) };
             posToIdx[p] = res.Count; res.Add(b);
             string key = Util.Lower(Util.Trimmed(name));
             if (key.Length > 0 && !byName.ContainsKey(key)) byName[key] = res.Count - 1;
@@ -174,6 +175,15 @@ public sealed partial class ModManager
         return res;
     }
 
+    /// <summary>Remembers that Bisect should (or should not) leave this mod on, for the active playset.</summary>
+    public void SetBisectKeep(string id, bool keep)
+    {
+        var ps = Active();
+        if (ps == null) return;
+        if (!St.BisectKeep.TryGetValue(ps.Name, out var set)) { if (!keep) return; St.BisectKeep[ps.Name] = set = new SortedSet<string>(StringComparer.Ordinal); }
+        if (keep ? set.Add(id) : set.Remove(id)) { if (set.Count == 0) St.BisectKeep.Remove(ps.Name); SaveSettingsNow(); }
+    }
+
     /// <summary>Starts the game with the temporary playset: a copy of the active one, in the same order, with <paramref name="off"/> turned off. The playset on screen is not changed.</summary>
     public async Task<bool> BisectLaunch(IReadOnlyCollection<string> offIds)
     {
@@ -204,6 +214,15 @@ public sealed partial class ModManager
     }
 
     /// <summary>Turns the found mods off in the real playset (after a backup).</summary>
+    /// <summary>Remembers what Bisect found, so the Crash helper can mention it.</summary>
+    public void SaveBisectResult(IReadOnlyCollection<string> ids, IReadOnlyCollection<string> names, bool turnedOff)
+    {
+        var ps = Active();
+        if (ps == null || ids.Count == 0) return;
+        St.BisectLast[ps.Name] = new Settings.BisectFind { Ids = ids.ToList(), Names = names.ToList(), When = DateTimeOffset.UtcNow.ToUnixTimeSeconds(), TurnedOff = turnedOff };
+        SaveSettingsNow();
+    }
+
     public void BisectApply(IReadOnlyCollection<string> ids)
     {
         var ps = Active();

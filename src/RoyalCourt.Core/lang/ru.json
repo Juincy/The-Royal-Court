@@ -644,7 +644,7 @@
  "Embers of Empire (known mod)": "Embers of Empire (известный мод)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: на его странице указан порядок загрузки Embers of Empire, Renovatio, а этот патч - последним",
  "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam получил запрос отписаться от модов (всего: {0}). Они уже убраны из списка и наборов; файлы Steam удалит сам.",
- "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "Тема: тыква включает Хэллоуин, переключатель меняет день и ночь",
+ "Theme: the pumpkin turns Halloween on, the crest turns A Game of Thrones on, the switch changes between day and night": "Тема: тыква включает Хэллоуин, герб включает A Game of Thrones, переключатель меняет день и ночь",
  "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+: на странице сказано грузить после RICE, CFP, EPE, Culture Expanded и Unified UI, а её патчи совместимости — ниже",
  "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "Патч совместимости для More Bookmarks+: на странице сказано грузить после More Bookmarks+",
  "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE: на странице патча RICE + EPE сказано, что RICE грузится перед EPE",
@@ -817,5 +817,18 @@
  "Load order information: not known (the Workshop page has not been read)": "Порядок загрузки: неизвестен (страница в Мастерской не читалась)",
  "Size on disk: {0}": "Размер на диске: {0}",
  "{0} on disk": "{0} на диске",
- "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "Чтобы изменить порядок загрузки, сбросьте фильтр, настройку «Показать» и сортировку столбцов (щёлкните заголовок #)."
+ "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "Чтобы изменить порядок загрузки, сбросьте фильтр, настройку «Показать» и сортировку столбцов (щёлкните заголовок #).",
+ "{0} mods are on, most suspicious first. Double-click one to keep it on during the tests (this is remembered for the playset), then press Begin.": "Включено модов: {0}, самые подозрительные сверху. Дважды щёлкните мод, чтобы оставить его включённым во время тестов (это запоминается для плейсета), затем нажмите «Начать».",
+ "Find a problem": "Поиск проблемы",
+ "Playset tools": "Инструменты плейсета",
+ "Backups and folders": "Резервные копии и папки",
+ "Cleaning up": "Очистка",
+ "Options": "Параметры",
+ "Help": "Справка",
+ "WHAT BISECT FOUND": "ЧТО НАШЁЛ BISECT",
+ "On {0} Bisect found: {1}.": "{0} Bisect нашёл: {1}.",
+ "It is turned off in your playset now.": "Сейчас он выключен в вашем плейсете.",
+ "It is still turned on in your playset.": "Он всё ещё включён в вашем плейсете.",
+ "The game's log points at the same mod, so this crash most likely has the same cause.": "Журнал игры указывает на тот же мод, так что у этого вылета, скорее всего, та же причина.",
+ "The game's log does not point at it, so this crash may have another cause.": "Журнал игры на него не указывает, так что у этого вылета может быть другая причина."
 }

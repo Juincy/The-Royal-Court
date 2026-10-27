@@ -644,7 +644,7 @@
  "Embers of Empire (known mod)": "Embers of Empire (znany mod)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: jego strona podaje kolejność ładowania Embers of Empire, Renovatio, a na końcu ta łatka",
  "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Poproszono Steam o anulowanie subskrypcji modów: {0}. Zniknęły już z listy i playsetów; pliki usunie sam Steam.",
- "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "Motyw: dynia włącza Halloween, przełącznik zmienia dzień i noc",
+ "Theme: the pumpkin turns Halloween on, the crest turns A Game of Thrones on, the switch changes between day and night": "Motyw: dynia włącza Halloween, herb włącza A Game of Thrones, przełącznik zmienia dzień i noc",
  "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+: jego strona mówi, by ładować go po RICE, CFP, EPE, Culture Expanded i Unified UI, a jego własne łatki zgodności niżej",
  "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "Łatka zgodności More Bookmarks+: jej strona mówi, by ładować ją po More Bookmarks+",
  "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE: strona łatki RICE + EPE mówi, że RICE ładuje się przed EPE",
@@ -817,5 +817,18 @@
  "Load order information: not known (the Workshop page has not been read)": "Informacje o kolejności ładowania: nieznane (strona Warsztatu nie była czytana)",
  "Size on disk: {0}": "Rozmiar na dysku: {0}",
  "{0} on disk": "{0} na dysku",
- "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "Wyczyść filtr, ustawienie Pokaż i sortowanie kolumn (kliknij nagłówek #), aby zmienić kolejność ładowania."
+ "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "Wyczyść filtr, ustawienie Pokaż i sortowanie kolumn (kliknij nagłówek #), aby zmienić kolejność ładowania.",
+ "{0} mods are on, most suspicious first. Double-click one to keep it on during the tests (this is remembered for the playset), then press Begin.": "Włączonych modów: {0}, najbardziej podejrzane na górze. Kliknij dwukrotnie mod, aby zostawić go włączonego podczas testów (zostanie to zapamiętane dla tego zestawu), a potem naciśnij Rozpocznij.",
+ "Find a problem": "Znajdź problem",
+ "Playset tools": "Narzędzia zestawu",
+ "Backups and folders": "Kopie i foldery",
+ "Cleaning up": "Porządkowanie",
+ "Options": "Opcje",
+ "Help": "Pomoc",
+ "WHAT BISECT FOUND": "CO ZNALAZŁ BISECT",
+ "On {0} Bisect found: {1}.": "{0} Bisect znalazł: {1}.",
+ "It is turned off in your playset now.": "Jest teraz wyłączony w Twoim zestawie.",
+ "It is still turned on in your playset.": "Nadal jest włączony w Twoim zestawie.",
+ "The game's log points at the same mod, so this crash most likely has the same cause.": "Dziennik gry wskazuje ten sam mod, więc ta awaria najpewniej ma tę samą przyczynę.",
+ "The game's log does not point at it, so this crash may have another cause.": "Dziennik gry go nie wskazuje, więc ta awaria może mieć inną przyczynę."
 }

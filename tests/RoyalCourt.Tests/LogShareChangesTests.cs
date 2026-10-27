@@ -221,7 +221,7 @@ public class LogShareChangesTests
         using var e = new TestEnv();
         var a = new Settings(); a.Unsubbed["ugc_9.mod"] = 1760000000; a.Hidden.Add("ugc_9.mod"); Assert.True(a.Save());
         var b = Settings.Load(); Assert.True(b.Unsubbed.Count == 1 && b.Unsubbed["ugc_9.mod"] == 1760000000 && b.Hidden.Contains("ugc_9.mod"));
-        foreach (var th in new[] { "dark", "light", "halloween" }) { var s = new Settings { Theme = th }; Assert.True(s.Save()); Assert.Equal(th, Settings.Load().Theme); }
+        foreach (var th in new[] { "dark", "light", "halloween", "agot" }) { var s = new Settings { Theme = th }; Assert.True(s.Save()); Assert.Equal(th, Settings.Load().Theme); }
         var p = new Settings { Theme = "pumpkin" }; Assert.True(p.Save()); Assert.Equal("", Settings.Load().Theme);
     }
 }

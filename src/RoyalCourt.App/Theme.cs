@@ -1,7 +1,7 @@
 using Avalonia.Media;
 namespace RoyalCourt.Ui;
 
-/// <summary>The three looks: Parchment (light), Midnight Court (dark) and Halloween. Same colour roles as the Windows version.</summary>
+/// <summary>The four looks: Parchment (light), Midnight Court (dark), Halloween and A Game of Thrones. Same colour roles as the Windows version.</summary>
 public sealed class Look
 {
     public Color Bg, Banner, List, Alt, Border, Text, Muted, Accent, AccentText, Gold, Btn, BtnHot, BtnDown, Sel, SelText, Ok, Warn, Bad;
@@ -15,8 +15,11 @@ public sealed class Look
     public static readonly Look Light = Make(new uint[] { 0xF4EFE4, 0xE9E1CF, 0xFCFAF4, 0xF6F1E6, 0xCFC4A8, 0x2A2433, 0x776E88, 0x4B2E83, 0xFFFFFF, 0xB08410, 0xE2D9C4, 0xD6CBB0, 0xCBBEA0, 0xDDD1F0, 0x1E1630, 0x2E7D4F, 0xB06206, 0xB3261E });
     public static readonly Look Halloween = Make(new uint[] { 0x0F0A13, 0x1A0E1D, 0x140C17, 0x1C111F, 0x4A2846, 0xF6E8D6, 0xB096AA, 0xFF7A18, 0x1A0A00, 0xFF8A1F, 0x2C182E, 0x462442, 0x241426, 0x4E245C, 0xFFFFFF, 0x7CE65A, 0xFFB02E, 0xFF5C5C });
 
-    public const int ILight = 0, IDark = 1, IHalloween = 2;
-    public static Look Of(int id) => id == ILight ? Light : id == IHalloween ? Halloween : Dark;
+    /// <summary>A Game of Thrones: the slate-blue cloth and silver stamp of the mod's own start screen, with its crimson and its old gold (colours from the mod's named colours).</summary>
+    public static readonly Look Agot = Make(new uint[] { 0x12161B, 0x1A2028, 0x161A20, 0x1C222A, 0x3B4655, 0xE2E6EA, 0x8E99A9, 0x9B1B22, 0xF3EBD8, 0xB7C5CB, 0x252D38, 0x34414F, 0x1B2129, 0x2F3F55, 0xFFFFFF, 0x7CC79A, 0xD7B45A, 0xE5594F });
+
+    public const int ILight = 0, IDark = 1, IHalloween = 2, IAgot = 3;
+    public static Look Of(int id) => id == ILight ? Light : id == IHalloween ? Halloween : id == IAgot ? Agot : Dark;
 
     public static Color Mix(Color a, Color b, double pctB)
     {
@@ -47,6 +50,9 @@ public static class Skin
     public static Look Cur = Look.Dark;
     public static bool Dark => Id != Look.ILight;
     public static bool Halloween => Id == Look.IHalloween;
+    public static bool Agot => Id == Look.IAgot;
+    /// <summary>A theme that paints its own animated scene in the banner.</summary>
+    public static bool Scene => Id == Look.IHalloween || Id == Look.IAgot;
     public static event Action? Changed;
     public static void Set(int id, Look shown) { Id = id; Cur = shown; Changed?.Invoke(); }
     public static void Repaint(Look shown) { Cur = shown; Changed?.Invoke(); }
@@ -54,6 +60,6 @@ public static class Skin
     static readonly System.Diagnostics.Stopwatch clock = System.Diagnostics.Stopwatch.StartNew();
     public static double Sec => clock.Elapsed.TotalSeconds;
 
-    public static string Name(int id) => id == Look.ILight ? "light" : id == Look.IHalloween ? "halloween" : "dark";
-    public static int FromName(string n) => n == "light" ? Look.ILight : n == "halloween" ? Look.IHalloween : n == "dark" ? Look.IDark : -1;
+    public static string Name(int id) => id == Look.ILight ? "light" : id == Look.IHalloween ? "halloween" : id == Look.IAgot ? "agot" : "dark";
+    public static int FromName(string n) => n == "light" ? Look.ILight : n == "halloween" ? Look.IHalloween : n == "agot" ? Look.IAgot : n == "dark" ? Look.IDark : -1;
 }

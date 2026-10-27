@@ -60,7 +60,7 @@ public sealed class BisectWindow : ToolWindow
             return Cleared(i) ? t.Muted : null;
         };
         list.RowKind = r => r < view.Count && Cleared(view[r]) ? 1 : 0;
-        list.Activated += r => { if (ses == null && r >= 0 && r < view.Count) { mods[view[r]].Keep = !mods[view[r]].Keep; Fill(); } };
+        list.Activated += r => { if (ses == null && r >= 0 && r < view.Count) { var bm = mods[view[r]]; bm.Keep = !bm.Keep; mm.SetBisectKeep(bm.Id, bm.Keep); Fill(); } };
         KeyDown += (_, e) => { if (e.Key == Key.Escape) Close(); };
         Closed += (_, _) => { if (tested) { tested = false; if (!mm.BisectRestore()) mm.Say(Tr("Bisect ended while the game was running (or the list could not be written). Press Play to start the game with your own list.")); } };
         Fill();
@@ -106,7 +106,7 @@ public sealed class BisectWindow : ToolWindow
         var evd = await Task.Run(() => mm.ReadBisectEvidence(md));   // the logs are read off the UI thread, the ranking runs here (it reads the program's own lists)
         var res = mm.BisectMods(md, evd, out n);
         loading = false;
-        foreach (var m in res) m.Keep = keep.Contains(m.Id);
+        foreach (var m in res) m.Keep = m.Keep || keep.Contains(m.Id);
         mods = res; note = n; Fill();
     }
 
@@ -138,7 +138,7 @@ public sealed class BisectWindow : ToolWindow
         if (loading) return;
         if (ses == null)
             status.Text = mods.Count < 2 ? Tr("Bisect needs a playset with at least two mods turned on.")
-                        : Trf("{0} mods are on, most suspicious first. Double-click one to keep it on during the tests, then press Begin.", mods.Count) + (note.Length > 0 ? " " + note : "");
+                        : Trf("{0} mods are on, most suspicious first. Double-click one to keep it on during the tests (this is remembered for the playset), then press Begin.", mods.Count) + (note.Length > 0 ? " " + note : "");
         else status.Text = Instruction();
     }
 
@@ -196,8 +196,9 @@ public sealed class BisectWindow : ToolWindow
             var dep = off.Except(s.AllCulprits).ToList();
             ids = off.Select(i => mods[i].Id).ToList();
             string q = Trf("Found it:\n\n{0}\n\nThe problem goes away when it is off.", names) + (dep.Count > 0 ? "\n\n" + Trf("{0} other mod(s) need it and go off with it:", dep.Count) + "\n" + string.Join("\n", dep.Take(8).Select(i => "  • " + mods[i].Name)) + (dep.Count > 8 ? "\n  ..." : "") : "") + "\n\n" + Tr("Turn it off in your playset now? (A backup is made first, you can turn it on again at any time.)\n\nYes: turn it off. No: leave the playset as it is.");
-            if (await main.Dlg.Confirm(Tr("Bisect"), q)) mm.BisectApply(ids);
-            else mm.Say(Tr("Bisect finished. Your playset was not changed."));
+            var culpIds = s.AllCulprits.Select(i => mods[i].Id).ToList(); var culpNames = s.AllCulprits.Select(i => mods[i].Name).ToList();
+            if (await main.Dlg.Confirm(Tr("Bisect"), q)) { mm.BisectApply(ids); mm.SaveBisectResult(culpIds, culpNames, true); }
+            else { mm.SaveBisectResult(culpIds, culpNames, false); mm.Say(Tr("Bisect finished. Your playset was not changed.")); }
         }
         else if (s.NotMods)
             await main.Dlg.Info(Tr("The problem happened even with every suspect mod turned off.\n\nSo it is probably not caused by these mods: the base game, a DLC, your graphics driver, or a mod you told Bisect to keep on. Verify the game files in Steam, or try the Crash helper in the Advanced menu."));

@@ -40,7 +40,7 @@ public sealed partial class ModManager
         }
         // suspects
         t.Append(Tr("LIKELY SUSPECTS")).Append("\r\n");
-        bool suspects = false;
+        bool suspects = false; var suspectIds = new HashSet<string>(StringComparer.Ordinal);
         if (ps != null && gameLog.Length > 0)
         {
             int enabled = 0, ready = 0;
@@ -66,12 +66,24 @@ public sealed partial class ModManager
                 t.Append("  ").Append(++rank).Append(".  ").Append(nm).Append("   (#").Append(mod + 1).Append(")\r\n");
                 t.Append("      ").Append(Trf("{0} errors and {1} warnings among the last messages the game wrote", er, wa)).Append("\r\n");
                 if (top != null) { string mm = ReportView.Message(top); if (mm.Length > 170) mm = mm[..167] + "..."; t.Append("      ").Append(mm).Append("\r\n"); }
-                suspects = true;
+                suspects = true; suspectIds.Add(ps.Mods[mod].Id);
             }
         }
         if (!suspects) t.Append("  ").Append(Tr("None of the last messages the game wrote could be tied to one of your mods.")).Append("\r\n");
         if (note.Length > 0) t.Append("\r\n  ").Append(note).Append("\r\n");
         t.Append("\r\n");
+        // what Bisect found for this playset, and whether the crash log agrees
+        if (ps != null && St.BisectLast.TryGetValue(ps.Name, out var bf) && bf.Ids.Count > 0)
+        {
+            t.Append(Tr("WHAT BISECT FOUND")).Append("\r\n");
+            string when = DateTimeOffset.FromUnixTimeSeconds(bf.When).ToLocalTime().ToString("yyyy-MM-dd HH:mm");
+            t.Append("  ").Append(Trf("On {0} Bisect found: {1}.", when, string.Join(", ", bf.Names))).Append("\r\n");
+            var stillOn = ps.Mods.Where(x => x.Enabled && bf.Ids.Contains(x.Id)).Count();
+            t.Append("  ").Append(stillOn == 0 ? Tr("It is turned off in your playset now.") : Tr("It is still turned on in your playset.")).Append("\r\n");
+            if (suspectIds.Overlaps(bf.Ids)) t.Append("  ").Append(Tr("The game's log points at the same mod, so this crash most likely has the same cause.")).Append("\r\n");
+            else if (suspects) t.Append("  ").Append(Tr("The game's log does not point at it, so this crash may have another cause.")).Append("\r\n");
+            t.Append("\r\n");
+        }
         // playset then and now
         if (ps != null && debugLog.Length > 0)
         {

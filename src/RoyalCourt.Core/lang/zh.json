@@ -644,7 +644,7 @@
  "Embers of Empire (known mod)": "Embers of Empire（已知模组）",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio：其页面列出的加载顺序为 Embers of Empire、Renovatio，此补丁最后加载",
  "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "已请求 Steam 取消订阅 {0} 个模组。它们现已从列表和播放集中移除；文件将由 Steam 自行删除。",
- "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "主题:南瓜开启万圣节主题,开关切换白天与夜晚",
+ "Theme: the pumpkin turns Halloween on, the crest turns A Game of Thrones on, the switch changes between day and night": "主题:南瓜开启万圣节主题,徽章开启权力的游戏主题,开关切换白天与夜晚",
  "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+：其页面说明应加载在 RICE、CFP、EPE、Culture Expanded 和 Unified UI 之后，它自己的兼容补丁则排在其下",
  "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "More Bookmarks+ 兼容补丁：其页面说明应加载在 More Bookmarks+ 之后",
  "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE：RICE + EPE 补丁页面说明 RICE 加载在 EPE 之前",
@@ -817,5 +817,18 @@
  "Load order information: not known (the Workshop page has not been read)": "加载顺序信息：未知（尚未读取创意工坊页面）",
  "Size on disk: {0}": "磁盘占用：{0}",
  "{0} on disk": "磁盘占用 {0}",
- "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "要更改加载顺序，请清除筛选、显示设置和列排序（点击 # 表头）。"
+ "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "要更改加载顺序，请清除筛选、显示设置和列排序（点击 # 表头）。",
+ "{0} mods are on, most suspicious first. Double-click one to keep it on during the tests (this is remembered for the playset), then press Begin.": "已启用 {0} 个模组，最可疑的排在前面。双击某个模组可在测试期间保持其开启（会为该方案记住），然后按“开始”。",
+ "Find a problem": "查找问题",
+ "Playset tools": "播放集工具",
+ "Backups and folders": "备份与文件夹",
+ "Cleaning up": "清理",
+ "Options": "选项",
+ "Help": "帮助",
+ "WHAT BISECT FOUND": "BISECT 的发现",
+ "On {0} Bisect found: {1}.": "{0} Bisect 找到了:{1}。",
+ "It is turned off in your playset now.": "它现在在你的播放集中已关闭。",
+ "It is still turned on in your playset.": "它在你的播放集中仍然开启。",
+ "The game's log points at the same mod, so this crash most likely has the same cause.": "游戏日志指向同一个模组,因此这次崩溃很可能是同一原因。",
+ "The game's log does not point at it, so this crash may have another cause.": "游戏日志没有指向它,因此这次崩溃可能另有原因。"
 }

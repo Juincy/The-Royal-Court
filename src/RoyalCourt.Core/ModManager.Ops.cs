@@ -166,6 +166,8 @@ public sealed partial class ModManager
         string oldName = ps.Name;
         if (!Core.Playsets.Rename(ps, n, Info)) { await Dlg.Info(Tr("Could not rename the playset file.")); return; }
         if (St.Locks.TryGetValue(oldName, out var lk)) { St.Locks[ps.Name] = lk; St.Locks.Remove(oldName); }
+        if (St.BisectKeep.TryGetValue(oldName, out var bk)) { St.BisectKeep[ps.Name] = bk; St.BisectKeep.Remove(oldName); }
+        if (St.BisectLast.TryGetValue(oldName, out var bl)) { St.BisectLast[ps.Name] = bl; St.BisectLast.Remove(oldName); }
         if (St.Launch.TryGetValue(oldName, out var lo)) { St.Launch[ps.Name] = lo; St.Launch.Remove(oldName); }
         if (UndoPlayset == oldName) UndoPlayset = ps.Name;
         St.Active = ps.Name;
@@ -181,7 +183,7 @@ public sealed partial class ModManager
         string gone = ps.Name;
         Core.Playsets.Backup(ps, Info, "before deleting the playset");
         Core.Playsets.Delete(gone);
-        St.Locks.Remove(gone);
+        St.Locks.Remove(gone); St.BisectKeep.Remove(gone); St.BisectLast.Remove(gone);
         St.Launch.Remove(gone);
         Playsets.RemoveAll(p => p.Name == gone);
         St.Active = Playsets[0].Name; SaveSettingsNow(); PlaysetsChanged?.Invoke(); Populate();

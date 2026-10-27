@@ -25,7 +25,7 @@ Requirements: Windows 10 or 11 (64-bit) and Crusader Kings III. Steam must be ru
 - Tick a mod to turn it on or off; every change is saved at once. Drag rows or use **Up** / **Down**, with multi-select (Ctrl or Shift). **Lock position** keeps a mod where it is.
 - A filter box and a **Show** menu narrow the list: turned off, turned on, with problems or warnings, may be outdated, load order not known, or large (1 GB or more).
 - Columns: order number, mod, version, game version, source, type, **Order** (does the database know this mod's load order?), **Size** on disk, and a Notes column that flags missing mods, mods made for an older game, and conflicts. The status bar shows how much space the enabled mods take.
-- **Mod pictures**, three themes (dark, light and a Halloween one), per-monitor DPI, and a window that remembers its position, size and column widths.
+- **Mod pictures**, four themes (dark, light, Halloween and an A Game of Thrones one), per-monitor DPI, and a window that remembers its position, size and column widths.
 - Eleven languages: English, German, Spanish, French, Japanese, Korean, Polish, Portuguese (Brazil), Russian, Turkish and Chinese.
 
 ### Auto Sort

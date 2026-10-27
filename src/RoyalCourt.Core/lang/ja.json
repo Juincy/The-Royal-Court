@@ -644,7 +644,7 @@
  "Embers of Empire (known mod)": "Embers of Empire (既知のMOD)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: ページに記載のロード順は Embers of Empire、Renovatio、最後にこのパッチです",
  "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam に {0} 件のMODのサブスクライブ解除を依頼しました。リストとプレイセットからはすでに外れており、ファイルは Steam が自動で削除します。",
- "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "テーマ:カボチャでハロウィン、スイッチで昼と夜を切り替えます",
+ "Theme: the pumpkin turns Halloween on, the crest turns A Game of Thrones on, the switch changes between day and night": "テーマ:カボチャでハロウィン、紋章でA Game of Thrones、スイッチで昼と夜を切り替えます",
  "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+：ページでは RICE、CFP、EPE、Culture Expanded、Unified UI の後に読み込み、専用の互換パッチはその下に置くよう案内されています",
  "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "More Bookmarks+ 互換パッチ：ページでは More Bookmarks+ の後に読み込むよう案内されています",
  "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE：RICE + EPE パッチのページでは RICE は EPE より前に読み込むとされています",
@@ -817,5 +817,18 @@
  "Load order information: not known (the Workshop page has not been read)": "ロード順の情報: 不明 (Workshopページは未読)",
  "Size on disk: {0}": "ディスク上のサイズ: {0}",
  "{0} on disk": "ディスク上 {0}",
- "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "ロード順を変更するには、フィルター、表示設定、列の並べ替え (#見出しをクリック) を解除してください。"
+ "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "ロード順を変更するには、フィルター、表示設定、列の並べ替え (#見出しをクリック) を解除してください。",
+ "{0} mods are on, most suspicious first. Double-click one to keep it on during the tests (this is remembered for the playset), then press Begin.": "{0} 個のMODが有効です (疑わしい順)。テスト中も有効のままにしたいMODはダブルクリックしてください (プレイセットごとに記憶されます)。その後「開始」を押します。",
+ "Find a problem": "問題を見つける",
+ "Playset tools": "プレイセットのツール",
+ "Backups and folders": "バックアップとフォルダー",
+ "Cleaning up": "クリーンアップ",
+ "Options": "オプション",
+ "Help": "ヘルプ",
+ "WHAT BISECT FOUND": "BISECTの結果",
+ "On {0} Bisect found: {1}.": "{0} にBisectが見つけたもの:{1}。",
+ "It is turned off in your playset now.": "現在、プレイセットでオフになっています。",
+ "It is still turned on in your playset.": "まだプレイセットでオンになっています。",
+ "The game's log points at the same mod, so this crash most likely has the same cause.": "ゲームのログも同じMODを指しているため、このクラッシュも同じ原因である可能性が高いです。",
+ "The game's log does not point at it, so this crash may have another cause.": "ゲームのログはそのMODを指していないため、このクラッシュは別の原因かもしれません。"
 }

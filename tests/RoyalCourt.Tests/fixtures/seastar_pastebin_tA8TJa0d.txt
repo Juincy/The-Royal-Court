@@ -1,0 +1,94 @@
+# Seastar's AGOT Collection, playset export from https://pastebin.com/tA8TJa0d (read 2026-10-26). Format: position<TAB>enabled<TAB>steamId<TAB>name
+0	1	2962333032	A Game of Thrones
+1	1	3254254511	AGOT Micro
+2	1	3034473189	AGOT Submod Core
+3	1	2950245430	AGOT+
+4	1	3409168338	AGOT+ - Purple Eyes Restoration
+5	1	3101422928	Legacy Of The Dragon
+6	1	2962713441	Valyrian Steel
+7	1	3573203384	More Valyrian Steel
+8	1	2963453899	Armor of the Kingsguard
+9	1	3319354609	AGOT Additional Models and Special Buildings
+10	1	3587967020	Additional Models / AGOT+ Compatch
+11	1	2971198450	COW-AGOT: 3D Models & Bigger Castles
+12	1	3692879370	AGOT - Landmarks of Westeros
+13	1	3697008412	Landmarks of Westeros & COW-AGOT Compatch
+14	1	3712620554	LoW & Additonal Models and Special Buildings Compatch
+15	1	2695438942	Congenital Beauty
+16	0	3459771174	AGOT Clothes Adjustment
+17	0	2220326926	Better Barbershop
+18	0	3462342647	Mari's AGOT Makeovers
+19	1	3035543804	Custom Nickname
+20	1	3437814875	Faster Transitions
+21	1	2869221069	Designate Heir - freely
+22	1	2756456587	Multilingual Education
+23	0	2227658180	VIET Events - A Flavor and Immersion Event Mod
+24	1	2966543745	AGOT - Armies of Westeros
+25	1	3328141802	Armies of Westeros REMASTERED (big update soon)
+26	1	3571431456	The Red Keep
+27	1	3662281614	The Red Keep (Hegemony Updates)
+28	1	2995674648	AGOT - Crowns of Westeros
+29	1	3412222811	The Golden Company
+30	1	3541693392	AGOT Citadel University
+31	1	3621472324	AGOT Great Councils
+32	1	3319167091	AGOT - Council Experience
+33	1	2636170225	Duel Overlay
+34	1	2967263410	AGOT: House Founders
+35	1	3059021049	AGOT: More Actions
+36	1	3445965581	AGOT expanded - Death and birth
+37	1	3466228580	AGOT expanded - Dragons
+38	1	3496313878	[AGOT] Knights & Banners
+39	1	3692949151	[AGOT] Knights & Banners (AoW)
+40	1	3324579171	AGOT - Suggest Dragon Bonding
+41	1	3616679470	AGOT - Dragon Riders Duel
+42	1	3388366564	AGOT More Dragon Eggs
+43	1	3305687550	[LOT] Legitimacy Over Time
+44	1	3713902872	Succession Crisis
+45	1	3149692324	AGOT Bookmarked
+46	1	3765282284	AGOT: Fire and Blood
+47	1	3541596590	AGOT Dragon Wives
+48	1	3377641022	AGOT : Seasons of Ice and Fire
+49	1	3766971799	AGOT Seasons + Bookmarked + Fire and Blood Compatch
+50	1	3664900993	AGOT Nobility of Westeros
+51	1	3753608966	AGOT NOW-Season of Ice and Fire Compatch
+52	1	3742055253	COW-AGOT: Nobility of Westeros Compatch
+53	1	3778473717	AGOT Fire and Blood - NOW Compatch
+54	1	3586934156	AGOT - Unbound
+55	1	3637024006	AGOT - House Modifiers
+56	1	3522779004	Bloodlines: Legacies of AGOT
+57	1	3673468355	AGOT: The Knighting Ceremony
+58	1	3457401824	Oathbound
+59	0	3780269495	AGOT: The Long Night & Azor Ahai
+60	1	3329680499	AGOT - Dragonpit For Dukes
+61	1	2712590542	More Interactive Vassals
+62	1	3036454680	Faster Activities
+63	1	3276373926	Battleground Commanders
+64	1	3225355262	Battle Graphics
+65	1	3235061780	Battle Graphics AGOT Compatibility Patch
+66	1	3232842149	BG Other Graphics: Zoom Scale Map
+67	1	3371173142	BG Other Graphics: ZSM AGOT Compatibility Patch
+68	1	3369079355	BG Other Graphics: Battleground Commanders
+69	1	3371609961	BG Other Graphics: BC AGOT Compatibility Patch
+70	1	3287741117	Battle Events
+71	1	3415188429	Battle Events - AGOT Compatibility Patch
+72	1	3700835663	AGOT Courts of Westeros
+73	1	3013743552	AGOT - Holdings Art
+74	1	3678529052	Grand Remembrance
+75	1	3683507542	Grand Remembrance - AGOT Compatibility Submod
+76	0	3608374693	[1.20] Dynamic Family Portrait
+77	0	3609763696	Dynamyc Family Portrait (AGOT)
+78	1	2677152091	Invite Debutantes
+79	1	2686352443	Invite Nobles
+80	0	3793472366	AGOT - Dynamic Aesthetics by Hades & Fred
+81	0	3800801361	AGOT - Founder's Seats
+82	1	2261468688	Clear Notifications
+83	1	3340494852	Grant Cadet Branch
+84	1	3676293022	Expanded Court Position - Search and Recruit
+85	0	2220397689	No Duchy Limit
+86	1	3439278803	Gift More GOLD
+87	1	3425828418	Better Population Control
+88	1	3422767115	AGOT Music++
+89	1	2264428428	Debug Toggle (Less Invasive)
+90	0	3810928988	DICM 1.19.0.6
+91	0	2996152542	Divine Intervention AGOT Cheat Menu
+92	0	3768208851	Understated Elegance In Graphics (AGOT Edition)

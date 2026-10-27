@@ -41,9 +41,22 @@ class P
         Shot(w, Path.Combine(outDir, "main_dark.png"));
         w.SetTheme(Look.ILight, false); Pump(100); Shot(w, Path.Combine(outDir, "main_light.png"));
         w.SetTheme(Look.IHalloween, false); Pump(100); Shot(w, Path.Combine(outDir, "main_halloween.png"));
+        w.SetTheme(Look.IAgot, false); Pump(100); Shot(w, Path.Combine(outDir, "main_agot.png"));
+        { var task = w.AdvancedMenu(); Pump(300); if (PopupMenu.Last != null) { Shot(PopupMenu.Last, Path.Combine(outDir, "advanced_agot.png")); PopupMenu.Last.Close(); } Pump(100); }
         w.SetTheme(Look.IDark, false); Pump(100);
+        { var task = w.AdvancedMenu(); Pump(300); if (PopupMenu.Last != null) { Shot(PopupMenu.Last, Path.Combine(outDir, "advanced_dark.png")); PopupMenu.Last.Close(); } Pump(100); }
         if (a.Contains("tour")) { var t = TourWindow.Open(w); t.Width = 900; t.Height = 600; Pump(200); Shot(t, Path.Combine(outDir, "tour.png")); t.GoTo(2); Shot(t, Path.Combine(outDir, "tour3.png")); t.Close(); }
         if (a.Contains("conf")) { ConflictsWindow.Open(w); Pump(800); var cw = w.SubWindows.OfType<ConflictsWindow>().First(); Shot(cw, Path.Combine(outDir, "conflicts.png")); cw.Close(); }
+        if (a.Contains("mini"))
+        {
+            ChangelogWindow.Open(w); Pump(300); var cw = w.SubWindows.OfType<ChangelogWindow>().First();
+            foreach (var (ww, hh) in new[] { (0, 0), (1, 1), (0, 300), (300, 0), (100, 20), (780, 560) })
+            {
+                try { cw.MinWidth = 0; cw.MinHeight = 0; cw.Width = ww; cw.Height = hh; Pump(120); var b = cw.CaptureRenderedFrame(); Console.WriteLine($"size {ww}x{hh}: ok {(b != null)}"); }
+                catch (Exception e) { Console.WriteLine($"size {ww}x{hh}: EXCEPTION {e}"); }
+            }
+            cw.Close();
+        }
         if (a.Contains("log")) { ChangelogWindow.Open(w); Pump(300); var cw = w.SubWindows.OfType<ChangelogWindow>().First(); Shot(cw, Path.Combine(outDir, "changelog.png")); cw.Close(); }
         if (a.Contains("rep")) { ReportWindow.Open(w, 2); Pump(500); var cw = w.SubWindows.OfType<ReportWindow>().First(); Shot(cw, Path.Combine(outDir, "scripttime.png")); cw.Close(); }
         if (a.Contains("anim"))

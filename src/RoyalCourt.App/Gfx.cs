@@ -162,19 +162,29 @@ public static class Gfx
     }
 
     public const int PickW = 80, PickH = 54;
-    /// <summary>1 = the pumpkin (Halloween), 2 = the day/night switch.</summary>
-    public static int PickerZone(double x, double y, double u) => (y < 25.0 * u && Math.Abs(x - PickW * u / 2.0) < 17.0 * u) ? 1 : 2;
-
-    /// <summary>The theme picker: an upside-down T with the pumpkin on a short stalk above the day/night switch.</summary>
-    public static void Picker(DrawingContext dc, double W, double H, double u, double togT, double hw, int zone, bool down, double sec)
+    const double PumpX = 0.325, AgotX = 0.675;   // the two round icons on top, as fractions of the width
+    /// <summary>1 = the pumpkin (Halloween), 3 = the A Game of Thrones crest, 2 = the day/night switch.</summary>
+    public static int PickerZone(double x, double y, double u)
     {
-        double cx = W / 2, od = 20 * u, oy = 1.5 * u;
-        {   // the stalk that joins the pumpkin to the switch (the stem of the T)
+        double w = PickW * u;
+        if (y >= 25.0 * u) return 2;
+        if (Math.Abs(x - w * PumpX) < 12.0 * u) return 1;
+        if (Math.Abs(x - w * AgotX) < 12.0 * u) return 3;
+        return 2;
+    }
+
+    /// <summary>The theme picker: two round icons (the pumpkin, the A Game of Thrones crest) on short stalks above the day/night switch.</summary>
+    public static void Picker(DrawingContext dc, double W, double H, double u, double togT, double hw, double ag, int zone, bool down, double sec)
+    {
+        double od = 20 * u, oy = 1.5 * u, cxP = W * PumpX, cxA = W * AgotX;
+        {   // the stalks that join the icons to the switch
             Color sc = Lerp(Lerp(Rgb(0xC23B66), Rgb(0x5B4BFF), togT), Rgb(0xFF7A18), hw);
-            dc.DrawRectangle(Br(sc, 200), null, RR(cx - 1.6 * u, oy + od - 1.0 * u, 3.2 * u, 5.5 * u, 1.2 * u));
+            dc.DrawRectangle(Br(sc, 200), null, RR(cxP - 1.6 * u, oy + od - 1.0 * u, 3.2 * u, 5.5 * u, 1.2 * u));
+            Color sa = Lerp(Lerp(Rgb(0xC23B66), Rgb(0x5B4BFF), togT), Rgb(0xB7C5CB), ag);
+            dc.DrawRectangle(Br(sa, 200), null, RR(cxA - 1.6 * u, oy + od - 1.0 * u, 3.2 * u, 5.5 * u, 1.2 * u));
         }
         {
-            double oa = oy + (zone == 1 && down ? 0.8 * u : 0.0);
+            double oa = oy + (zone == 1 && down ? 0.8 * u : 0.0), cx = cxP;
             if (hw > 0.02) Glow(dc, cx, oa + od / 2, od * 1.25, Rgb(0xFF7814), (int)(80.0 * hw * (0.85 + 0.15 * Math.Sin(sec * 7.0))));
             Color top = Lerp(Lerp(Rgb(0xF6EAD4), Rgb(0x2E2442), togT), Rgb(0x582410), hw), bot = Lerp(Lerp(Rgb(0xE2D0B0), Rgb(0x161226), togT), Rgb(0x2A1020), hw);
             dc.DrawEllipse(Lin(cx, oa, cx, oa + od, top, bot), null, new Point(cx, oa + od / 2), od / 2, od / 2);
@@ -183,7 +193,94 @@ public static class Gfx
             dc.DrawEllipse(null, P(rimC, 1.4 * u), new Point(cx, oa + od / 2), od / 2 - 0.7 * u, od / 2 - 0.7 * u);
             Pumpkin(dc, cx, oa + od / 2 + 0.5 * u, od * 0.72, hw, sec, (int)(150 + 105 * hw));
         }
+        {   // the A Game of Thrones crest on its slate-blue disc
+            double oa = oy + (zone == 3 && down ? 0.8 * u : 0.0), cx = cxA;
+            if (ag > 0.02) Glow(dc, cx, oa + od / 2, od * 1.25, Rgb(0x9FC4F0), (int)(70.0 * ag * (0.85 + 0.15 * Math.Sin(sec * 2.3))));
+            Color top = Lerp(Lerp(Rgb(0xF6EAD4), Rgb(0x2E2442), togT), Rgb(0x2C3644), ag), bot = Lerp(Lerp(Rgb(0xE2D0B0), Rgb(0x161226), togT), Rgb(0x141A22), ag);
+            dc.DrawEllipse(Lin(cx, oa, cx, oa + od, top, bot), null, new Point(cx, oa + od / 2), od / 2, od / 2);
+            Color rimC = Lerp(Rgb(0x5A4A7A), Rgb(0xB7C5CB), ag);
+            if (zone == 3) rimC = Look.Mix(rimC, Colors.White, 25);
+            dc.DrawEllipse(null, P(rimC, 1.4 * u), new Point(cx, oa + od / 2), od / 2 - 0.7 * u, od / 2 - 0.7 * u);
+            AgotCrest(dc, cx, oa + od / 2 + 0.6 * u, od * 0.80, Lerp(Rgb(0x8E7FB0), Rgb(0xC9D4DC), ag), (int)(165 + 90 * ag), sec);
+        }
         Switch(dc, 0, 24 * u, W, H - 24 * u, togT, hw, zone == 2, zone == 2 && down, u, sec);
+    }
+
+    // ---------------- A Game of Thrones ----------------
+    /// <summary>The mark of the mod's start screen, redrawn: a three-point crown over a ring. size = its width; (cx, cy) = the middle of the ring.</summary>
+    public static void AgotCrest(DrawingContext dc, double cx, double cy, double size, Color c, int alpha, double sec)
+    {
+        double s = size;
+        var pen = P(c, Math.Max(1.0, s * 0.075), alpha, true);
+        double ry = s * 0.27, rx = s * 0.46, ey = cy + s * 0.14;
+        {   // the ring: pointed at the left and right corners, like a closed eye
+            var g = new StreamGeometry();
+            using (var q = g.Open())
+            {
+                q.BeginFigure(new Point(cx - rx, ey - ry * 0.55), true);
+                q.QuadraticBezierTo(new Point(cx, ey - ry * 1.7), new Point(cx + rx, ey - ry * 0.55));
+                q.QuadraticBezierTo(new Point(cx + rx * 0.9, ey + ry * 1.3), new Point(cx, ey + ry * 1.25));
+                q.QuadraticBezierTo(new Point(cx - rx * 0.9, ey + ry * 1.3), new Point(cx - rx, ey - ry * 0.55));
+                q.EndFigure(true);
+            }
+            dc.DrawGeometry(null, pen, g);
+        }
+        dc.DrawEllipse(null, P(c, Math.Max(0.8, s * 0.05), (int)(alpha * 0.8)), new Point(cx, ey + ry * 0.02), rx * 0.62, ry * 0.62);
+        double cb = cy - s * 0.12;   // base of the crown
+        Poly(dc, Br(c, alpha),
+            new Point(cx - s * 0.25, cb), new Point(cx - s * 0.29, cb - s * 0.26), new Point(cx - s * 0.14, cb - s * 0.15), new Point(cx, cb - s * 0.32),
+            new Point(cx + s * 0.14, cb - s * 0.15), new Point(cx + s * 0.29, cb - s * 0.26), new Point(cx + s * 0.25, cb));
+    }
+
+    /// <summary>The banner of the A Game of Thrones theme: slate cloth with folds, a watermark of the crest, snow drifting past, a castle wall with a few lit windows.</summary>
+    public static void AgotScene(DrawingContext dc, double W, double H, double u, double sec, double artL, double artR)
+    {
+        double bas = H - 2 * u;
+        {   // the cloth: a few long soft folds, then a cold haze along the bottom
+            for (int i = 0; i < 7; i++)
+            {
+                double x0 = Frand((uint)(i + 11)) * W * 1.1 - H, x1 = x0 + H * (0.9 + 0.8 * Frand((uint)(i + 31)));
+                bool lightFold = (i & 1) == 0;
+                dc.DrawLine(P(lightFold ? Rgb(0x6C7C92) : Rgb(0x05070A), (2.5 + 4 * Frand((uint)(i + 51))) * u, lightFold ? 16 : 40), new Point(x0, 0), new Point(x1, H));
+            }
+            var hz = Lin(0, H * 0.35, 0, bas, Color.FromArgb(0, 150, 190, 235), Color.FromArgb(46, 150, 190, 235));
+            dc.DrawRectangle(hz, null, new Rect(0, H * 0.35, W, bas - H * 0.35));
+        }
+        double zoneW = artR - artL;
+        if (zoneW > 110 * u)   // the crest as a pale watermark, breathing slowly
+        {
+            double mx = artL + zoneW * 0.58, my = H * 0.50, sz = 52 * u;
+            AgotCrest(dc, mx, my, sz, Rgb(0x9BA6B8), (int)(58 + 16 * Math.Sin(sec * 0.9)), sec);
+            Txt.Draw(dc, "AGOT", mx - Txt.W("AGOT", 11, true) / 2, my + sz * 0.17, Rgb(0x9BA6B8), 11, true, double.PositiveInfinity, null, (int)(58 + 16 * Math.Sin(sec * 0.9)));
+        }
+        {   // the castle wall: battlements, two towers, windows that flicker
+            var sil = Br(7, 9, 13);
+            double step = 13.0 * u;
+            for (int i = 0; i * step < W + step; i++)
+            {
+                double x = i * step, h0 = (x < artL ? 4.0 : 6.5) * u;
+                dc.DrawRectangle(sil, null, new Rect(x, bas - h0, step * 0.62, h0));
+            }
+            for (int t = 0; t < 4; t++)
+            {
+                double x = W * (0.12 + 0.24 * t) + Frand((uint)(t + 77)) * 40 * u; if (x < artL - 40 * u && t > 0) continue;
+                double tw = 12 * u, th = (15 + 8 * Frand((uint)(t + 91))) * u;
+                dc.DrawRectangle(sil, null, new Rect(x, bas - th, tw, th));
+                Poly(dc, sil, new Point(x - 1.5 * u, bas - th), new Point(x + tw / 2, bas - th - 7 * u), new Point(x + tw + 1.5 * u, bas - th));
+                double fl = 0.65 + 0.35 * Math.Sin(sec * (3.0 + t) + t * 2.1) * Math.Sin(sec * 1.7 + t);
+                dc.DrawRectangle(Br(255, 190, 90, (int)(220 * fl)), null, new Rect(x + tw / 2 - 1.1 * u, bas - th * 0.62, 2.2 * u, 3.6 * u));
+            }
+        }
+        for (int i = 0; i < 34; i++)   // snow
+        {
+            double sp = 5.0 + 9.0 * Frand((uint)(i * 3 + 1)), ph = Frand((uint)(i * 3 + 2)), cyc = H + 8 * u;
+            double pos = (sec * sp * u + ph * cyc) % cyc;
+            double x = Frand((uint)(i * 3)) * W + Math.Sin(sec * 0.7 + i) * 6.0 * u + pos * 0.35, y = pos - 4 * u;
+            x %= W;
+            double tw = 0.6 + 0.4 * Math.Sin(sec * 3.0 + i * 1.3);
+            double rr = (0.7 + 1.2 * Frand((uint)(i * 7 + 5))) * u;
+            dc.DrawEllipse(Br(232, 240, 255, (int)(210 * tw)), null, new Point(x, y), rr, rr);
+        }
     }
 
     // ---------------- the crown ----------------

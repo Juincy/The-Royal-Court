@@ -644,7 +644,7 @@
  "Embers of Empire (known mod)": "Embers of Empire (bilinen mod)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: sayfası yükleme sırasını Embers of Empire, Renovatio, en son bu yama olarak belirtiyor",
  "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam'den {0} modun aboneliğini iptal etmesi istendi. Mod(lar) artık listenizden ve oyun setlerinizden çıkarıldı; dosyaları Steam kendisi siler.",
- "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "Tema: balkabağı Cadılar Bayramı temasını açar, anahtar gündüz ve gece arasında geçiş yapar",
+ "Theme: the pumpkin turns Halloween on, the crest turns A Game of Thrones on, the switch changes between day and night": "Tema: balkabağı Cadılar Bayramı temasını, arma A Game of Thrones temasını açar, anahtar gündüz ve gece arasında geçiş yapar",
  "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+: sayfası RICE, CFP, EPE, Culture Expanded ve Unified UI'dan sonra yüklenmesini, kendi uyumluluk yamalarının ise altında olmasını söylüyor",
  "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "More Bookmarks+ uyumluluk yaması: sayfası More Bookmarks+'tan sonra yüklenmesini söylüyor",
  "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE: RICE + EPE yaması sayfası RICE'ın EPE'den önce yüklendiğini söylüyor",
@@ -817,5 +817,18 @@
  "Load order information: not known (the Workshop page has not been read)": "Yükleme sırası bilgisi: bilinmiyor (Atölye sayfası okunmadı)",
  "Size on disk: {0}": "Diskteki boyut: {0}",
  "{0} on disk": "Diskte {0}",
- "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "Yükleme sırasını değiştirmek için filtreyi, Göster ayarını ve sütun sıralamasını temizleyin (# başlığına tıklayın)."
+ "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "Yükleme sırasını değiştirmek için filtreyi, Göster ayarını ve sütun sıralamasını temizleyin (# başlığına tıklayın).",
+ "{0} mods are on, most suspicious first. Double-click one to keep it on during the tests (this is remembered for the playset), then press Begin.": "{0} mod açık, en şüpheliler başta. Testler sırasında açık kalmasını istediğiniz modu çift tıklayın (bu oynatma listesi için hatırlanır), sonra Başla'ya basın.",
+ "Find a problem": "Sorun bul",
+ "Playset tools": "Oynatma listesi araçları",
+ "Backups and folders": "Yedekler ve klasörler",
+ "Cleaning up": "Temizlik",
+ "Options": "Seçenekler",
+ "Help": "Yardım",
+ "WHAT BISECT FOUND": "BISECT NE BULDU",
+ "On {0} Bisect found: {1}.": "{0} tarihinde Bisect şunu buldu: {1}.",
+ "It is turned off in your playset now.": "Şu anda oynatma listenizde kapalı.",
+ "It is still turned on in your playset.": "Oynatma listenizde hâlâ açık.",
+ "The game's log points at the same mod, so this crash most likely has the same cause.": "Oyunun günlüğü aynı modu gösteriyor, bu yüzden bu çökmenin nedeni büyük olasılıkla aynı.",
+ "The game's log does not point at it, so this crash may have another cause.": "Oyunun günlüğü onu göstermiyor, bu yüzden bu çökmenin nedeni başka olabilir."
 }

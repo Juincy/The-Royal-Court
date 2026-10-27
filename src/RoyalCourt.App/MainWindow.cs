@@ -237,7 +237,7 @@ public partial class MainWindow : Window
         B(bUp, Tr("Up"), Tr("Move the selected mod(s) up in the load order")); B(bDown, Tr("Down"), Tr("Move the selected mod(s) down in the load order"));
         B(bBrowse, Tr("Browse"), Tr("Pick your Crusader Kings III folder")); B(bSaveDir, Tr("Save folder"), Tr("Remember this folder"));
         B(bResync, "", Tr("Rescan the mod folder (use after subscribing to a mod while the app is open)")); B(bLang, LangShort(), Tr("Language"));
-        ToolTip.SetTip(picker, Tr("Theme: the pumpkin turns Halloween on, the switch changes between day and night"));
+        ToolTip.SetTip(picker, Tr("Theme: the pumpkin turns Halloween on, the crest turns A Game of Thrones on, the switch changes between day and night"));
         string[] heads = { "#", "Mod", "Version", "Game Version", "Source", "Type", "Order", "Size", "Notes" };
         for (int i = 0; i < 9; i++) list.Cols[i].Title = Tr(heads[i]);
         banner.Sub = Trf("CK3 MOD MANAGER  ·  v{0}", Env.Version);
@@ -270,19 +270,19 @@ public partial class MainWindow : Window
     public readonly List<Window> SubWindows = new();
 
     // ---------------------------------------------------------------- theme
-    Look? fromTheme; double slideStart = -1; double togFrom, togTo, hwFrom, hwTo;
+    Look? fromTheme; double slideStart = -1; double togFrom, togTo, hwFrom, hwTo, agFrom, agTo;
     const double SlideSec = 0.42;
     public void SetTheme(int id, bool animate = true)
     {
         if (id == Skin.Id && animate) return;
-        if (Skin.Id != Look.IHalloween) lastBase = Skin.Id;
+        if (Skin.Id != Look.IHalloween && Skin.Id != Look.IAgot) lastBase = Skin.Id;
         var from = Skin.Cur;
         Skin.Id = id;
         mm.St.Theme = Skin.Name(id); if (animate) mm.SaveSettingsNow();
         Application.Current!.RequestedThemeVariant = Skin.Dark ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
         RequestedThemeVariant = Skin.Dark ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
-        togFrom = picker.TogT; togTo = id == Look.ILight ? 0 : 1; hwFrom = picker.HwT; hwTo = id == Look.IHalloween ? 1 : 0;
-        if (!animate) { Skin.Repaint(Look.Of(id)); picker.TogT = togTo; picker.HwT = hwTo; ApplyBackground(); return; }
+        togFrom = picker.TogT; togTo = id == Look.ILight ? 0 : 1; hwFrom = picker.HwT; hwTo = id == Look.IHalloween ? 1 : 0; agFrom = picker.AgT; agTo = id == Look.IAgot ? 1 : 0;
+        if (!animate) { Skin.Repaint(Look.Of(id)); picker.TogT = togTo; picker.HwT = hwTo; picker.AgT = agTo; ApplyBackground(); return; }
         if (slideStart < 0) Anim.Hold();
         fromTheme = from; slideStart = Skin.Sec;
         Log.Line("theme change to " + Skin.Name(id));
@@ -292,7 +292,7 @@ public partial class MainWindow : Window
         if (slideStart < 0) return;
         double p = Gfx.Ease((Skin.Sec - slideStart) / SlideSec);
         Skin.Repaint(Look.Between(fromTheme!, Look.Of(Skin.Id), p));
-        picker.TogT = togFrom + (togTo - togFrom) * p; picker.HwT = hwFrom + (hwTo - hwFrom) * p;
+        picker.TogT = togFrom + (togTo - togFrom) * p; picker.HwT = hwFrom + (hwTo - hwFrom) * p; picker.AgT = agFrom + (agTo - agFrom) * p;
         if (p >= 1) { slideStart = -1; Anim.Release(); Skin.Repaint(Look.Of(Skin.Id)); }
     }
     void ApplyBackground() { Background = new SolidColorBrush(Skin.Cur.Bg); }
@@ -303,7 +303,7 @@ public partial class MainWindow : Window
     }
     void OnPick(int zone)
     {
-        int target = zone == 1 ? (Skin.Id == Look.IHalloween ? lastBase : Look.IHalloween) : (Skin.Id == Look.IDark ? Look.ILight : Look.IDark);
+        int target = zone == 1 ? (Skin.Id == Look.IHalloween ? lastBase : Look.IHalloween) : zone == 3 ? (Skin.Id == Look.IAgot ? lastBase : Look.IAgot) : (Skin.Id == Look.IDark ? Look.ILight : Look.IDark);
         SetTheme(target);
     }
 
@@ -450,28 +450,33 @@ public partial class MainWindow : Window
         int r = await PopupMenu.Show(this, Below(bLang), items);
         if (r == 1) await SetUiLanguage("auto"); else if (r >= 2) await SetUiLanguage(Langs[r - 2].Code);
     }
-    async Task AdvancedMenu()
+    public async Task AdvancedMenu()
     {
         var items = new List<MenuDef>
         {
-            new(1, Tr("Health check: is this playset ready to play...")), MenuDef.Separator,
-            new(2, Tr("Game log: which mod causes the errors...")), new(3, Tr("Compatch finder: patches for the mods you use...")),
-            new(4, Tr("Script time: which mod's scripts take the most time...")), new(5, Tr("What changed since I last pressed Play...")), new(6, Tr("Crash helper: why did the game crash...")), new(23, Tr("Bisect: find the mod causing a problem by testing...")), MenuDef.Separator,
-            new(7, Tr("Open playsets folder")), MenuDef.Separator,
-            new(8, Tr("Back up this playset now")), new(9, Tr("Restore this playset from a backup...")), new(10, Tr("Open backups folder")), MenuDef.Separator,
-            new(11, Tr("Compare with another playset...")), new(12, Tr("Game launch options for this playset...")),
+            MenuDef.Title(Tr("Find a problem")),
+            new(1, Tr("Health check: is this playset ready to play...")), new(6, Tr("Crash helper: why did the game crash...")),
+            new(2, Tr("Game log: which mod causes the errors...")), new(23, Tr("Bisect: find the mod causing a problem by testing...")),
+            new(4, Tr("Script time: which mod's scripts take the most time...")), new(5, Tr("What changed since I last pressed Play...")),
+            MenuDef.Title(Tr("Playset tools")),
+            new(3, Tr("Compatch finder: patches for the mods you use...")), new(11, Tr("Compare with another playset...")),
+            new(12, Tr("Game launch options for this playset...")),
         };
         if (mm.St.Hidden.Count > 0) items.Add(new(13, Trf("Show removed mods ({0})", mm.St.Hidden.Count)));
-        items.Add(MenuDef.Separator);
-        items.Add(new(14, Tr("Delete all saves..."))); items.Add(MenuDef.Separator);
+        items.Add(MenuDef.Title(Tr("Backups and folders")));
+        items.Add(new(8, Tr("Back up this playset now"))); items.Add(new(9, Tr("Restore this playset from a backup...")));
+        items.Add(new(10, Tr("Open backups folder"))); items.Add(new(7, Tr("Open playsets folder")));
         items.Add(new(15, Tr("Open saves folder"))); items.Add(new(16, Tr("Open game logs folder")));
-        items.Add(new(17, Tr("Clear the shader cache (the game rebuilds it)..."))); items.Add(new(18, Tr("Show the quick tour again...")));
-        items.Add(MenuDef.Separator);
+        items.Add(MenuDef.Title(Tr("Cleaning up")));
+        items.Add(new(17, Tr("Clear the shader cache (the game rebuilds it)..."))); items.Add(new(14, Tr("Delete all saves...")));
+        items.Add(MenuDef.Title(Tr("Options")));
         items.Add(new(24, Tr("Show the mod pictures in the list"), mm.St.Pictures));
         items.Add(new(19, Tr("Run the health check when I press Play"), mm.St.PlayCheck));
         items.Add(new(20, Tr("Check for updates when the program starts"), mm.St.CheckUpdates));
+        items.Add(MenuDef.Title(Tr("Help")));
         items.Add(new(21, Tr("Report a sort problem (copy details)...")));
         items.Add(new(22, Tr("Open diagnostics log (for bug reports)")));
+        items.Add(new(18, Tr("Show the quick tour again...")));
         int r = await PopupMenu.Show(this, Below(bAdv), items);
         switch (r)
         {
@@ -602,7 +607,7 @@ public partial class MainWindow : Window
         if (id < 0) id = (Application.Current?.PlatformSettings?.GetColorValues().ThemeVariant ?? PlatformThemeVariant.Dark) == PlatformThemeVariant.Light ? Look.ILight : Look.IDark;
         lastBase = id == Look.ILight ? Look.ILight : Look.IDark;
         Skin.Id = id; Skin.Cur = Look.Of(id);
-        picker.TogT = id == Look.ILight ? 0 : 1; picker.HwT = id == Look.IHalloween ? 1 : 0;
+        picker.TogT = id == Look.ILight ? 0 : 1; picker.HwT = id == Look.IHalloween ? 1 : 0; picker.AgT = id == Look.IAgot ? 1 : 0;
         Application.Current!.RequestedThemeVariant = Skin.Dark ? Avalonia.Styling.ThemeVariant.Dark : Avalonia.Styling.ThemeVariant.Light;
         RequestedThemeVariant = Application.Current.RequestedThemeVariant;
         ApplyBackground();

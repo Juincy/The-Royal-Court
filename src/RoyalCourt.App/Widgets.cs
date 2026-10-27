@@ -103,9 +103,11 @@ public sealed class RcEdit : TextBox
     }
 }
 
-public sealed record MenuDef(int Id, string Text, bool Check = false, bool Enabled = true, bool Sep = false)
+public sealed record MenuDef(int Id, string Text, bool Check = false, bool Enabled = true, bool Sep = false, bool Header = false)
 {
     public static MenuDef Separator => new(0, "", false, false, true);
+    /// <summary>A small gold section title; it cannot be clicked.</summary>
+    public static MenuDef Title(string text) => new(0, text, false, false, false, true);
 }
 
 /// <summary>A pop-up menu drawn in the theme (the system menu would stay white). Returns the id picked, or 0.</summary>
@@ -114,14 +116,16 @@ public sealed class PopupMenu : Control
     readonly List<MenuDef> items; int hot = -1; readonly double width;
     readonly TaskCompletionSource<int> tcs = new();
     Window? win;
+    /// <summary>The most recent menu window (the screenshot tool photographs it).</summary>
+    public static Window? Last;
     PopupMenu(List<MenuDef> it, double minW)
     {
         items = it;
         double w = minW;
-        foreach (var d in it) if (!d.Sep) w = Math.Max(w, Txt.W(d.Text) + 52);
+        foreach (var d in it) if (!d.Sep) w = Math.Max(w, Txt.W(d.Text) + (d.Header ? 30 : 52));
         width = w;
     }
-    double ItemH(MenuDef d) => d.Sep ? 9 : 27;
+    double ItemH(MenuDef d) => d.Sep ? 9 : d.Header ? 26 : 27;
     protected override Size MeasureOverride(Size s) => new(width, items.Sum(ItemH) + 8);
     public static Task<int> Show(Window owner, PixelPoint at, List<MenuDef> items, int minWidth = 0)
     {
@@ -132,7 +136,7 @@ public sealed class PopupMenu : Control
             SystemDecorations = SystemDecorations.None, ShowInTaskbar = false, Topmost = true, CanResize = false, SizeToContent = SizeToContent.WidthAndHeight,
             WindowStartupLocation = WindowStartupLocation.Manual, Background = new SolidColorBrush(Skin.Dark ? t.Banner : t.List), Content = m,
         };
-        m.win = w;
+        m.win = w; Last = w;
         var scr = owner.Screens.ScreenFromPoint(at) ?? owner.Screens.Primary;
         double sc = owner.RenderScaling;
         m.Measure(Size.Infinity);
@@ -159,9 +163,9 @@ public sealed class PopupMenu : Control
         for (int i = 0; i < items.Count; i++) { double h = ItemH(items[i]); if (y >= a && y < a + h) return i; a += h; }
         return -1;
     }
-    protected override void OnPointerMoved(PointerEventArgs e) { int i = At(e.GetPosition(this).Y); if (i >= 0 && (items[i].Sep || !items[i].Enabled)) i = -1; if (i != hot) { hot = i; InvalidateVisual(); } }
+    protected override void OnPointerMoved(PointerEventArgs e) { int i = At(e.GetPosition(this).Y); if (i >= 0 && (items[i].Sep || items[i].Header || !items[i].Enabled)) i = -1; if (i != hot) { hot = i; InvalidateVisual(); } }
     protected override void OnPointerExited(PointerEventArgs e) { hot = -1; InvalidateVisual(); }
-    protected override void OnPointerReleased(PointerReleasedEventArgs e) { int i = At(e.GetPosition(this).Y); if (i >= 0 && !items[i].Sep && items[i].Enabled) Close(items[i].Id); }
+    protected override void OnPointerReleased(PointerReleasedEventArgs e) { int i = At(e.GetPosition(this).Y); if (i >= 0 && !items[i].Sep && !items[i].Header && items[i].Enabled) Close(items[i].Id); }
     public override void Render(DrawingContext dc)
     {
         var t = Skin.Cur; double w = Bounds.Width, y = 4;
@@ -171,6 +175,7 @@ public sealed class PopupMenu : Control
         {
             var d = items[i]; double h = ItemH(d);
             if (d.Sep) { dc.DrawLine(Gfx.P(t.Border, 1), new Point(10, y + h / 2), new Point(w - 10, y + h / 2)); y += h; continue; }
+            if (d.Header) { Txt.Draw(dc, d.Text.ToUpperInvariant(), 14, y + h / 2 + 3, t.Gold, Txt.Size - 2, true, Math.Max(4, w - 28)); y += h; continue; }
             if (i == hot) dc.DrawRectangle(Gfx.Br(t.BtnHot), Gfx.P(t.Gold, 1, 160), Gfx.RR(y > 0 ? 3.5 : 3.5, y + 1.5, w - 7, h - 3, 5));
             if (d.Check)
             {
@@ -195,6 +200,10 @@ public class RcWindow : Window
         Apply();
         Skin.Changed += Apply;
         Closed += (_, _) => Skin.Changed -= Apply;
+        // a trace for the diagnostics log: if a window ever takes the program down, the last lines say what it was doing
+        PropertyChanged += (_, e) => { if (e.Property == WindowStateProperty) RoyalCourt.Core.Log.Line("window \"" + Title + "\": " + WindowState); };
+        Opened += (_, _) => RoyalCourt.Core.Log.Line("window opened: " + Title);
+        Closed += (_, _) => RoyalCourt.Core.Log.Line("window closed: " + Title);
         FontFamily = new FontFamily(Txt.Family); FontSize = Txt.Size;
     }
     void Apply() { Background = new SolidColorBrush(Skin.Cur.Bg); RequestedThemeVariant = Skin.Dark ? ThemeVariant.Dark : ThemeVariant.Light; }

@@ -76,3 +76,50 @@ public class CompatchTableTests
         Assert.DoesNotContain("AGOT Patch Architecture Expanded", got);
     }
 }
+
+public class BisectKeepTests
+{
+    [Fact]
+    public void KeepOnListIsRememberedPerPlayset()
+    {
+        using var e = new TestEnv();
+        e.W("ck3/mod/ugc_1.mod", "name=\"Alpha\"\n"); e.W("ck3/mod/ugc_2.mod", "name=\"Beta\"\n");
+        var mm = new ModManager { St = new Settings { Ck3Dir = e.Ck3 }, DocRoots = new List<string>() };
+        mm.Reload();
+        foreach (var m in mm.Active()!.Mods) m.Enabled = true;
+        mm.SetBisectKeep("ugc_1.mod", true);
+        var ev = new BisectEvidence();
+        var mods = mm.BisectMods(BisectMode.Errors, ev, out _);
+        Assert.True(mods.First(m => m.Id == "ugc_1.mod").Keep); Assert.False(mods.First(m => m.Id == "ugc_2.mod").Keep);
+        Assert.Contains("ugc_1.mod", Settings.Load().BisectKeep[mm.Active()!.Name]);       // saved to settings.json
+        mm.SetBisectKeep("ugc_1.mod", false);
+        Assert.False(Settings.Load().BisectKeep.ContainsKey(mm.Active()!.Name));            // an empty list is not kept
+        Assert.False(mm.BisectMods(BisectMode.Errors, ev, out _).First(m => m.Id == "ugc_1.mod").Keep);
+    }
+
+    [Fact]
+    public void KeepOnListRoundTripsThroughSettings()
+    {
+        using var e = new TestEnv();
+        var st = new Settings(); st.BisectKeep["Main"] = new SortedSet<string> { "a.mod", "b.mod" };
+        Assert.True(st.Save());
+        var back = Settings.Load();
+        Assert.Equal(new[] { "a.mod", "b.mod" }, back.BisectKeep["Main"].ToArray());
+    }
+
+    [Fact]
+    public void BisectResultIsSavedAndShownInTheCrashHelper()
+    {
+        using var e = new TestEnv();
+        e.W("ck3/mod/ugc_1.mod", "name=\"Alpha\"\n"); e.W("ck3/mod/ugc_2.mod", "name=\"Beta\"\n");
+        var mm = new ModManager { St = new Settings { Ck3Dir = e.Ck3 }, DocRoots = new List<string>() };
+        mm.Reload();
+        foreach (var m in mm.Active()!.Mods) m.Enabled = true;
+        mm.SaveBisectResult(new[] { "ugc_2.mod" }, new[] { "Beta" }, false);
+        var back = Settings.Load().BisectLast[mm.Active()!.Name];
+        Assert.Equal(new[] { "ugc_2.mod" }, back.Ids.ToArray()); Assert.Equal("Beta", back.Names[0]); Assert.False(back.TurnedOff); Assert.True(back.When > 1700000000);
+        var st = new Settings(); st.BisectLast["Main"] = new Settings.BisectFind { Ids = { "a.mod" }, Names = { "A" }, When = 1790000000, TurnedOff = true };
+        Assert.True(st.Save());
+        var rt = Settings.Load().BisectLast["Main"]; Assert.True(rt.TurnedOff && rt.Ids[0] == "a.mod" && rt.When == 1790000000);
+    }
+}

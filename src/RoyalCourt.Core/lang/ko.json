@@ -644,7 +644,7 @@
  "Embers of Empire (known mod)": "Embers of Empire (알려진 모드)",
  "EoE + Renovatio: its page lists the load order Embers of Empire, Renovatio, then this patch last": "EoE + Renovatio: 페이지에 나온 로드 순서는 Embers of Empire, Renovatio, 그다음 이 패치가 마지막이에요",
  "Asked Steam to unsubscribe from {0} mod(s). They are out of your list and playsets now; Steam deletes the files itself.": "Steam에 모드 {0}개의 구독 취소를 요청했습니다. 이제 목록과 플레이셋에서 제거되었으며, 파일은 Steam이 직접 삭제합니다.",
- "Theme: the pumpkin turns Halloween on, the switch changes between day and night": "테마: 호박은 할로윈 테마를 켜고, 스위치는 낮과 밤을 전환합니다",
+ "Theme: the pumpkin turns Halloween on, the crest turns A Game of Thrones on, the switch changes between day and night": "테마: 호박은 할로윈, 문장은 A Game of Thrones 테마를 켜고, 스위치는 낮과 밤을 전환합니다",
  "More Bookmarks+: its page says to load it after RICE, CFP, EPE, Culture Expanded and Unified UI, with its own compatches below it": "More Bookmarks+: 페이지에 따르면 RICE, CFP, EPE, Culture Expanded, Unified UI 뒤에 로드하고, 전용 호환 패치는 그 아래에 둡니다",
  "A More Bookmarks+ compatch: its page says to load it after More Bookmarks+": "More Bookmarks+ 호환 패치: 페이지에 따르면 More Bookmarks+ 뒤에 로드합니다",
  "RICE: its RICE + EPE patch page says RICE loads before EPE": "RICE: RICE + EPE 패치 페이지에 따르면 RICE는 EPE보다 먼저 로드됩니다",
@@ -817,5 +817,18 @@
  "Load order information: not known (the Workshop page has not been read)": "로드 순서 정보: 알 수 없음 (워크숍 페이지를 읽지 않음)",
  "Size on disk: {0}": "디스크 크기: {0}",
  "{0} on disk": "디스크 {0}",
- "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "로드 순서를 바꾸려면 필터, 표시 설정, 열 정렬(# 머리글 클릭)을 해제하세요."
+ "Clear the filter, the Show setting and column sorting (click the # header) to change load order.": "로드 순서를 바꾸려면 필터, 표시 설정, 열 정렬(# 머리글 클릭)을 해제하세요.",
+ "{0} mods are on, most suspicious first. Double-click one to keep it on during the tests (this is remembered for the playset), then press Begin.": "{0}개의 모드가 켜져 있습니다 (의심스러운 순). 테스트 중 켜 두려면 모드를 더블클릭하세요 (플레이셋별로 기억됩니다). 그런 다음 시작을 누르세요.",
+ "Find a problem": "문제 찾기",
+ "Playset tools": "플레이셋 도구",
+ "Backups and folders": "백업 및 폴더",
+ "Cleaning up": "정리",
+ "Options": "옵션",
+ "Help": "도움말",
+ "WHAT BISECT FOUND": "BISECT가 찾은 것",
+ "On {0} Bisect found: {1}.": "{0}에 Bisect가 찾은 모드: {1}.",
+ "It is turned off in your playset now.": "지금은 플레이셋에서 꺼져 있습니다.",
+ "It is still turned on in your playset.": "아직 플레이셋에서 켜져 있습니다.",
+ "The game's log points at the same mod, so this crash most likely has the same cause.": "게임 로그도 같은 모드를 가리키므로 이 충돌도 같은 원인일 가능성이 높습니다.",
+ "The game's log does not point at it, so this crash may have another cause.": "게임 로그는 그 모드를 가리키지 않으므로 이 충돌은 다른 원인일 수 있습니다."
 }

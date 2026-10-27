@@ -34,6 +34,24 @@ public static class Names
         return false;
     }
 
+    /// <summary>Typographic punctuation, symbols, spaces and emoji ("–", "—", "’", "“", NBSP, "•") separate words like ASCII punctuation does; letters of every script stay.</summary>
+    static bool IsUnicodeSeparator(char c)
+    {
+        switch (char.GetUnicodeCategory(c))
+        {
+            case System.Globalization.UnicodeCategory.ConnectorPunctuation: case System.Globalization.UnicodeCategory.DashPunctuation:
+            case System.Globalization.UnicodeCategory.OpenPunctuation: case System.Globalization.UnicodeCategory.ClosePunctuation:
+            case System.Globalization.UnicodeCategory.InitialQuotePunctuation: case System.Globalization.UnicodeCategory.FinalQuotePunctuation:
+            case System.Globalization.UnicodeCategory.OtherPunctuation: case System.Globalization.UnicodeCategory.MathSymbol:
+            case System.Globalization.UnicodeCategory.CurrencySymbol: case System.Globalization.UnicodeCategory.ModifierSymbol:
+            case System.Globalization.UnicodeCategory.OtherSymbol: case System.Globalization.UnicodeCategory.SpaceSeparator:
+            case System.Globalization.UnicodeCategory.LineSeparator: case System.Globalization.UnicodeCategory.ParagraphSeparator:
+            case System.Globalization.UnicodeCategory.Control: case System.Globalization.UnicodeCategory.Format: case System.Globalization.UnicodeCategory.Surrogate:
+                return true;
+            default: return false;
+        }
+    }
+
     /// <summary>Mod names as people write them differ ("Rise and Fall 1.17", "Rise &amp; Fall [1.17]"): lower case, "&amp;" -> "and", no brackets, punctuation as spaces, trailing version numbers removed.</summary>
     public static string Norm(string input)
     {
@@ -48,7 +66,7 @@ public static class Names
             if (c == '+') { t.Append(" plus "); continue; }
             char l = (c >= 'A' && c <= 'Z') ? (char)(c + 32) : c;
             if (l >= 0x80) l = char.ToLowerInvariant(l);
-            t.Append(((l >= 'a' && l <= 'z') || (l >= '0' && l <= '9') || l >= 0x80) ? l : (l == '.' ? '.' : ' '));
+            t.Append(((l >= 'a' && l <= 'z') || (l >= '0' && l <= '9') || (l >= 0x80 && !IsUnicodeSeparator(l))) ? l : (l == '.' ? '.' : ' '));
         }
         var w = new List<string>();
         foreach (var part in t.ToString().Split(' ', StringSplitOptions.RemoveEmptyEntries))
