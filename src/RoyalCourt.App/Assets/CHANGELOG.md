@@ -4,6 +4,9 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+- Nothing yet.
+
+## [0.27.0] - 2026-10-27
 - **Bisect remembers your "stays on" mods**: the mods you double-click to keep on during the tests are now saved for each playset, so you do not have to pick them again the next time. They follow a playset rename and are dropped when the playset or the mod is removed.
 - **Three more load orders and a warning** from AGOT search pages 16 and 17: AGOT - The Aelori (below AGOT), the AGOT - Rise and Fall Compatibility Patch and its French translation (below AGOT), and the health check now warns about More Traditions v2 + AGoT with More Traditions v2 (the page says it replaces it). Workshop ledger: 19 more pages read; Steam blocked again on the next page.
 - **More load orders from the Workshop**: Multiplayer Stability Improved, AGOT Cría de Dragones, AGOT House Vaelaryen, Divine Intervention AGOT Cheat Menu, AGOT More Personality Depth, AGOT - Open-Minded Kingsguard, the Blood Mages family (Blood Mages - AGOT Religions, Blood Mages - Vanilla Religions, Dracul) and several AGOT compatches. New known conflicts: the two Blood Mages religion companions, Vaelaryen with Valyrian Namelists Expanded, Tea Culture with AGOT, and AGOT More Personality Depth with the main More Personality Depth.
