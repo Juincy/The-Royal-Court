@@ -4,6 +4,9 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+- Nothing yet.
+
+## [0.27.1] - 2026-10-27
 - Added: load orders from 11 more Workshop pages (Theresia's Administrative Overhaul, AGOT County Expansion, AGOT Battlefield Duel 1.19, Ultimate Dynasty Tree, the Dominant Genes add-ons, Extinct Houses and others) and a warning for Theresia's Administrative Overhaul with AGOT.
 - Fixed: on a small or heavily scaled screen the main window could be wider than the screen. Its minimum width now never exceeds the screen.
 - Fixed: the Changelog closed the whole program as soon as you clicked a version or category to open it. Opening a branch selected it again, which opened it again, without end, until Windows ended the program. This was the real cause of the Changelog crash (minimising was never the trigger).
