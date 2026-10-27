@@ -53,5 +53,5 @@ jobs:
           VER: ${{ steps.pkg.outputs.version }}
         run: |
           if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "v$VER" != "$GITHUB_REF_NAME" ]; then echo "Tag $GITHUB_REF_NAME does not match version $VER"; exit 1; fi
-          if gh release view "v$VER" >/dev/null 2>&1; then echo "Release v$VER already exists - nothing to do"; exit 1; fi
+          if gh release view "v$VER" >/dev/null 2>&1; then echo "Release v$VER already exists - nothing to do"; exit 0; fi
           gh release create "v$VER" dist/* --draft --target "$GITHUB_SHA" --title "The Royal Court v$VER" --notes-file notes.md
