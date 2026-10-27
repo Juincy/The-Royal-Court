@@ -58,7 +58,7 @@ public partial class MainWindow : Window
     readonly RcCombo combo = new();
     readonly RcButton bNew = new(), bDup = new(), bRen = new(), bDel = new(), bExport = new(), bImport = new(), bPlay = new();
     readonly RcEdit filter = new(), dir = new();
-    readonly RcButton bAllOn = new(), bAllOff = new(), bConflicts = new(), bSort = new(), bUndo = new(), bUp = new(), bDown = new();
+    readonly RcButton bShow = new(), bAllOn = new(), bAllOff = new(), bConflicts = new(), bSort = new(), bUndo = new(), bUp = new(), bDown = new();
     readonly RcButton bBrowse = new(), bSaveDir = new();
     public readonly RcList list = new();
     int lastBase = Look.IDark;
@@ -92,14 +92,14 @@ public partial class MainWindow : Window
         G(bResync, "↻", 36, true); bResync.Label = ""; G(bLang, "\U0001F310", 76, true); G(bUpd, "⬆", 104, true); G(bAdv, "⚙", 116, true); G(bLog, "☰", 126, true);
         Add(bResync, bLang, bUpd, bAdv, bLog, picker);
         G(bNew, "+", 76); G(bDup, "❐", 110); G(bRen, "✎", 98); G(bDel, "✕", 90); G(bExport, "⇧", 96); G(bImport, "⇩", 96); G(bPlay, "▶", 140, false, true);
-        G(bAllOn, "☑", 140); G(bAllOff, "☐", 146); G(bConflicts, "⚔", 120); G(bSort, "⇅", 124); G(bUndo, "↶", 112); G(bUp, "▲", 80); G(bDown, "▼", 90);
+        G(bShow, "▾", 96); G(bAllOn, "☑", 140); G(bAllOff, "☐", 146); G(bConflicts, "⚔", 120); G(bSort, "⇅", 124); G(bUndo, "↶", 112); G(bUp, "▲", 80); G(bDown, "▼", 90);
         G(bBrowse, "…", 110); G(bSaveDir, "✓", 120);
-        Add(l1, combo, bNew, bDup, bRen, bDel, bExport, bImport, bPlay, l2, filter, bAllOn, bAllOff, bConflicts, bSort, bUndo, lCount, bUp, bDown, list, lStatus, gameVer, l3, dir, bBrowse, bSaveDir);
+        Add(l1, combo, bNew, bDup, bRen, bDel, bExport, bImport, bPlay, l2, filter, bShow, bAllOn, bAllOff, bConflicts, bSort, bUndo, lCount, bUp, bDown, list, lStatus, gameVer, l3, dir, bBrowse, bSaveDir);
         bUndo.IsEnabled = false;
-        string[] heads = { "#", "Mod", "Version", "Game Version", "Source", "Type", "Notes" };
-        double[] widths = { 64, 400, 100, 110, 90, 90, 280 };
-        for (int i = 0; i < 7; i++) list.Cols.Add(new RcColumn { Title = heads[i], W = widths[i], Min = 30 });
-        list.Cols[0].Sortable = true;
+        string[] heads = { "#", "Mod", "Version", "Game Version", "Source", "Type", "Order", "Size", "Notes" };
+        double[] widths = { 64, 400, 100, 110, 90, 90, 74, 76, 280 };
+        for (int i = 0; i < 9; i++) list.Cols.Add(new RcColumn { Title = heads[i], W = widths[i], Min = 30 });
+        list.Cols[0].Sortable = true; list.TickCol = 8;
         list.AllowDrag = true;
         list.Cell = (r, c) => r < mm.Rows.Count ? CellText(mm.Rows[r], c) : "";
         list.RowKind = r => r < mm.Rows.Count ? (mm.Rows[r].Pending ? 2 : mm.Rows[r].Enabled ? 0 : 1) : 0;
@@ -108,7 +108,8 @@ public partial class MainWindow : Window
         {
             if (r >= mm.Rows.Count) return null;
             var row = mm.Rows[r]; var t = Skin.Cur;
-            if (c == 6 && row.NoteSev > 0) return row.NoteSev == 2 ? t.Bad : row.NoteSev == 1 ? t.Warn : t.Ok;
+            if (c == 6 && row.Order > 0) return row.Order == 2 ? t.Ok : t.Muted;
+            if (c == 8 && row.NoteSev > 0) return row.NoteSev == 2 ? t.Bad : row.NoteSev == 1 ? t.Warn : t.Ok;
             if (c == 3 && row.VerState == 2) return t.Warn;
             return null;
         };
@@ -119,7 +120,7 @@ public partial class MainWindow : Window
         filter.Width = 230;
         bPlay.Primary = true;
     }
-    static string CellText(ModRow r, int c) => c switch { 0 => r.Num, 1 => r.Name, 2 => r.Version, 3 => r.GameVersion, 4 => r.Source, 5 => r.Type, _ => r.Note };
+    static string CellText(ModRow r, int c) => c switch { 0 => r.Num, 1 => r.Name, 2 => r.Version, 3 => r.GameVersion, 4 => r.Source, 5 => r.Type, 6 => r.Order == 2 ? Tr("Rule") : r.Order == 1 ? Tr("Checked") : "", 7 => r.Size, _ => r.Note };
 
     // ---------------------------------------------------------------- layout
     double BtnW(RcButton b) => b.WantW();
@@ -157,12 +158,13 @@ public partial class MainWindow : Window
         Place(bPlay, Wd - m - wPlay, y, wPlay, rowH);
 
         y += rowH + gap + 2; x = m;
-        double wOn = BtnW(bAllOn), wOff = BtnW(bAllOff), wCf = BtnW(bConflicts), wSort = BtnW(bSort), wUndo = BtnW(bUndo), wDown = BtnW(bDown), wUp = BtnW(bUp);
-        double fixed2 = m * 2 + 30 + gap * 2 + wOn + gap + wOff + gap * 2 + wCf + gap + wSort + gap + wUndo + gap * 2 + wUp + gap + wDown + gap * 2 + 190;
+        double wShow = BtnW(bShow), wOn = BtnW(bAllOn), wOff = BtnW(bAllOff), wCf = BtnW(bConflicts), wSort = BtnW(bSort), wUndo = BtnW(bUndo), wDown = BtnW(bDown), wUp = BtnW(bUp);
+        double fixed2 = m * 2 + 30 + gap * 2 + wShow + gap + wOn + gap + wOff + gap * 2 + wCf + gap + wSort + gap + wUndo + gap * 2 + wUp + gap + wDown + gap * 2 + 280;
         double wFilter = Math.Max(90, Math.Min(170, Wd - fixed2 + 110));
-        needClientW = Math.Max(fixed1 + 110, fixed2 - 190 + 90 + 190);
+        needClientW = Math.Max(fixed1 + 110, fixed2 - 280 + 90 + 280);
         Place(l2, x, y + 1, 24, 28); x += 30;
         Place(filter, x, y + 2, wFilter, rowH - 4); x += wFilter + gap * 2;
+        Place(bShow, x, y, wShow, rowH); x += wShow + gap * 2;
         Place(bAllOn, x, y, wOn, rowH); x += wOn + gap;
         Place(bAllOff, x, y, wOff, rowH); x += wOff + gap * 2;
         Place(bConflicts, x, y, wCf, rowH); x += wCf + gap;
@@ -191,12 +193,12 @@ public partial class MainWindow : Window
     }
     void ResizeCols(double listW)
     {
-        double fixedW = 0; foreach (int c in new[] { 0, 2, 3, 4, 5 }) fixedW += list.Cols[c].W;
+        double fixedW = 0; foreach (int c in new[] { 0, 2, 3, 4, 5, 6, 7 }) fixedW += list.Cols[c].W;
         double notes = 280, w = listW - fixedW - notes - 12;
         if (w < 150) w = 150;
         list.Cols[1].W = w;
         double last = listW - fixedW - w - 12;
-        list.Cols[6].W = last < 120 ? 120 : last;
+        list.Cols[8].W = last < 120 ? 120 : last;
         list.InvalidateVisual();
     }
     void EnsureWide()
@@ -228,6 +230,7 @@ public partial class MainWindow : Window
         B(bImport, Tr("Import"), Tr("Load a Paradox Launcher playset file")); B(bPlay, Tr("Play"), Tr("Start Crusader Kings III with this playset (skips the launcher)"));
         B(bAdv, Tr("Advanced"), Tr("Backups, compare playsets, launch options, saves, updates and the diagnostics log")); B(bLog, Tr("Changelog"), Tr("What changed in each version"));
         B(bUpd, Tr("Updates"), Tr("Check GitHub for a newer version of The Royal Court, and for a newer known-mods list"));
+        B(bShow, Tr("Show"), Tr("Show only some of the mods: turned off, with problems, may be outdated, load order not known, or large"));
         B(bAllOn, Tr("Enable shown"), Tr("Enable every mod currently shown in the list")); B(bAllOff, Tr("Disable shown"), Tr("Disable every mod currently shown in the list"));
         B(bConflicts, Tr("Conflicts"), Tr("Find mods that change the same files or definitions")); B(bSort, Tr("Auto Sort"), Tr("Propose a better load order (you see a preview first)"));
         B(bUndo, Tr("Undo order"), Tr("Go back to the load order from before the last Auto Sort or the last move made from the conflicts window"));
@@ -235,8 +238,8 @@ public partial class MainWindow : Window
         B(bBrowse, Tr("Browse"), Tr("Pick your Crusader Kings III folder")); B(bSaveDir, Tr("Save folder"), Tr("Remember this folder"));
         B(bResync, "", Tr("Rescan the mod folder (use after subscribing to a mod while the app is open)")); B(bLang, LangShort(), Tr("Language"));
         ToolTip.SetTip(picker, Tr("Theme: the pumpkin turns Halloween on, the switch changes between day and night"));
-        string[] heads = { "#", "Mod", "Version", "Game Version", "Source", "Type", "Notes" };
-        for (int i = 0; i < 7; i++) list.Cols[i].Title = Tr(heads[i]);
+        string[] heads = { "#", "Mod", "Version", "Game Version", "Source", "Type", "Order", "Size", "Notes" };
+        for (int i = 0; i < 9; i++) list.Cols[i].Title = Tr(heads[i]);
         banner.Sub = Trf("CK3 MOD MANAGER  ·  v{0}", Env.Version);
         banner.Author = Trf("Author: {0}", "Juincy");
         SetGameVerText();
@@ -322,7 +325,7 @@ public partial class MainWindow : Window
         picker.Pick += OnPick;
         Anim.Frame += SlideStep;
         mm.StatusChanged += s => lStatus.Text = s;
-        mm.CountChanged += () => { lCount.Text = mm.CountText; bUndo.IsEnabled = mm.UndoAvailable; };
+        mm.CountChanged += () => { lCount.Text = mm.CountText; ToolTip.SetTip(lCount, mm.CountText); bUndo.IsEnabled = mm.UndoAvailable; };
         mm.PlaysetsChanged += FillCombo;
         mm.GameVersionChanged += SetGameVerText;
         mm.FolderChanged += () => dir.Text = mm.St.Ck3Dir.Length > 0 ? mm.St.Ck3Dir : mm.EffectiveDir();
@@ -335,6 +338,8 @@ public partial class MainWindow : Window
 
         combo.Changed += i => { if (i >= 0 && i < mm.Playsets.Count) mm.SelectPlayset(i); };
         filter.TextChanged += (_, _) => { if (!populating) mm.SetFilter(filter.Text ?? ""); };
+        bShow.PrimaryIf = () => mm.Quick != ModManager.QAll;
+        bShow.Click += () => Run(ShowMenu);
         bAllOn.Click += () => Do(() => mm.SetShown(true));
         bAllOff.Click += () => Do(() => mm.SetShown(false));
         bNew.Click += () => Run(mm.NewPlayset);
@@ -364,7 +369,7 @@ public partial class MainWindow : Window
         list.CheckChanged += (r, on) => Do(() => { mm.SetEnabled(r, on); list.InvalidateVisual(); });
         list.Activated += r => Run(() => ShowDetails(r));
         list.RowContext += (r, p) => Run(() => ShowContextMenu(r, p));
-        list.DragBlocked += () => { if (mm.OrderLocked) { mm.Say(Tr("Clear the filter and column sorting (click the # header) to change load order.")); return true; } return false; };
+        list.DragBlocked += () => { if (mm.OrderLocked) { mm.Say(Tr("Clear the filter, the Show setting and column sorting (click the # header) to change load order.")); return true; } return false; };
         list.DragMoved += (f, t) => Do(() =>
         {
             if (f < mm.Shown.Count && t < mm.Shown.Count && mm.MoveMod(mm.Shown[f], mm.Shown[t])) { list.SelectOnly(t); }
@@ -405,7 +410,7 @@ public partial class MainWindow : Window
     }
     void MoveSel(bool up)
     {
-        if (mm.OrderLocked) { mm.Say(Tr("Clear the filter and column sorting (click the # header) to change load order.")); return; }
+        if (mm.OrderLocked) { mm.Say(Tr("Clear the filter, the Show setting and column sorting (click the # header) to change load order.")); return; }
         var sel = SelIdx();
         var res = mm.MoveSelection(sel, up);
         if (res.Count > 0) { list.SetSelection(res); list.EnsureVisible(res[0]); }
@@ -413,6 +418,15 @@ public partial class MainWindow : Window
 
     // ---------------------------------------------------------------- menus
     PixelPoint Below(Control c) => c.PointToScreen(new Point(0, c.Bounds.Height));
+    async Task ShowMenu()
+    {
+        var items = new List<MenuDef>();
+        foreach (int q in new[] { ModManager.QAll, ModManager.QOn, ModManager.QOff, ModManager.QIssues, ModManager.QOutdated, ModManager.QUnknownOrder, ModManager.QLarge })
+            items.Add(new(q + 1, ModManager.QuickName(q), mm.Quick == q));
+        int r = await PopupMenu.Show(this, Below(bShow), items);
+        if (r > 0) { mm.SetQuick(r - 1); bShow.InvalidateVisual(); }
+    }
+
     async Task ExportMenu()
     {
         if (mm.Active() == null) return;
@@ -576,7 +590,7 @@ public partial class MainWindow : Window
             }
         }
         if (st.WinMax) WindowState = WindowState.Maximized;
-        if (st.ColW.Count == 7) foreach (int c in new[] { 0, 2, 3, 4, 5 }) if (st.ColW[c] >= 30 && st.ColW[c] <= 800) list.Cols[c].W = st.ColW[c] / sc;
+        if (st.ColW.Count == 9) foreach (int c in new[] { 0, 2, 3, 4, 5, 6, 7 }) if (st.ColW[c] >= 30 && st.ColW[c] <= 800) list.Cols[c].W = st.ColW[c] / sc;
     }
 
     public void Boot()

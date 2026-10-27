@@ -187,6 +187,7 @@ public sealed class RcList : Control
     public bool Checkboxes = true, AllowDrag;
     public int Count;
     public Func<int, int, string> Cell = (_, _) => "";
+    public int TickCol = 6;                               // the column whose "✓" cells are drawn with the symbol font
     public Func<int, int, Color?>? CellFg;                // null colour: the row's own
     public Func<int, int>? RowKind;                        // 0 normal, 1 muted (disabled), 2 faint (pending)
     public Func<int, bool>? IsChecked;
@@ -282,7 +283,7 @@ public sealed class RcList : Control
                         double full = cw - 6, len = Math.Round(full * Math.Min(1.0, fr)); if (fr > 0 && len < 2) len = 2;
                         dc.DrawRectangle(Gfx.Br(Look.Mix(t.Accent, sel ? t.Sel : bg, 45)), null, new Rect(x + 3, y + 3, len, RowH - 6));
                     }
-                    if (c == 6 && s == "✓") Txt.Draw(dc, s, tx, y + RowH / 2, cf, Txt.Size, false, double.PositiveInfinity, Txt.Symbols);
+                    if (c == TickCol && s == "✓") Txt.Draw(dc, s, tx, y + RowH / 2, cf, Txt.Size, false, double.PositiveInfinity, Txt.Symbols);
                     else if (s.Length > 0) Txt.Draw(dc, s, tx, y + RowH / 2, cf, Txt.Size, false, Math.Max(4, cw - (tx - x) - 6));
                     x += cw;
                 }

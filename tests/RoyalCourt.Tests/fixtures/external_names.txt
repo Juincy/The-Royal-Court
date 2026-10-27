@@ -1,0 +1,70 @@
+# Names used in known-mod rules that have no entry of their own and no Workshop page title in the ledger: reviewed by hand (mods that are only referenced, abbreviations, conflict partners). A new name that is not here fails EveryNameInARuleIsKnown: check it for a typo (names are lower case, punctuation as spaces, e.g. "agot the long night"), then add it here.
+agot battlefield duel plus
+agot knighting ceremony
+agot minor house flavour
+agot the long night
+agot valyrian houses
+anime core lib
+architect of estates
+architect of estates estates building expansion
+architecture expanded
+auction off artifact
+classic laws
+elf destiny
+enhanced dynasty viewer
+factions explained
+faster maturity reuploaded
+gg terran s statues of ck3
+historical bloodline
+ibn battutas legacy
+imho
+landmarks of westeros
+more cultural names
+more dragon eggs
+more immersive doctrines
+more religious doctrines
+more tenet slots for a game of thrones
+more tenets
+nobility of westeros
+oriental empires eastern etiquette
+peace deals expanded
+polytheism reborn
+randomize coa
+regional destiny
+rename anyone
+separate name and title ie
+show me your council
+show me your court
+show more traits better ui mod
+show spoken language
+stress bar for all
+submission to authority
+the catholic trinity
+the long night
+title manager
+understated elegance in graphics agot edition
+unique buildings plus
+weight of crown
+valyrian namelists expanded
+better ai education plus infinite wards
+elder kings 2
+kiss of life
+kiss of life revival
+a special world
+agot
+agot brightboar westerosi house flavor
+agot dynamic aesthetics by hades and fred
+beta dynamic trade routes
+cfp
+character ui overhaul
+ck3 unofficial patch
+embers of empire
+epe
+mb plus
+mhg
+realms in exile
+renovatio
+rice
+separate name and title
+separate name and title ue
+seperate name and title ue

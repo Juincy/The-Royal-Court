@@ -5011,6 +5011,676 @@
    "note": "No order stated; patch for Seasons + Bookmarked + F&B",
    "date": "2026-10-23",
    "source": "Workshop page"
+  },
+  {
+   "id": "3422197350",
+   "title": "Ancient Birthright - More Valyrian Faiths and Flavours",
+   "status": "read",
+   "found": "order",
+   "note": "Load after Legacy of Valyria; further down is better",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3762892081",
+   "title": "[RETIRED] TEMPORARY AGOT Additional Models / AGOT+ / LoV Compatch (1.19 Fixed)",
+   "status": "title-only",
+   "found": "",
+   "note": "Seastar LoV collection (3734608236); retired",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "collection"
+  },
+  {
+   "id": "3762893385",
+   "title": "[RETIRED] TEMPORARY Seasons of Valyria - LoV & Seasons REBASED Compatch",
+   "status": "title-only",
+   "found": "",
+   "note": "Seastar LoV collection (3734608236); retired",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "collection"
+  },
+  {
+   "id": "3776616437",
+   "title": "[RETIRED] AGOT Holdings Art - TempLoV Compatch",
+   "status": "title-only",
+   "found": "",
+   "note": "Seastar LoV collection (3734608236); retired",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "collection"
+  },
+  {
+   "id": "3682802751",
+   "title": "Essos Expanded",
+   "status": "read",
+   "found": "order",
+   "note": "Place after AGOT; LoV compatch is 3824201824",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3680914955",
+   "title": "Yingzao Fashi - 3D Models of Medieval Chinese Cities & Special Buildings",
+   "status": "read",
+   "found": "none",
+   "note": "No order; modifies map locators, incompatible with other locator/special building mods (general)",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3533859483",
+   "title": "AGOT COA Switcher",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3670766626",
+   "title": "Valyrian MAA",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800514368",
+   "title": "AGOT - The Knighting Ceremony & LoV Compatch",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated; patch for Knighting Ceremony + LoV",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800513920",
+   "title": "AGOT - Courts of Westeros & LoV Compatch",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated; patch for Courts of Westeros + LoV",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3801011655",
+   "title": "LoV Holding Art Expansion (AI)",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3801630334",
+   "title": "AGOT - MDE + SoHM Dragon Portrait Updated Compatch",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3803263374",
+   "title": "AGOT - Founder's Seats + LoV Compatch",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3803736175",
+   "title": "AGOT - Wyvern Pits",
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, LoV, LoV AGOT compatch, then this",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3824201824",
+   "title": "",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, LoV, LoV compatch, Essos Expanded, then this",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2998570846",
+   "title": "AGOT RP",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3189279652",
+   "title": "AGOT Royal Court Explained [UPDATED]",
+   "status": "read",
+   "found": "none",
+   "note": "Only says put it after its own translation mod; no order against other mods",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3253771883",
+   "title": "AGOT: HOTD House Velaryon",
+   "status": "read",
+   "found": "order",
+   "note": "Place after AGOT+ and Mari's AGOT Makeovers",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3318170788",
+   "title": "AGOT - Dragon Hunter",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3409961483",
+   "title": "Legacy of Valyria - Русификация",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3417307895",
+   "title": "LOTR - Council Experience",
+   "status": "read",
+   "found": "none",
+   "note": "No order stated",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3449749871",
+   "title": "EK2 - Council Experience",
+   "status": "blocked",
+   "found": "",
+   "note": "Error page (rate limit); retry",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3641872466",
+   "title": "AGOT Additional Models and Special Buildings korea",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3669815510",
+   "title": "Multiplayer Stability Improved",
+   "status": "read",
+   "found": "order",
+   "note": "Place at the bottom.",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3672422879",
+   "title": "AGOT : Seasons of Ice and Fire German Translation",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3673884296",
+   "title": "AGOT - Council Experience German Translation",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3702138533",
+   "title": "AGOT: House Founders RUS",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3715624319",
+   "title": "AGOT - A Time for Wolves (Rework in Progress)",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3726135837",
+   "title": "Life of an Adventurer 1.19*",
+   "status": "read",
+   "found": "none",
+   "note": "No order; tested with AGOT, EK2.",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3745948153",
+   "title": "AGOT magicagot korean",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3760088419",
+   "title": "AGOT Dragon Wives German Translation",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3763524273",
+   "title": "AGOT - Cría de Dragones",
+   "status": "read",
+   "found": "order",
+   "note": "Below AGOT.",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3764655163",
+   "title": "AGOT House Vaelaryen",
+   "status": "read",
+   "found": "order",
+   "note": "After Legacy of Valyria; crashes with Valyrian Name Lists Expanded.",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3770610350",
+   "title": "AGOT - Easy Succession Crisis",
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3776905442",
+   "title": "Ritual Possession Redux",
+   "status": "read",
+   "found": "none",
+   "note": "Vague: load after anything touching the possessed trait.",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3780794831",
+   "title": "Tea culture and Innovasion",
+   "status": "read",
+   "found": "conflict",
+   "note": "Not compatible with AGOT/EK2/ATE.",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3786255600",
+   "title": "CK3 AGOT - Kiss of Life Direwolves Compatch",
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, Direwolves, Kiss of Life, this.",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3787609407",
+   "title": "AGOT Iron and Salt | Русификатор",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3789228206",
+   "title": "CK3 AGOT - Kiss of Life (Revival) - Traducción Española",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3789537364",
+   "title": "DireWolves rus",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3789951244",
+   "title": "AGOT: The Knighting Ceremony - Русификатор",
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search (last updated) page 15",
+   "inDatabase": false,
+   "date": "2026-10-26",
+   "source": "AGOT search"
+  },
+  {
+   "id": "3790513663",
+   "title": "Better AI Education + Infinite Wards – AGoT Patch",
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, base mod, this patch.",
+   "inDatabase": true,
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3568213728",
+   "title": "AGOT: Let me designate (Lore-Accurate Viserys)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3785666147",
+   "title": "Targaryen Naming Overhaul - AGOT Submod",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3788147047",
+   "title": "AGOT Free Maesters and Septons",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3788024743",
+   "title": "Better AI Education – AGoT Patch",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3371298408",
+   "title": "Any New Traditions Compatibility AGOT",
+   "inDatabase": true,
+   "status": "read",
+   "found": "order",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3566482707",
+   "title": "AGOT Extra Performance Mode",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3319506260",
+   "title": "Dragonrider Marriage",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3264761979",
+   "title": "Valyrian Namelists Expanded",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3786031135",
+   "title": "AGOT Adventurers Can Slay Dragons",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3469933841",
+   "title": "Blood of Valyria - A AGOT Submod",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3778962226",
+   "title": "AGOT Unlimited - Rise and Fall Compatch",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3641872040",
+   "title": "AGOT expanded Dragons korea",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3381385128",
+   "title": "AGOT Color Picker for Clothes",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3596067875",
+   "title": "Skonester Army Spawner",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3787849806",
+   "title": "AGOT: Fire Made Flesh | Русификатор",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3784395017",
+   "title": "Grant Cadet Branch for AGOT | Русификатор",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3768884568",
+   "title": "Kios Mod Editor",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3785532721",
+   "title": "Veiled Mysteries [RUS]",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3761685838",
+   "title": "Extra Characters for ALL Bookmarks",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3784687731",
+   "title": "自动魔法建筑师（懒人建造·AGOT整合）",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3746838410",
+   "title": "AGOT: Canon Children EZ Mode rus",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3496379669",
+   "title": "COW-AGOT: 3D Models & Bigger Castles rus",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3425255092",
+   "title": "AGOT Additional Models and Special Buildings en Spanish - Español",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3783906650",
+   "title": "MPREG - Male Pregnancy",
+   "inDatabase": false,
+   "status": "title-only",
+   "found": "",
+   "note": "AGOT search page 16",
+   "date": "2026-10-26",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3766504850",
+   "title": "AGOT: Regnal Numbers Fix",
+   "inDatabase": false,
+   "status": "blocked",
+   "found": "",
+   "note": "Steam rate limit page hit here (2026-10-26)",
+   "date": "2026-10-26",
+   "source": "Workshop page"
   }
  ]
 }

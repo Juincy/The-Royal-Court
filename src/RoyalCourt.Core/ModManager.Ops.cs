@@ -81,7 +81,7 @@ public sealed partial class ModManager
         var res = new List<int>();
         var ps = Active();
         if (ps == null) return res;
-        if (OrderLocked) { Say(Tr("Clear the filter and column sorting (click the # header) to change load order.")); return res; }
+        if (OrderLocked) { Say(Tr("Clear the filter, the Show setting and column sorting (click the # header) to change load order.")); return res; }
         if (selPositions.Count == 0) { Say(Tr("Select a mod first.")); return res; }
         var isSel = new bool[ps.Mods.Count];
         foreach (int i in selPositions) if (i >= 0 && i < isSel.Length) isSel[i] = true;
@@ -529,6 +529,8 @@ public sealed partial class ModManager
                 "\n" + (St.Cats.ContainsKey(mi.Id) ? Trf("Type: {0} (set by you)", Cat.Name(CatOfMod(mi.Id))) : Trf("Type: {0} ({1})", Cat.Name(CatOfMod(mi.Id)), Known.GuessCategory(mi).Shown)) +
                 (LockedIds().Contains(mi.Id) ? "\n" + Tr("Position: locked (Auto Sort will not move it)") : "") +
                 (kn >= 0 ? "\n" + Trf("Known mod: {0}", Known.NoteText(KnownDb[kn])) : "") +
+                "\n" + (OrderState(mi) == 2 ? Tr("Load order information: the database has an order rule for this mod") : OrderState(mi) == 1 ? Tr("Load order information: its Workshop page was read and gives no order") : Tr("Load order information: not known (the Workshop page has not been read)")) +
+                (SizeOf(mi.Id) >= 0 ? "\n" + Trf("Size on disk: {0}", ModSizes.Format(SizeOf(mi.Id))) : "") +
                 "\n" + Trf("Dependencies: {0}", Join(mi.Deps)) + "\n" + Trf("Replaces vanilla folders: {0}", Join(mi.ReplacePaths)) + "\n" + Trf("Tags: {0}", Join(mi.Tags)) + "\n";
         }
         if (idx < Issues.Length)

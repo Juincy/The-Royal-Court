@@ -5,7 +5,9 @@ namespace RoyalCourt.Core;
 public sealed class ModRow
 {
     public int Idx;                          // position in the active playset
-    public string Num = "", Name = "", Version = "", GameVersion = "", Source = "", Type = "", Note = "";
+    public string Num = "", Name = "", Version = "", GameVersion = "", Source = "", Type = "", Note = "", Size = "";
+    public int Order;                        // 0 load order not known, 1 its page was read and gives no order, 2 the database has a rule for it
+    public long SizeBytes = -1;              // -1 = not measured
     public int NoteSev;                      // 0 none, 1 warning, 2 problem, 3 checked and fine
     public int VerState;                     // 0 unknown, 1 matches the game, 2 may be outdated
     public bool Enabled, Locked, Pending, Installed;
@@ -225,6 +227,7 @@ public sealed partial class ModManager
         fpNow.Clear();
         KnownDb = Known.Load(out KnownRev);
         Info = Core.Playsets.InfoMap(Mods);
+        StartSizeScan();
         int migrated = Core.Playsets.MigrateLegacyStore(Mods, St);
         Playsets = Core.Playsets.LoadAll(Mods);
         if (St.Hidden.Count > 0) foreach (var pl in Playsets) pl.Mods.RemoveAll(m => St.Hidden.Contains(m.Id));
@@ -354,6 +357,8 @@ public sealed partial class ModManager
         r.Source = inst ? Cat.SourceLabel(mi!.Source) : "";
         r.Note = NoteText(ps, i, out r.NoteSev);
         r.Type = inst ? Cat.Name(CatOfMod(m.Id, out bool ovr)) + (ovr ? " *" : "") : "";
+        r.Order = inst ? OrderState(mi!) : 0;
+        r.SizeBytes = inst ? SizeOf(m.Id) : -1; r.Size = ModSizes.Format(r.SizeBytes);
         return r;
     }
 
@@ -369,6 +374,7 @@ public sealed partial class ModManager
         for (int i = 0; i < ps.Mods.Count; i++)
         {
             if (f.Length > 0 && !Util.Lower(ShownName(ps, i)).Contains(f, StringComparison.Ordinal)) continue;
+            if (Quick != QAll && !QuickMatch(ps, i)) continue;
             order.Add(i);
         }
         if (SortCol >= 1)
@@ -385,6 +391,8 @@ public sealed partial class ModManager
                     3 => inst ? mi!.Supported : "",
                     4 => inst ? Cat.SourceLabel(mi!.Source) : "",
                     5 => inst ? Cat.Name(CatOfMod(m.Id)) : "",
+                    6 => inst ? (OrderState(mi!) == 2 ? "a" : OrderState(mi!) == 1 ? "b" : "") : "",
+                    7 => inst && SizeOf(m.Id) >= 0 ? SizeOf(m.Id).ToString("D20") : "",
                     _ => Analyze.IssueSummary(Issues[i]),
                 };
             }
@@ -394,7 +402,7 @@ public sealed partial class ModManager
             var sorted = keyed.Order(Comparer<(string key, int i)>.Create((x, y) =>
             {
                 if (x.key.Length == 0 != (y.key.Length == 0)) return y.key.Length == 0 ? -1 : 1;
-                if (col == 6)
+                if (col == 8)
                 {
                     int sx = Analyze.IssueSeverity(Issues[x.i]), sy = Analyze.IssueSeverity(Issues[y.i]);
                     if (sx != sy) return asc ? (sx > sy ? -1 : 1) : (sx < sy ? -1 : 1);   // worst first when ascending
@@ -444,6 +452,8 @@ public sealed partial class ModManager
         int bad = 0;
         for (int i = 0; i < ps.Mods.Count && i < Issues.Length; i++) if (ps.Mods[i].Enabled && Analyze.IssueSeverity(Issues[i]) == 2) bad++;
         string t = Trf("{0} of {1} enabled", on, ps.Mods.Count);
+        var es = EnabledSize();
+        if (es.measured > 0) t += "  |  " + Trf("{0} on disk", ModSizes.Format(es.bytes)) + (es.measured < es.enabled ? "+" : "");
         if (bad > 0) t += "  |  " + Trf("{0} with problems", bad);
         if (Scanning) t += "  |  " + Trf("scanning mod files {0}/{1}", ScanDone, ScanTotal);
         else if (confJob != null) t += "  |  " + Tr("calculating conflicts");
@@ -464,7 +474,7 @@ public sealed partial class ModManager
 
     public bool UndoAvailable { get { var ps = Active(); return ps != null && UndoIds.Count > 0 && UndoPlayset == ps.Name; } }
     /// <summary>Load order can only be changed in the playset's own order: no filter, no column sort.</summary>
-    public bool OrderLocked => Filter.Length > 0 || SortCol >= 1;
+    public bool OrderLocked => Filter.Length > 0 || Quick != QAll || SortCol >= 1;
     public string PlaysetName => Active()?.Name ?? "";
     public string[] Namelist(Playset ps) => ps.Mods.Select((_, i) => ShownName(ps, i)).ToArray();
 
