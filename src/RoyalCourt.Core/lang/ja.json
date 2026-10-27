@@ -830,5 +830,9 @@
  "It is turned off in your playset now.": "現在、プレイセットでオフになっています。",
  "It is still turned on in your playset.": "まだプレイセットでオンになっています。",
  "The game's log points at the same mod, so this crash most likely has the same cause.": "ゲームのログも同じMODを指しているため、このクラッシュも同じ原因である可能性が高いです。",
- "The game's log does not point at it, so this crash may have another cause.": "ゲームのログはそのMODを指していないため、このクラッシュは別の原因かもしれません。"
+ "The game's log does not point at it, so this crash may have another cause.": "ゲームのログはそのMODを指していないため、このクラッシュは別の原因かもしれません。",
+ "All files": "すべてのファイル",
+ "Draw with the graphics card (applies after a restart)": "グラフィックカードで描画する(再起動後に反映)",
+ "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "次回の起動からグラフィックカードで描画します。プログラムが勝手に終了する場合は、もう一度オフにしてください。",
+ "Drawing with the processor from the next start (steadier, uses less memory).": "次回の起動からプロセッサで描画します(より安定し、メモリ使用量も少なくなります)。"
 }

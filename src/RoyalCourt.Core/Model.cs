@@ -48,6 +48,7 @@ public sealed class Settings
     public List<int> ColW = new();                                                            // remembered widths of the list columns (0 = automatic)
     public bool Pictures = true;                                                              // show the mod pictures (thumbnail.png from the mod folder) in the list
     public bool PlayCheck = true;                                                             // run the health check when Play is pressed (on by default)
+    public bool Gpu;                                                                          // draw with the graphics card (off by default: software drawing is steady on every PC and lighter on memory)
     public bool CheckUpdates;                                                                 // look for a newer release when the program starts (off by default)
     public string PlayGameVer = "", PlayName = "";                                            // game version and playset name when Play was last pressed
     public long PlayTime;                                                                     // when (seconds since 1970; 0 = never)
@@ -68,6 +69,7 @@ public sealed class Settings
         if (root.Get("seen") is { IsObj: true } sn)
             for (int i = 0; i < sn.Keys.Count; i++) if (sn.Vals[i].IsStr) st.Seen[sn.Keys[i]] = sn.Vals[i].S;
         if (root.Get("checkUpdates") is { IsBool: true } cu) st.CheckUpdates = cu.B;
+        if (root.Get("gpu") is { IsBool: true } gp) st.Gpu = gp.B;
         if (root.Get("playCheck") is { IsBool: true } pc) st.PlayCheck = pc.B;
         if (root.Get("pictures") is { IsBool: true } pi) st.Pictures = pi.B;
         if (root.Get("lastPlay") is { IsObj: true } lp)
@@ -196,6 +198,7 @@ public sealed class Settings
         if (Launch.Count > 0) { var o = J.Obj(); foreach (var kv in Launch) o.Set(kv.Key, J.Str(kv.Value)); root.Set("launch", o); }
         if (Seen.Count > 0) { var o = J.Obj(); foreach (var kv in Seen) o.Set(kv.Key, J.Str(kv.Value)); root.Set("seen", o); }
         if (CheckUpdates) root.Set("checkUpdates", J.Bool(true));
+        if (Gpu) root.Set("gpu", J.Bool(true));
         if (!PlayCheck) root.Set("playCheck", J.Bool(false));
         if (!Pictures) root.Set("pictures", J.Bool(false));
         if (PlayTime > 0)

@@ -830,5 +830,9 @@
  "It is turned off in your playset now.": "Сейчас он выключен в вашем плейсете.",
  "It is still turned on in your playset.": "Он всё ещё включён в вашем плейсете.",
  "The game's log points at the same mod, so this crash most likely has the same cause.": "Журнал игры указывает на тот же мод, так что у этого вылета, скорее всего, та же причина.",
- "The game's log does not point at it, so this crash may have another cause.": "Журнал игры на него не указывает, так что у этого вылета может быть другая причина."
+ "The game's log does not point at it, so this crash may have another cause.": "Журнал игры на него не указывает, так что у этого вылета может быть другая причина.",
+ "All files": "Все файлы",
+ "Draw with the graphics card (applies after a restart)": "Рисовать видеокартой (после перезапуска)",
+ "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "Со следующего запуска рисование будет выполняться видеокартой. Если программа сама закрывается, отключите этот параметр.",
+ "Drawing with the processor from the next start (steadier, uses less memory).": "Со следующего запуска рисование будет выполняться процессором (стабильнее, меньше памяти)."
 }

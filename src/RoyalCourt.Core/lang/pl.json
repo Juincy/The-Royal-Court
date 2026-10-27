@@ -830,5 +830,9 @@
  "It is turned off in your playset now.": "Jest teraz wyłączony w Twoim zestawie.",
  "It is still turned on in your playset.": "Nadal jest włączony w Twoim zestawie.",
  "The game's log points at the same mod, so this crash most likely has the same cause.": "Dziennik gry wskazuje ten sam mod, więc ta awaria najpewniej ma tę samą przyczynę.",
- "The game's log does not point at it, so this crash may have another cause.": "Dziennik gry go nie wskazuje, więc ta awaria może mieć inną przyczynę."
+ "The game's log does not point at it, so this crash may have another cause.": "Dziennik gry go nie wskazuje, więc ta awaria może mieć inną przyczynę.",
+ "All files": "Wszystkie pliki",
+ "Draw with the graphics card (applies after a restart)": "Rysuj kartą graficzną (po ponownym uruchomieniu)",
+ "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "Od następnego uruchomienia program będzie rysować kartą graficzną. Jeśli program sam się zamknie, wyłącz tę opcję.",
+ "Drawing with the processor from the next start (steadier, uses less memory).": "Od następnego uruchomienia program będzie rysować procesorem (stabilniej, mniej pamięci)."
 }

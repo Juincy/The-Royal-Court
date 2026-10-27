@@ -19,7 +19,7 @@ public sealed class Dialogs : IDialogs
     Window Owner()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime l)
-            foreach (var w in l.Windows) if (w.IsActive && w.IsVisible && w is not PopupHost) return w;
+            foreach (var w in l.Windows) if (w.IsActive && w.IsVisible && w is not PopupHost && !PopupMenu.IsMenuWindow(w)) return w;
         return main;
     }
     sealed class PopupHost : Window { }
@@ -73,8 +73,23 @@ public sealed class Dialogs : IDialogs
     }
 
     // ---- files ----
+    /// <summary>The classic Windows dialog first (it works on every PC); null result with handled = false means "use the other picker".</summary>
+    string? Native(bool save, string title, (string, string)[] filters, string? dir, string? name, string? defExt, out bool handled)
+    {
+        handled = false;
+        if (!OperatingSystem.IsWindows()) return null;
+        var win = Owner(); IntPtr h = win.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+        Log.Line("file dialog: opening (" + (save ? "save" : "open") + ", owner " + win.Title + ")");
+        var r = NativeFileDialog.Show(h, save, title, filters, dir, name, defExt, out string path);
+        Log.Line("file dialog: " + r);
+        try { if (win.WindowState != WindowState.Minimized) win.Activate(); } catch { }
+        if (r == NativeFileDialog.Result.Failed) { Log.Line("native file dialog failed, using the built-in picker"); return null; }
+        handled = true;
+        return r == NativeFileDialog.Result.Picked ? path : null;
+    }
     public async Task<string?> PickGameExe()
     {
+        { var n = Native(false, Tr("Choose ck3.exe"), new[] { ("ck3.exe", "ck3.exe"), (Tr("All files"), "*.*") }, null, null, null, out bool done); if (done) return n; }
         var r = await Owner().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = Tr("Choose ck3.exe"), AllowMultiple = false,
@@ -85,6 +100,7 @@ public sealed class Dialogs : IDialogs
     static readonly FilePickerFileType JsonType = new("Playset (*.json)") { Patterns = new[] { "*.json" } };
     public async Task<string?> SaveFile(string suggestedName)
     {
+        { var n = Native(true, Tr("Export"), new[] { ("Playset (*.json)", "*.json") }, null, suggestedName, "json", out bool done); if (done) return n; }
         var r = await Owner().StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = Tr("Export"), SuggestedFileName = suggestedName, DefaultExtension = "json", FileTypeChoices = new[] { JsonType },
@@ -93,11 +109,13 @@ public sealed class Dialogs : IDialogs
     }
     public async Task<string?> OpenFile()
     {
+        { var n = Native(false, Tr("Import"), new[] { ("Playset (*.json)", "*.json"), (Tr("All files"), "*.*") }, null, null, null, out bool done); if (done) return n; }
         var r = await Owner().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions { Title = Tr("Import"), AllowMultiple = false, FileTypeFilter = new[] { JsonType, FilePickerFileTypes.All } });
         return r.Count > 0 ? r[0].TryGetLocalPath() : null;
     }
     public async Task<string?> PickBackup(string initialDir)
     {
+        { var n = Native(false, Tr("Restore this playset from a backup..."), new[] { ("Playset (*.json)", "*.json"), (Tr("All files"), "*.*") }, initialDir, null, null, out bool done); if (done) return n; }
         var sp = Owner().StorageProvider;
         IStorageFolder? start = null;
         try { start = await sp.TryGetFolderFromPathAsync(initialDir); } catch { }

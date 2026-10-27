@@ -79,7 +79,7 @@ public sealed class TourWindow : RcWindow
         if (Current != null) { Current.Activate(); return Current; }
         var w = new TourWindow(main);
         Current = w;
-        w.Show(main);
+        w.ShowSeparate(main);
         return w;
     }
     TourWindow(MainWindow owner) : base(Tr("Quick tour - The Royal Court"), 900, 600, false)

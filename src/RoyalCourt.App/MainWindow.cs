@@ -203,8 +203,11 @@ public partial class MainWindow : Window
     }
     void EnsureWide()
     {
-        MinWidth = Math.Max(1200, needClientW);
-        if (WindowState == WindowState.Normal && Bounds.Width < needClientW) Width = needClientW;
+        double want = Math.Max(1200, needClientW), cap = double.MaxValue;
+        try { var sc = Screens.ScreenFromWindow(this) ?? Screens.Primary; if (sc != null && sc.Scaling > 0) cap = Math.Max(900, sc.WorkingArea.Width / sc.Scaling); } catch { }
+        want = Math.Min(want, cap);      // on a small or heavily scaled screen the window must still fit on it
+        MinWidth = want;
+        if (WindowState == WindowState.Normal && Bounds.Width < want) Width = want;
     }
 
     // ---------------------------------------------------------------- texts / language
@@ -376,6 +379,7 @@ public partial class MainWindow : Window
         });
         list.ColumnsResized += () => ResizeCols(list.Bounds.Width);
 
+        WindowTrace.Attach(this);
         Opened += (_, _) => OnOpened();
         Closing += (_, _) => OnClosing();
         Activated += (_, _) => { Anim.Refresh(); Dispatcher.UIThread.Post(() => mm.OnActivated(Dialogs.Open > 0)); };
@@ -473,6 +477,7 @@ public partial class MainWindow : Window
         items.Add(new(24, Tr("Show the mod pictures in the list"), mm.St.Pictures));
         items.Add(new(19, Tr("Run the health check when I press Play"), mm.St.PlayCheck));
         items.Add(new(20, Tr("Check for updates when the program starts"), mm.St.CheckUpdates));
+        items.Add(new(25, Tr("Draw with the graphics card (applies after a restart)"), mm.St.Gpu));
         items.Add(MenuDef.Title(Tr("Help")));
         items.Add(new(21, Tr("Report a sort problem (copy details)...")));
         items.Add(new(22, Tr("Open diagnostics log (for bug reports)")));
@@ -502,6 +507,7 @@ public partial class MainWindow : Window
             case 24: mm.TogglePictures(); list.IconCol = mm.St.Pictures ? 1 : -1; list.InvalidateVisual(); break;
             case 19: mm.TogglePlayCheck(); break;
             case 20: mm.ToggleAutoUpdate(); break;
+            case 25: mm.ToggleGpu(); break;
             case 21: await mm.SortReport(); break;
             case 22: mm.OpenLog(); break;
         }

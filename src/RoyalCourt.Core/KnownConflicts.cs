@@ -10,6 +10,8 @@ public static class KnownConflicts
     }
     public static readonly Pair[] List =
     {
+        new(new[] { "3343175673" }, new[] { "theresia s administrative overhaul" }, Array.Empty<string>(), new[] { "a game of thrones", "agot" },
+            "\"{0}\" and \"{1}\" should not be used together: the page of \"{0}\" says not to play it with major overhaul mods such as AGOT, as crashes may occur."),
         new(new[] { "3379545519" }, new[] { "barbershop for all characters" }, new[] { "3383099613" }, new[] { "agot barbershop for all characters" },
             "\"{0}\" and \"{1}\" should not be used together: the AGOT version of Barbershop For All Characters is standalone, according to its page."),
         new(new[] { "3810761892" }, new[] { "set in stone court statues" }, Array.Empty<string>(), new[] { "gg terran s statues of ck3" },

@@ -27,7 +27,11 @@ public static class Util
             var buf = new byte[fs.Length];
             int got = 0;
             while (got < buf.Length) { int r = fs.Read(buf, got, buf.Length - got); if (r <= 0) break; got += r; }
-            text = Utf8.GetString(buf, 0, got);
+            // files saved by Notepad or PowerShell are often UTF-16 or have a byte-order mark: read them as what they are
+            if (got >= 2 && buf[0] == 0xFF && buf[1] == 0xFE) text = Encoding.Unicode.GetString(buf, 2, got - 2);
+            else if (got >= 2 && buf[0] == 0xFE && buf[1] == 0xFF) text = Encoding.BigEndianUnicode.GetString(buf, 2, got - 2);
+            else if (got >= 3 && buf[0] == 0xEF && buf[1] == 0xBB && buf[2] == 0xBF) text = Utf8.GetString(buf, 3, got - 3);
+            else text = Utf8.GetString(buf, 0, got);
             return true;
         }
         catch { return false; }
@@ -136,10 +140,28 @@ public static class Util
     public static string DataDir()
     {
         string? e = Environment.GetEnvironmentVariable("RC_DATA_DIR");
-        string d = !string.IsNullOrEmpty(e) ? e : Path.Combine(string.IsNullOrEmpty(Env.AppData) ? "." : Env.AppData, "TheRoyalCourt");
+        if (!string.IsNullOrEmpty(e)) { CreateDirs(e); return e; }
+        if (dataDir != null) return dataDir;
+        string d;
+        if (!string.IsNullOrEmpty(Env.AppData)) d = Path.Combine(Env.AppData, "TheRoyalCourt");
+        else
+        {
+            // Next to the program, no matter which folder it was started from (a shortcut's "Start in" folder used to move the data). An older copy started from another folder keeps working: its folder is used when this one does not exist yet.
+            string? exeDir = null;
+            try { exeDir = Path.GetDirectoryName(Environment.ProcessPath); } catch { }
+            string cwd = Path.GetFullPath(Path.Combine(".", "TheRoyalCourt"));
+            d = cwd;
+            if (!string.IsNullOrEmpty(exeDir) && !(exeDir.EndsWith("dotnet", StringComparison.OrdinalIgnoreCase)))
+            {
+                string cand = Path.Combine(exeDir, "TheRoyalCourt");
+                if (Directory.Exists(cand) || !Directory.Exists(cwd)) d = cand;
+            }
+        }
         CreateDirs(d);
+        dataDir = d;
         return d;
     }
+    static string? dataDir;
     public static string PlaysetsDir() { string d = Path.Combine(DataDir(), "Playsets"); CreateDirs(d); return d; }
     public static string SettingsPath() => Path.Combine(DataDir(), "settings.json");
 

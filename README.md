@@ -60,7 +60,7 @@ Requirements: Windows 10 or 11 (64-bit) and Crusader Kings III. Steam must be ru
 
 ## Add your own load-order rules
 
-Put a `knownmods.json` in the program's data folder (`%APPDATA%\TheRoyalCourt`, next to `settings.json`). Your entries win over the built-in and the shared ones. A broken file is ignored.
+Put a `knownmods.json` in the program's data folder (the `TheRoyalCourt` folder next to the program, beside `settings.json`). Your entries win over the built-in and the shared ones. A broken file is ignored.
 
 ```json
 {

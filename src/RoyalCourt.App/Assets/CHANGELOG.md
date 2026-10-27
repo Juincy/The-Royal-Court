@@ -4,7 +4,20 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
-- Nothing yet.
+- Added: load orders from 11 more Workshop pages (Theresia's Administrative Overhaul, AGOT County Expansion, AGOT Battlefield Duel 1.19, Ultimate Dynasty Tree, the Dominant Genes add-ons, Extinct Houses and others) and a warning for Theresia's Administrative Overhaul with AGOT.
+- Fixed: on a small or heavily scaled screen the main window could be wider than the screen. Its minimum width now never exceeds the screen.
+- Fixed: the Changelog closed the whole program as soon as you clicked a version or category to open it. Opening a branch selected it again, which opened it again, without end, until Windows ended the program. This was the real cause of the Changelog crash (minimising was never the trigger).
+- Changed: the program now keeps a short trace of window events (opening, closing, minimising, focus) in the log, and the self-update download limit is 128 MB, so a larger program file can still update itself.
+- Fixed: Export (Save as a playset file), Import (Open a playset file) and Restore crashed. The menu you clicked was still closing and was being used as the window owning the file dialog, so the dialog lost its owner. Dialogs now never use a closing menu as their owner, and menus finish closing before the next step starts. This also covers every other dialog opened from a menu.
+- Changed: the Changelog, Conflicts, Bisect and Tour windows no longer belong to the main window (they keep their own taskbar buttons), so minimising one no longer hides or restores the others.
+- Changed: Import, Export and Restore use the classic Windows file dialog (the newer one failed on some PCs with "The parameter is incorrect").
+- Fixed: the data folder (settings, playsets, backups) is now always next to the program, not in whichever folder the program was started from. Existing data is found and kept.
+- The diagnostics log now notes when a file dialog opens and what it returned.
+- Changed: the program now draws with the processor by default. Processor drawing never depends on the graphics driver and uses less memory. Advanced > "Draw with the graphics card" turns the card back on (restart needed).
+- Changed: the sun and moon switch and the Halloween and AGOT banners redraw less often while idle (10 times a second, 20 with a banner scene), so the idle load stays small without the graphics card.
+- If Windows ever ends the program, the log now records the error code and the file it happened in.
+- Import also reads playset files saved as UTF-16 (what Notepad and PowerShell can produce), not only UTF-8.
+- Fixed: after a menu closed, the main window could stay behind other windows. It now comes back to the front.
 
 ## [0.27.0] - 2026-10-27
 - **Bisect remembers your "stays on" mods**: the mods you double-click to keep on during the tests are now saved for each playset, so you do not have to pick them again the next time. They follow a playset rename and are dropped when the playset or the mod is removed.

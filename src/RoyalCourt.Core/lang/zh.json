@@ -830,5 +830,9 @@
  "It is turned off in your playset now.": "它现在在你的播放集中已关闭。",
  "It is still turned on in your playset.": "它在你的播放集中仍然开启。",
  "The game's log points at the same mod, so this crash most likely has the same cause.": "游戏日志指向同一个模组,因此这次崩溃很可能是同一原因。",
- "The game's log does not point at it, so this crash may have another cause.": "游戏日志没有指向它,因此这次崩溃可能另有原因。"
+ "The game's log does not point at it, so this crash may have another cause.": "游戏日志没有指向它,因此这次崩溃可能另有原因。",
+ "All files": "所有文件",
+ "Draw with the graphics card (applies after a restart)": "使用显卡绘制(重启后生效)",
+ "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "下次启动起使用显卡绘制。如果程序自行关闭,请再次关闭此选项。",
+ "Drawing with the processor from the next start (steadier, uses less memory).": "下次启动起使用处理器绘制(更稳定,占用内存更少)。"
 }

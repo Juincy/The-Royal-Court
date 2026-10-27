@@ -74,7 +74,7 @@ public sealed class ConflictsWindow : ToolWindow
         var ex = main.SubWindows.OfType<ConflictsWindow>().FirstOrDefault();
         if (ex != null) { if (ex.WindowState == WindowState.Minimized) ex.WindowState = WindowState.Normal; ex.Activate(); return; }
         var w = new ConflictsWindow(main);
-        w.Show(main);
+        w.ShowSeparate(main);
         if (!main.mm.Scanning) main.mm.MaybeScan(true);
         main.mm.EnsureConflicts();
         w.RefreshAll();
@@ -155,7 +155,7 @@ public sealed class ReportWindow : ToolWindow
             ex.Close();
         }
         var w = new ReportWindow(main, kind);
-        w.Show(main);
+        w.ShowSeparate(main);
         w.RefreshAll();
     }
     ReportWindow(MainWindow owner, int kind) : base(owner,
@@ -222,13 +222,14 @@ public sealed class ChangelogWindow : RcWindow
     sealed class Node { public string Text = ""; public Node? Parent; public List<Node> Kids = new(); public bool Open; public int Level; }
     readonly List<Node> roots = new();
     List<Node> vis = new();
+    bool busy;      // opening or closing a branch re-selects the row, which must not toggle it again (that looped until the program died)
     readonly RcList list = new() { Checkboxes = false, ShowHeader = false };
     public static void Open(MainWindow main)
     {
         var ex = main.SubWindows.OfType<ChangelogWindow>().FirstOrDefault();
         if (ex != null) { if (ex.WindowState == WindowState.Minimized) ex.WindowState = WindowState.Normal; ex.Activate(); return; }
         var w = new ChangelogWindow(main);
-        w.Show(main);
+        w.ShowSeparate(main);
     }
     static List<string> Wrap(string t, int width)
     {
@@ -300,7 +301,7 @@ public sealed class ChangelogWindow : RcWindow
         list.Cols.Add(new RcColumn { Title = "", W = 700, Sortable = false });
         list.Cell = (r, _) => r < vis.Count ? Label(vis[r]) : "";
         list.SizeChanged += (_, e) => list.Cols[0].W = Math.Max(100, e.NewSize.Width - 14);
-        list.SelectionChanged += () => { if (list.Sel.Count == 1) { int r = list.Sel.Min; if (r < vis.Count && vis[r].Kids.Count > 0) { vis[r].Open = !vis[r].Open; int keep = r; Rebuild(); list.SelectOnly(keep); } } };
+        list.SelectionChanged += () => { if (busy) return; busy = true; try { if (list.Sel.Count == 1) { int r = list.Sel.Min; if (r < vis.Count && vis[r].Kids.Count > 0) { vis[r].Open = !vis[r].Open; int keep = r; Rebuild(); list.SelectOnly(keep); } } } finally { busy = false; } };
         Rebuild();
         if (first != null) list.EnsureVisible(0);
         KeyDown += (_, e) => { if (e.Key == Key.Escape) Close(); };

@@ -830,5 +830,9 @@
  "It is turned off in your playset now.": "Şu anda oynatma listenizde kapalı.",
  "It is still turned on in your playset.": "Oynatma listenizde hâlâ açık.",
  "The game's log points at the same mod, so this crash most likely has the same cause.": "Oyunun günlüğü aynı modu gösteriyor, bu yüzden bu çökmenin nedeni büyük olasılıkla aynı.",
- "The game's log does not point at it, so this crash may have another cause.": "Oyunun günlüğü onu göstermiyor, bu yüzden bu çökmenin nedeni başka olabilir."
+ "The game's log does not point at it, so this crash may have another cause.": "Oyunun günlüğü onu göstermiyor, bu yüzden bu çökmenin nedeni başka olabilir.",
+ "All files": "Tüm dosyalar",
+ "Draw with the graphics card (applies after a restart)": "Ekran kartıyla çiz (yeniden başlatınca geçerli olur)",
+ "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "Bir sonraki açılıştan itibaren ekran kartıyla çizilecek. Program kendiliğinden kapanırsa bunu tekrar kapatın.",
+ "Drawing with the processor from the next start (steadier, uses less memory).": "Bir sonraki açılıştan itibaren işlemciyle çizilecek (daha kararlı, daha az bellek kullanır)."
 }

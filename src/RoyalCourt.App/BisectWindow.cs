@@ -23,7 +23,7 @@ public sealed class BisectWindow : ToolWindow
         var ex = main.SubWindows.OfType<BisectWindow>().FirstOrDefault();
         if (ex != null) { if (ex.WindowState == WindowState.Minimized) ex.WindowState = WindowState.Normal; ex.Activate(); return; }
         var w = new BisectWindow(main);
-        w.Show(main);
+        w.ShowSeparate(main);
         if (!main.mm.Scanning) main.mm.MaybeScan(true);
         _ = w.Load();
     }

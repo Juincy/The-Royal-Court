@@ -16,6 +16,8 @@ public static class Anim
     static double last, lastFrameAt;
     static int holds, chk; static bool pending;
     public static bool Active = true;
+    /// <summary>Time between redraws of the slow ambient motion (the sun and moon, the Halloween and AGOT banners). Drawing with the processor makes every frame cost, so this stays low: 10 per second, 20 with a banner scene.</summary>
+    static int IdleMs => Skin.Scene ? 50 : 100;
     /// <summary>Re-reads whether any window of the app is in front (call after a window gains or loses focus).</summary>
     public static void Refresh()
     {
@@ -24,7 +26,7 @@ public static class Anim
         { any = false; foreach (var w in l.Windows) if (w.IsVisible && w.IsActive) { any = true; break; } }
         if (any == Active) return;
         Active = any;
-        if (any && timer != null) { last = Skin.Sec; timer.Interval = TimeSpan.FromMilliseconds(33); }
+        if (any && timer != null) { last = Skin.Sec; timer.Interval = TimeSpan.FromMilliseconds(IdleMs); }
     }
     /// <summary>True while something asked for smooth motion (Hold without Release).</summary>
     public static bool Moving => holds > 0;
@@ -32,9 +34,9 @@ public static class Anim
     public static void Release() { if (holds > 0) holds--; }
     public static void Start(TopLevel top)
     {
-        if (timer != null) return;
+        if (timer != null || Environment.GetEnvironmentVariable("RC_NOANIM") == "1") return;
         host = top; last = Skin.Sec;
-        timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(33) };
+        timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = TimeSpan.FromMilliseconds(IdleMs) };
         timer.Tick += (_, _) =>
         {
             // while the frame callback runs it does the work; the timer only steps in when the callback has stopped (window hidden or minimised)
@@ -43,7 +45,7 @@ public static class Anim
             if (!Active || (++chk & 15) == 0) Refresh();   // tool windows and other apps do not raise the main window's events
             if (holds == 0 && !Active) { last = Skin.Sec; if ((int)timer!.Interval.TotalMilliseconds != 500) timer.Interval = TimeSpan.FromMilliseconds(500); return; }
             Pulse();
-            int want = holds > 0 ? 50 : 33;
+            int want = holds > 0 ? 50 : IdleMs;
             if ((int)timer!.Interval.TotalMilliseconds != want) timer.Interval = TimeSpan.FromMilliseconds(want);
         };
         timer.Start();

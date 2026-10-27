@@ -74,3 +74,5 @@ dicm
 color picker for clothes
 house traditions
 legacy of valyria agot 0.4.38 temporary compatch
+house customizer
+agot battlefield duel

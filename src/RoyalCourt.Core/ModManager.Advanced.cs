@@ -267,6 +267,11 @@ public sealed partial class ModManager
         St.Pictures = !St.Pictures; SaveSettingsNow();
         Say(St.Pictures ? Tr("Mod pictures are shown in the list.") : Tr("Mod pictures are hidden."));
     }
+    public void ToggleGpu()
+    {
+        St.Gpu = !St.Gpu; SaveSettingsNow();
+        Say(St.Gpu ? Tr("Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.") : Tr("Drawing with the processor from the next start (steadier, uses less memory)."));
+    }
     public void TogglePlayCheck()
     {
         St.PlayCheck = !St.PlayCheck; SaveSettingsNow();
@@ -433,7 +438,7 @@ public sealed partial class ModManager
                 if (!s1) err = e1;
                 else
                 {
-                    var (s2, data, e2) = await HttpGet(ea.Url, 64L << 20);
+                    var (s2, data, e2) = await HttpGet(ea.Url, 128L << 20);
                     if (!s2) err = e2;
                     else
                     {

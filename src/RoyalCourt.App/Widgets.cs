@@ -114,8 +114,10 @@ public sealed record MenuDef(int Id, string Text, bool Check = false, bool Enabl
 public sealed class PopupMenu : Control
 {
     readonly List<MenuDef> items; int hot = -1; readonly double width;
-    readonly TaskCompletionSource<int> tcs = new();
-    Window? win;
+    readonly TaskCompletionSource<int> tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    Window? win, own;
+    /// <summary>True for the window of a pop-up menu (it must never be used as the owner of a dialog: it closes the moment a choice is made).</summary>
+    public static bool IsMenuWindow(Window w) => w.Tag is string t && t == "royalcourt-menu";
     /// <summary>The most recent menu window (the screenshot tool photographs it).</summary>
     public static Window? Last;
     PopupMenu(List<MenuDef> it, double minW)
@@ -136,7 +138,7 @@ public sealed class PopupMenu : Control
             SystemDecorations = SystemDecorations.None, ShowInTaskbar = false, Topmost = true, CanResize = false, SizeToContent = SizeToContent.WidthAndHeight,
             WindowStartupLocation = WindowStartupLocation.Manual, Background = new SolidColorBrush(Skin.Dark ? t.Banner : t.List), Content = m,
         };
-        m.win = w; Last = w;
+        m.win = w; m.own = owner; Last = w; w.Tag = "royalcourt-menu";
         var scr = owner.Screens.ScreenFromPoint(at) ?? owner.Screens.Primary;
         double sc = owner.RenderScaling;
         m.Measure(Size.Infinity);
@@ -156,7 +158,7 @@ public sealed class PopupMenu : Control
         w.Activate();
         return m.tcs.Task;
     }
-    void Close(int id) { tcs.TrySetResult(id); try { win?.Close(); } catch { } }
+    void Close(int id) { tcs.TrySetResult(id); try { win?.Close(); } catch { } try { if (own is { IsVisible: true } o && o.WindowState != WindowState.Minimized) o.Activate(); } catch { } }
     int At(double y)
     {
         double a = 4;
@@ -189,6 +191,21 @@ public sealed class PopupMenu : Control
     }
 }
 
+/// <summary>Notes in the diagnostics log what a window does (state changes, size changes, focus), so that if the program ever ends by itself the last lines show what was happening.</summary>
+public static class WindowTrace
+{
+    static int budget = 150;
+    public static void Attach(Window w)
+    {
+        void L(string s) { if (budget > 0) { budget--; try { RoyalCourt.Core.Log.Line(s); } catch { } } }
+        string N() { try { return w.Title ?? "?"; } catch { return "?"; } }
+        w.PropertyChanged += (_, e) => { if (e.Property == Window.WindowStateProperty) L("window \"" + N() + "\": " + w.WindowState); };
+        w.SizeChanged += (_, e) => L("window \"" + N() + "\" size " + (int)e.NewSize.Width + "x" + (int)e.NewSize.Height);
+        w.Activated += (_, _) => L("window \"" + N() + "\" activated");
+        w.Deactivated += (_, _) => L("window \"" + N() + "\" deactivated");
+    }
+}
+
 /// <summary>The base of every window of the app: themed background, centred over the owner, optional keyboard shortcuts.</summary>
 public class RcWindow : Window
 {
@@ -201,10 +218,27 @@ public class RcWindow : Window
         Skin.Changed += Apply;
         Closed += (_, _) => Skin.Changed -= Apply;
         // a trace for the diagnostics log: if a window ever takes the program down, the last lines say what it was doing
-        PropertyChanged += (_, e) => { if (e.Property == WindowStateProperty) RoyalCourt.Core.Log.Line("window \"" + Title + "\": " + WindowState); };
+        WindowTrace.Attach(this);
         Opened += (_, _) => RoyalCourt.Core.Log.Line("window opened: " + Title);
         Closed += (_, _) => RoyalCourt.Core.Log.Line("window closed: " + Title);
         FontFamily = new FontFamily(Txt.Family); FontSize = Txt.Size;
+    }
+    /// <summary>Shows a separate window (own taskbar button) centred over the main window. It is deliberately NOT owned by the main window: owned windows are hidden and restored together with their owner by Windows, which is where minimising crashed on some PCs.</summary>
+    public void ShowSeparate(Window main)
+    {
+        try
+        {
+            double sc = main.RenderScaling;
+            if (main.WindowState == WindowState.Normal)
+            {
+                int w = (int)(Width * sc), h = (int)(Height * sc);
+                int x = main.Position.X + (int)((main.Bounds.Width * sc - w) / 2), y = main.Position.Y + (int)((main.Bounds.Height * sc - h) / 2);
+                WindowStartupLocation = WindowStartupLocation.Manual; Position = new PixelPoint(Math.Max(0, x), Math.Max(0, y));
+            }
+            else WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        }
+        catch { WindowStartupLocation = WindowStartupLocation.CenterScreen; }
+        Show();
     }
     void Apply() { Background = new SolidColorBrush(Skin.Cur.Bg); RequestedThemeVariant = Skin.Dark ? ThemeVariant.Dark : ThemeVariant.Light; }
 }
