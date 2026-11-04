@@ -4,6 +4,9 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+- Nothing yet.
+
+## [0.27.2] - 2026-11-03
 - Fixed: Auto Sort could ask to sort again right after it had been applied. The rule that puts the smaller of two mods that overwrite the same files last only counted when the smaller mod happened to load first, so once it had been moved the rule stopped holding it there and other mods shifted. It now applies whatever the current order is, and the pairs are always taken in the same order. A new test sorts 600 random playsets with overlapping files twice and requires the second sort to change nothing.
 - Added: load orders for AGOT Dragons of Doggerland, AGOT Blood of the Dragon, AGOT Realistic Attraction (compatch), AI Build Cities: AGOT and LOTR Alessian Dynasty, plus AGOT Simple Terrain Colors, the AGOT Patch for Smooth Zoom Transitions and the Great Holy Grail War compatch.
 - Added: load orders from 8 more Workshop pages (AGOT Valyrian Houses, Trait Graphics Swap, Battlefield Duel +, the Travelers, Active Courtiers, Search & Trade Artifacts and Advanced Torture compatches, and Everyone can send to The Night's Watch).
