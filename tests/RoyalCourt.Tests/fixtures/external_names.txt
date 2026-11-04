@@ -86,3 +86,6 @@ better water
 agot knight tree
 character ui overhaul
 legacy of valyria
+lifestyles improved
+more building slots
+agot plus
