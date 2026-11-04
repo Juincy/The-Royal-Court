@@ -58,6 +58,8 @@ public partial class MainWindow : Window
     readonly RcCombo combo = new();
     readonly RcButton bNew = new(), bDup = new(), bRen = new(), bDel = new(), bExport = new(), bImport = new(), bPlay = new();
     readonly RcEdit filter = new(), dir = new();
+    static readonly int[] ChipQ = { ModManager.QAll, ModManager.QOn, ModManager.QOff, ModManager.QIssues, ModManager.QOutdated, ModManager.QUnknownOrder, ModManager.QLarge };
+    readonly RcButton[] chips = ChipQ.Select(_ => new RcButton()).ToArray();     // one-click versions of the Show menu
     readonly RcButton bShow = new(), bAllOn = new(), bAllOff = new(), bConflicts = new(), bSort = new(), bUndo = new(), bUp = new(), bDown = new();
     readonly RcButton bBrowse = new(), bSaveDir = new();
     public readonly RcList list = new();
@@ -95,6 +97,13 @@ public partial class MainWindow : Window
         G(bShow, "▾", 96); G(bAllOn, "☑", 140); G(bAllOff, "☐", 146); G(bConflicts, "⚔", 120); G(bSort, "⇅", 124); G(bUndo, "↶", 112); G(bUp, "▲", 80); G(bDown, "▼", 90);
         G(bBrowse, "…", 110); G(bSaveDir, "✓", 120);
         Add(l1, combo, bNew, bDup, bRen, bDel, bExport, bImport, bPlay, l2, filter, bShow, bAllOn, bAllOff, bConflicts, bSort, bUndo, lCount, bUp, bDown, list, lStatus, gameVer, l3, dir, bBrowse, bSaveDir);
+        for (int i = 0; i < chips.Length; i++)
+        {
+            int q = ChipQ[i]; var c = chips[i];
+            G(c, "", 40); c.PrimaryIf = () => mm.Quick == q;
+            c.Click += () => { mm.SetQuick(q); RefreshChips(); };
+            Add(c);
+        }
         bUndo.IsEnabled = false;
         string[] heads = { "#", "Mod", "Version", "Game Version", "Source", "Type", "Order", "Size", "Notes" };
         double[] widths = { 64, 400, 100, 110, 90, 90, 74, 76, 280 };
@@ -177,6 +186,10 @@ public partial class MainWindow : Window
         Place(lCount, x, y + 7, Math.Max(20, rx - gap * 2 - x), 20);
 
         y += rowH + gap + 2;
+        x = m + 30;
+        foreach (var c in chips) { double w = BtnW(c); Place(c, x, y, w, rowH - 4); x += w + gap; }
+        needClientW = Math.Max(needClientW, x + m);
+        y += rowH - 4 + gap + 2;
         double bottom = Ht - m - rowH - gap - 22 - gap;
         Place(list, m, y, Wd - 2 * m, bottom - y);
         double sy = bottom + gap;
@@ -233,6 +246,8 @@ public partial class MainWindow : Window
         B(bImport, Tr("Import"), Tr("Load a Paradox Launcher playset file")); B(bPlay, Tr("Play"), Tr("Start Crusader Kings III with this playset (skips the launcher)"));
         B(bAdv, Tr("Advanced"), Tr("Backups, compare playsets, launch options, saves, updates and the diagnostics log")); B(bLog, Tr("Changelog"), Tr("What changed in each version"));
         B(bUpd, Tr("Updates"), Tr("Check GitHub for a newer version of The Royal Court, and for a newer known-mods list"));
+        string[] chipText = { Tr("All"), Tr("On"), Tr("Off"), Tr("Problems"), Tr("Outdated"), Tr("Order unknown"), Tr("Large") };
+        for (int i = 0; i < chips.Length; i++) B(chips[i], chipText[i], ModManager.QuickName(ChipQ[i]));
         B(bShow, Tr("Show"), Tr("Show only some of the mods: turned off, with problems, may be outdated, load order not known, or large"));
         B(bAllOn, Tr("Enable shown"), Tr("Enable every mod currently shown in the list")); B(bAllOff, Tr("Disable shown"), Tr("Disable every mod currently shown in the list"));
         B(bConflicts, Tr("Conflicts"), Tr("Find mods that change the same files or definitions")); B(bSort, Tr("Auto Sort"), Tr("Propose a better load order (you see a preview first)"));
@@ -428,7 +443,11 @@ public partial class MainWindow : Window
         foreach (int q in new[] { ModManager.QAll, ModManager.QOn, ModManager.QOff, ModManager.QIssues, ModManager.QOutdated, ModManager.QUnknownOrder, ModManager.QLarge })
             items.Add(new(q + 1, ModManager.QuickName(q), mm.Quick == q));
         int r = await PopupMenu.Show(this, Below(bShow), items);
-        if (r > 0) { mm.SetQuick(r - 1); bShow.InvalidateVisual(); }
+        if (r > 0) { mm.SetQuick(r - 1); bShow.InvalidateVisual(); RefreshChips(); }
+    }
+    void RefreshChips()
+    {
+        foreach (var c in chips) c.InvalidateVisual();
     }
 
     async Task ExportMenu()

@@ -389,6 +389,17 @@ public class SortTests
         Assert.True(r2.Ok && r2.Enabled == 2 && Health.Text(r2, "h").Contains("ready to play"));
         hp.Mods[0].Enabled = false;
         Assert.Equal(1, Chk(hp, hi).Problems);
+        // a huge game log from the last session is a note (it never turns a clean playset into a problem)
+        var rq = Health.Check(hp, hi, "1.20.0.4", H.NoLocks, H.NoOv, null, null, H.Db, 25000);
+        Assert.True(rq.Ok == Chk(hp, hi).Ok && Health.Text(rq, "h").Contains("25,000") || Health.Text(rq, "h").Contains("25.000") || Health.Text(rq, "h").Contains("25000"));
+        Assert.DoesNotContain("session wrote", Health.Text(Health.Check(hp, hi, "1.20.0.4", H.NoLocks, H.NoOv, null, null, H.Db, 12), "h"));
+        Assert.DoesNotContain("session wrote", Health.Text(Health.Check(hp, hi, "1.20.0.4", H.NoLocks, H.NoOv, null, null, H.Db, -1), "h"));
+        // size note: only when the turned-on mods are big
+        var small = Health.Text(Health.Check(hp, hi, "1.20.0.4", H.NoLocks, H.NoOv, null, null, H.Db, -1, _ => 5L << 20), "h");
+        Assert.DoesNotContain("on disk", small);
+        var huge = Health.Text(Health.Check(hp, hi, "1.20.0.4", H.NoLocks, H.NoOv, null, null, H.Db, -1, id => id == "b.mod" ? 3L << 30 : 1L << 20), "h");
+        Assert.Contains("Largest: Needs Lib", huge);
+        Assert.Contains("on disk", Health.Text(Health.Check(hp, hi, "1.20.0.4", H.NoLocks, H.NoOv, null, null, H.Db, -1, _ => 5L << 30), "h"));
         var ws = new List<ModInfo> { Mh("x.mod", "Cool Events"), Mh("pod.mod", "Princes of Darkness"), Mh("agot.mod", "A Game of Thrones") };
         var wi = Playsets.InfoMap(ws); var wp = H.PS("w", ws);
         var r4 = Chk(wp, wi);

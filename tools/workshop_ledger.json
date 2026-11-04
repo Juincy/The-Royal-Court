@@ -707,9 +707,9 @@
    "title": "AGOT Bookmarked",
    "status": "read",
    "found": "none",
-   "note": "requires A Game of Thrones",
-   "source": "Workshop page (earlier round)",
-   "date": "2026-10-09",
+   "note": "no load-order text",
+   "source": "Workshop page",
+   "date": "2026-10-27",
    "inDatabase": false
   },
   {
@@ -2397,9 +2397,9 @@
    "title": "AGOT More Dragon Eggs",
    "status": "read",
    "found": "none",
-   "note": "no load order sentence on the page (read 2026-10-14)",
+   "note": "no load-order text",
    "source": "Workshop page",
-   "date": "2026-10-14",
+   "date": "2026-10-27",
    "inDatabase": false
   },
   {
@@ -2417,9 +2417,9 @@
    "title": "AGOT expanded - Dragons",
    "status": "read",
    "found": "order",
-   "note": "AGOT Expanded - Dragons: works with More Dragon Eggs if loaded below it; generally place near the bottom",
+   "note": "Bottom of the list; below More Dragon Eggs",
    "source": "Workshop page",
-   "date": "2026-10-14",
+   "date": "2026-10-27",
    "inDatabase": true
   },
   {
@@ -4728,8 +4728,8 @@
    "inDatabase": false,
    "status": "read",
    "found": "none",
-   "note": "Citadel University: no order",
-   "date": "2026-10-23",
+   "note": "no load-order text",
+   "date": "2026-10-27",
    "source": "Workshop page"
   },
   {
@@ -5077,9 +5077,9 @@
    "title": "AGOT COA Switcher",
    "status": "read",
    "found": "none",
-   "note": "No order stated",
+   "note": "Tiny page",
    "inDatabase": false,
-   "date": "2026-10-26",
+   "date": "2026-10-27",
    "source": "Workshop page"
   },
   {
@@ -5538,8 +5538,8 @@
    "inDatabase": false,
    "status": "read",
    "found": "none",
-   "note": "",
-   "date": "2026-10-26",
+   "note": "no order text",
+   "date": "2026-10-28",
    "source": "Workshop page"
   },
   {
@@ -6773,9 +6773,9 @@
    "id": "3753073694",
    "title": "AGOT Colored Tiers (Titles)",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "order",
+   "note": "After all other AGOT mods; not with the base-game version",
    "date": "2026-10-27",
    "source": "Workshop page"
   },
@@ -6783,9 +6783,9 @@
    "id": "3274870731",
    "title": "LOTR Alessian Dynasty",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "order",
+   "note": "Bottom of the load order",
    "date": "2026-10-27",
    "source": "Workshop page"
   },
@@ -6803,9 +6803,9 @@
    "id": "3756219764",
    "title": "AI Build Cities: AGOT",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "order",
+   "note": "After LotR, and late after other building mods",
    "date": "2026-10-27",
    "source": "Workshop page"
   },
@@ -6813,11 +6813,2191 @@
    "id": "3737004927",
    "title": "AGOT Dragon Wives - Unlimited",
    "inDatabase": false,
-   "status": "unread",
-   "found": "",
-   "note": "",
+   "status": "read",
+   "found": "none",
+   "note": "Tiny page",
    "date": "2026-10-27",
    "source": "Workshop page"
+  },
+  {
+   "id": "3740440455",
+   "title": "AGOT Deutsch - Deutsche Übersetzung der Hauptmod + Submods",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "German translation; no load-order text",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2969378700",
+   "title": "AGOT Coronation & Nickname RUS",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2978657709",
+   "title": "AGOT Claim Throne Reenabled",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3289839404",
+   "title": "AGOT reed legacy",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3318825946",
+   "title": "AGOT Immersive Warfare Russian",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3407291886",
+   "title": "AGOT Christianity",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3433999550",
+   "title": "AGOT Bookmarked FR",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3464967860",
+   "title": "AGOT - Valyrian Houses rus",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3534212198",
+   "title": "AGOT More Historical Characters [RU]",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3680000198",
+   "title": "Bloodlines: Legacies of AGOT - ESPAÑOL",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3741523077",
+   "title": "Русификатор - Advanced Torture AGOT",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3752632944",
+   "title": "AGOT More Dragon Eggs FR",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3760549785",
+   "title": "AGOT - Greensight and Visions RU",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3773777262",
+   "title": "FR-AGOT Immersive Succession for AGOT",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3793073193",
+   "title": "Institution of the Gold Cloaks - AGOT Submod",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text (for bookmarks after 10 AC)",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800375168",
+   "title": "AGOT Citadel University RUS",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3185454774",
+   "title": "AGOT Clothes",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3761068101",
+   "title": "AGOT More Dragon Eggs German Translation",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2970166790",
+   "title": "AGOT Bend The Knee",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Anywhere after AGOT",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2962594017",
+   "title": "AGOT Translation",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2978944309",
+   "title": "AGOT Coronation & Nickname | Русификатор",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3011073046",
+   "title": "Agot voyage submod",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3215957938",
+   "title": "AGOT Jelly's Trait Edit",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3355437474",
+   "title": "AGOT: The Long Night",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text (already in the database)",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3434000508",
+   "title": "AGOT The Long Night FR",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3453616675",
+   "title": "AGOT+ RU",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3468667620",
+   "title": "AGOT Legend Seeds en Español-Spanish",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3542294097",
+   "title": "AGOT Additional Models and Special Buildings rus",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3578901730",
+   "title": "AGOT: Battlefield Duel RUS",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3664680404",
+   "title": "AGOT Great Councils - Traduction FR",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "below the main mod",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3671832548",
+   "title": "AGOT Dragon Wives RU",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3722311621",
+   "title": "Zeitgeist: AGOT compatch",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "tiny page",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3734382789",
+   "title": "AGOT+ - Samiellius Türkçe Çeviri",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3790624365",
+   "title": "AGOT Captain Manager",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, AGOT submods, normal mods, then this last",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3792174211",
+   "title": "AGOT Essosi Valyrian COA",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "tiny page",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3792218673",
+   "title": "AGOT - Suggest Dragon Bonding - Script Fix",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "directly after the original mod",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3803816780",
+   "title": "AGOT — Landmarks of Westeros RUS",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3815488981",
+   "title": "NC&S x AGOT compat",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, Naval Combat & Strategy, then this",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3037054898",
+   "title": "AGOT+ [RUS]",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3452118001",
+   "title": "AGOT - The Iron Islands Flavour RU",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3506905499",
+   "title": "AGOT and Big portraits Compatible patch",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3344467440",
+   "title": "[EE] AGoT 1/4 Landless Nuke",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3677979496",
+   "title": "AGOT - More Dragon Events German",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3683229997",
+   "title": "AGOT More Bookmarks China",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3677849470",
+   "title": "AGOT - Armor of the Kingsguard ESPAÑOL",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3754311486",
+   "title": "AGOT - Dragon Hunter en Español-Spanish",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3795281601",
+   "title": "AGOT Fire and Blood en Español-Spanish",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation/tiny page, no order",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3823740401",
+   "title": "AGOT - Dragons of Doggerland",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Loads on top of AGOT, requires AGOT",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3270043200",
+   "title": "AGOT More Bookmarks",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "tiny page",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3803887172",
+   "title": "AGOT Blood of the Dragon",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Load after AGOT; its tested stack is listed (AGOT, BotD, then Fire and Blood...); says AGOT County Expansion hard-crashes with current AGOT in its tests",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3443551401",
+   "title": "AGOT: Immersion [RU]",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3687276678",
+   "title": "AGOT Realistic Attraction",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Compatch for Realistic Attraction and AGOT; run last",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3664878307",
+   "title": "AGOT: Dragonpits for All",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "tiny page",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2962447084",
+   "title": "Decreased Too Many Alliance Malus for AGOT",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "tiny page",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3313901511",
+   "title": "AGOT: Canon Children+ ITA",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3324115519",
+   "title": "[EE] AGoT Dragon Skull Unlocks for all Court",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "tiny page",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3484829103",
+   "title": "AGOT More bookmarks русификатор",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3570482860",
+   "title": "AGOT - Dynasties Modifiers",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "tiny",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3251086238",
+   "title": "AGOT: Linguistic Diversity RUS",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3578279167",
+   "title": "AGOT Summer Isles Expansion RUS",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3781004905",
+   "title": "AGOT: Automated Squire Training (temp)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3792103094",
+   "title": "Hades's AGOT Freely Dismiss Kingsguard",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3683198213",
+   "title": "AGOT Nobility of Westeros Chinese",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3397306462",
+   "title": "Zoey's AGOT Domiciles",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3448164472",
+   "title": "Sothoryos (AGOT + LOV)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3485469111",
+   "title": "AGOT - Simple Terrain Colors",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Load after AGOT; base mod not needed",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3742377347",
+   "title": "AGOT Free Contraceptives",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2965525861",
+   "title": "AGOT-Драконы Валирии",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "2962561491",
+   "title": "CK3 AGOT The Great Holy Grail War Compatch",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, The Great Holy Grail War, then this compatch",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3711328056",
+   "title": "AGOT More Bookmarks KOREA",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3334094934",
+   "title": "NeutronUI - Bigger Portraits (AGOT)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Load after AGOT",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3657578146",
+   "title": "Zoey's Agot Domiciles 1.18 (Unofficial)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3738578576",
+   "title": "FR Bloodlines:Legacies of AGOT",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "French translation; same incompatibilities as the English page (already known)",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3801073796",
+   "title": "AGOT Patch for Smooth Zoom Transitions",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "Smooth Zoom anywhere; this patch below AGOT",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3738094147",
+   "title": "Commander + Knight Solution (AGOT Compatibility)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "no order text",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3341883765",
+   "title": "AGOT - Crowns of Westeros RUS",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-10-28",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3768980102",
+   "title": "AGOT: Fire and Blood German Translation",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation; original above it",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3678689299",
+   "title": "Bloodlines: Legacies of AGOT German Translation",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3678476735",
+   "title": "AGOT - Council Experience - FR",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "French; below the submod",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3672328480",
+   "title": "AGOT Bookmarked German Translation",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3796089061",
+   "title": "[AGOT] Knights & Banners Russian",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3290419076",
+   "title": "coronation_nicknames AGOT Chinese",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3313895836",
+   "title": "AGOT+ ITA",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3805650432",
+   "title": "AGOT Extra Building Slots",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "load LAST; says County Expansion crashes with current AGOT",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3779583269",
+   "title": "AGOT - Worlds in Twain",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3771116971",
+   "title": "AGOT - Chosen of Nagga",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "after AGOT",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3785235204",
+   "title": "AGOT Unlimited - Unlimited Compatch Works",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3793502745",
+   "title": "AGOT Wilderness Flavorization Fix",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "after AGOT",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3419324087",
+   "title": "AGOT Sub mod (Korean machine translation)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "translation",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3781518494",
+   "title": "FR-AGOT Armies of westeros",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "conditional: before Canon Children if it crashes",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3800643356",
+   "title": "AGOT Patch for Sharp Terrain & Better Water",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "after AGOT and the two mods",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3500913047",
+   "title": "AGOT allow converting",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3322088343",
+   "title": "Minty's Slower Troop Gathering (Agot)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "after AGOT; name normalises to the base mod's, so no rule added",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3237452490",
+   "title": "Anti4iteR's Cheat Menu (AGoT-version)",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3789112475",
+   "title": "Elder Magic - AGOT Compatibility Patch",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3383546105",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "AGOT search page 23-24, title not read yet",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3641870484",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "AGOT search page 23-24, title not read yet",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3480659190",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "AGOT search page 23-24, title not read yet",
+   "date": "2026-10-27",
+   "source": "Workshop page"
+  },
+  {
+   "id": "3222480457",
+   "title": "Search & Trade Artifacts AGOT Compatibility",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, S&TA, patch",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3349991466",
+   "title": "AGOT - Valyrian Beauty",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3356702932",
+   "title": "AGOT - Melodies of Ruin",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3495983053",
+   "title": "AGOT expanded - travel",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3411549223",
+   "title": "AGOT More Dragon Eggs - Legacy of Valyria Compatch",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "partial order text; submods above or below",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3459939229",
+   "title": "AGOT: Brightboar - Westerosi House Flavor",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "below AGOT and Submod Core (already in database); not with Bloodlines",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3737178385",
+   "title": "Advanced Torture",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "base mod; compatch goes after it",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3738019071",
+   "title": "AGOT Compatch - Advanced Torture",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, Advanced Torture, compatch",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3763629557",
+   "title": "AGOT - Battlefield Duel +",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "after AGOT; compatches after both",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2692655730",
+   "title": "Lifespan Traits",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2886417277",
+   "title": "Artifact Manager",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2963910676",
+   "title": "AGOT Better Domain Management",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2964619813",
+   "title": "AGOT - Valyrian Houses",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "under AGOT",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2970021419",
+   "title": "AGOT: Linguistic Diversity",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2971798202",
+   "title": "Agot More Immersive Loading Screens",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3051149778",
+   "title": "AGOT: Trait Graphics Swap",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "lower than AGOT",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3166199552",
+   "title": "Travelers AGOT Compatibility",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, Travelers, patch",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3166721580",
+   "title": "Active Courtiers AGOT Compatibility",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "AGOT, Active Courtiers, patch",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3462679084",
+   "title": "AGOT Name Pack+",
+   "inDatabase": false,
+   "status": "read",
+   "found": "none",
+   "note": "",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3493689168",
+   "title": "Everyone can send to The Night's Watch",
+   "inDatabase": false,
+   "status": "read",
+   "found": "order",
+   "note": "after AGOT",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3532801001",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 4 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3548389037",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 4 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2700696193",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2962695582",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2969057843",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3081701005",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3104500312",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3121317651",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3454865789",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3525343336",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3619473094",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3644587591",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3674548216",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3750394420",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3772292501",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3798173970",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3806810916",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 3 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "356426795",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2785112407",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2801195639",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2879799963",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2892255059",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2964416294",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2964744463",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3109614871",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3181717230",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3266548771",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3267408322",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3297989948",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3300789665",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3307392411",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3316173814",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3318346194",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3319509688",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3333044827",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3344050870",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3346240041",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3350459101",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3355194283",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3381782761",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3412539516",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3431351716",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3434970864",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3450300304",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3458019178",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3466841935",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3469015264",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3490469428",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3494501161",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3495477252",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3506428210",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3532578387",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3534998754",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3557254933",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3563548264",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3565516170",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3611904661",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3656474795",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3680248023",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3719888822",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3730227161",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3739807103",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3762892932",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3765283594",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3769445558",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3773616784",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3778749368",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3779493689",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3781577713",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3784521984",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3788309966",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3793060816",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3795527189",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3796855984",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3798552422",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3800545432",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3802428924",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3802429007",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3803881229",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3805082995",
+   "title": "",
+   "inDatabase": false,
+   "status": "unread",
+   "found": "",
+   "note": "in 2 of 20 top AGOT collections (2026-11-03)",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3309268151",
+   "title": "[BIG NEW UPDATE] CK3 - AGOT Mod Collection + Save Current Playtest Guide",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3410877032",
+   "title": "Shakazulu6969's CK3 AGOT Collection",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3412987466",
+   "title": "CK3 AGOT RUS",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3610393262",
+   "title": "AGOT+ Mod List June 2026 for 1.19",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3631494889",
+   "title": "A Game of Thrones: The Definitive Collection (AGOT 0.4.40)",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3632329240",
+   "title": "AGOT+ Legacy of Valyria + Magic QoL Modpack (150 MODS) V2",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3635921960",
+   "title": "CK3 AGOT RUS: Reforged & Updated",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3659915198",
+   "title": "AGOT 1.18.3",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3665914657",
+   "title": "AGOT - TRADUCOES PT-BR CK3",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3681603247",
+   "title": "(Updated 09/23/2026) - AGOT Stable Collection",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3705027508",
+   "title": "Pie's AGOT Stable modlist",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3710368993",
+   "title": "AGOT + Valyria RUS [1.19.0]",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3711383211",
+   "title": "AGOT - A MASTERCLASS COLLECTION",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3734608236",
+   "title": "Seastar's AGOT Collection | LoV",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3737375956",
+   "title": "Reed's AGOT Collection - 1.19 (Sept '26)",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3759768869",
+   "title": "AGOT DE: Das Lied von Eis und Feuer",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3791828100",
+   "title": "Full AGOT Load Order (0.5.1 / CK3 1.19)",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3816838774",
+   "title": "Valyrian Blood and the Higher Mysteries v0.3.0.0 [AGOT]",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "2974550040",
+   "title": "AGOT Mod Collection (600+ items)",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
+  },
+  {
+   "id": "3608639287",
+   "title": "Seastar's AGOT Collection | 1.19.0.6 Updated",
+   "inDatabase": false,
+   "status": "collection",
+   "found": "",
+   "note": "collection listed 2026-11-03; its member ids were counted",
+   "date": "2026-11-03",
+   "source": "Workshop collections"
   }
  ]
 }

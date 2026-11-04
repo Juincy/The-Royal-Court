@@ -834,5 +834,15 @@
  "All files": "所有文件",
  "Draw with the graphics card (applies after a restart)": "使用显卡绘制(重启后生效)",
  "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "下次启动起使用显卡绘制。如果程序自行关闭,请再次关闭此选项。",
- "Drawing with the processor from the next start (steadier, uses less memory).": "下次启动起使用处理器绘制(更稳定,占用内存更少)。"
+ "Drawing with the processor from the next start (steadier, uses less memory).": "下次启动起使用处理器绘制(更稳定,占用内存更少)。",
+ "All": "全部",
+ "On": "开启",
+ "Off": "关闭",
+ "Problems": "有问题",
+ "Outdated": "可能过时",
+ "Order unknown": "顺序未知",
+ "Large": "大型",
+ "The game's last session wrote {0} errors to its log. Open the Game log in the Advanced menu to see which mods they come from.": "游戏上一次运行向日志写入了 {0} 条错误。打开“高级”菜单中的游戏日志，可以查看它们来自哪些模组。",
+ "The mods turned on take {0} on disk. A big playset loads more slowly and uses more memory while you play, so close other programs first.": "已开启的模组在磁盘上占用 {0}。大型模组方案加载更慢，游玩时也占用更多内存，请先关闭其他程序。",
+ "Largest: {0}.": "最大的: {0}。"
 }

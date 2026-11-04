@@ -834,5 +834,15 @@
  "All files": "Все файлы",
  "Draw with the graphics card (applies after a restart)": "Рисовать видеокартой (после перезапуска)",
  "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "Со следующего запуска рисование будет выполняться видеокартой. Если программа сама закрывается, отключите этот параметр.",
- "Drawing with the processor from the next start (steadier, uses less memory).": "Со следующего запуска рисование будет выполняться процессором (стабильнее, меньше памяти)."
+ "Drawing with the processor from the next start (steadier, uses less memory).": "Со следующего запуска рисование будет выполняться процессором (стабильнее, меньше памяти).",
+ "All": "Все",
+ "On": "Вкл.",
+ "Off": "Выкл.",
+ "Problems": "Проблемы",
+ "Outdated": "Устарели",
+ "Order unknown": "Порядок неизвестен",
+ "Large": "Большие",
+ "The game's last session wrote {0} errors to its log. Open the Game log in the Advanced menu to see which mods they come from.": "В прошлой игровой сессии в журнал записано ошибок: {0}. Откройте журнал игры в меню «Дополнительно», чтобы увидеть, из каких модов они взялись.",
+ "The mods turned on take {0} on disk. A big playset loads more slowly and uses more memory while you play, so close other programs first.": "Включённые моды занимают на диске {0}. Большой набор загружается дольше и использует больше памяти во время игры, поэтому сначала закройте другие программы.",
+ "Largest: {0}.": "Самые большие: {0}."
 }

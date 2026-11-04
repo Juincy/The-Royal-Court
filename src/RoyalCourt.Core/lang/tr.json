@@ -834,5 +834,15 @@
  "All files": "Tüm dosyalar",
  "Draw with the graphics card (applies after a restart)": "Ekran kartıyla çiz (yeniden başlatınca geçerli olur)",
  "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "Bir sonraki açılıştan itibaren ekran kartıyla çizilecek. Program kendiliğinden kapanırsa bunu tekrar kapatın.",
- "Drawing with the processor from the next start (steadier, uses less memory).": "Bir sonraki açılıştan itibaren işlemciyle çizilecek (daha kararlı, daha az bellek kullanır)."
+ "Drawing with the processor from the next start (steadier, uses less memory).": "Bir sonraki açılıştan itibaren işlemciyle çizilecek (daha kararlı, daha az bellek kullanır).",
+ "All": "Tümü",
+ "On": "Açık",
+ "Off": "Kapalı",
+ "Problems": "Sorunlu",
+ "Outdated": "Eski",
+ "Order unknown": "Sıra bilinmiyor",
+ "Large": "Büyük",
+ "The game's last session wrote {0} errors to its log. Open the Game log in the Advanced menu to see which mods they come from.": "Oyunun son oturumu günlüğe {0} hata yazdı. Hangi modlardan geldiklerini görmek için Gelişmiş menüsündeki oyun günlüğünü aç.",
+ "The mods turned on take {0} on disk. A big playset loads more slowly and uses more memory while you play, so close other programs first.": "Açık modlar diskte {0} yer kaplıyor. Büyük bir oynatma listesi daha yavaş yüklenir ve oynarken daha fazla bellek kullanır, bu yüzden önce diğer programları kapat.",
+ "Largest: {0}.": "En büyükler: {0}."
 }

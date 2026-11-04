@@ -553,7 +553,22 @@ public sealed partial class ModManager
     {
         var ps = Active();
         if (ps == null) return new HealthReport();
-        return Health.Check(ps, Info, GameVer, LockedIds(), St.Cats, Conf.Valid ? Conf : null, FileIndex, KnownDb);
+        return Health.Check(ps, Info, GameVer, LockedIds(), St.Cats, Conf.Valid ? Conf : null, FileIndex, KnownDb, LastLogErrors(), SizeOf);
+    }
+
+    /// <summary>Errors in the end of the game's own log (the last session), or -1 when there is no log. Reads at most 4 MB.</summary>
+    public int LastLogErrors()
+    {
+        try
+        {
+            string dir = EffectiveDir();
+            if (dir.Length == 0) return -1;
+            string path = Path.Combine(dir, "logs", "game.log");
+            if (!File.Exists(path)) return -1;
+            string text = ReportView.ReadHeadOrTail(path, 4 << 20, true);
+            return text.Length == 0 ? -1 : GameLog.Parse(text, false, 50).Errors;
+        }
+        catch { return -1; }
     }
 
     public async Task ShowHealth()

@@ -12,8 +12,12 @@ public sealed class HealthReport
 
 public static class Health
 {
+    /// <summary>A game log with this many errors or more gets a note in the health check.</summary>
+    public const int HugeLog = 1000;
+    /// <summary>Turned-on mods this big (8 GB) get a size note in the health check.</summary>
+    public const long HugePlayset = 8L << 30;
     public static HealthReport Check(Playset ps, IReadOnlyDictionary<string, ModInfo> info, string gameVersion, ISet<string> locked,
-                                     IReadOnlyDictionary<string, int> overrides, ConflictReport? cr, IReadOnlyDictionary<string, ModFiles>? index, IReadOnlyList<KnownMod>? db)
+                                     IReadOnlyDictionary<string, int> overrides, ConflictReport? cr, IReadOnlyDictionary<string, ModFiles>? index, IReadOnlyList<KnownMod>? db, int lastLogErrors = -1, Func<string, long>? sizeOf = null)
     {
         var hr = new HealthReport();
         int n = ps.Mods.Count;
@@ -50,6 +54,24 @@ public static class Health
             if (high > 0) Add(1, -1, Trf("{0} serious file conflict(s) between mods. Open Conflicts to see who wins.", high));
             if (cr.Files.Count >= 100000) Add(0, -1, Trf("The conflict list is very large ({0} files). Checking mods in smaller groups makes it easier to read.", cr.Files.Count.ToString("N0")));
         }
+        if (sizeOf != null)
+        {
+            var big = new List<(string name, long bytes)>(); long total = 0;
+            for (int i = 0; i < n; i++)
+            {
+                if (!ps.Mods[i].Enabled) continue;
+                long b = sizeOf(ps.Mods[i].Id); if (b < 0) continue;
+                total += b; if (b >= ModManager.LargeMod) big.Add((NameOf(i), b));
+            }
+            if (total >= HugePlayset || big.Count > 0)
+            {
+                big.Sort((a, b) => b.bytes.CompareTo(a.bytes));
+                string names = string.Join(", ", big.Take(3).Select(x => x.name + " (" + ModSizes.Format(x.bytes) + ")"));
+                Add(0, -1, Trf("The mods turned on take {0} on disk. A big playset loads more slowly and uses more memory while you play, so close other programs first.", ModSizes.Format(total))
+                           + (big.Count > 0 ? " " + Trf("Largest: {0}.", names) : ""));
+            }
+        }
+        if (lastLogErrors >= HugeLog) Add(0, -1, Trf("The game's last session wrote {0} errors to its log. Open the Game log in the Advanced menu to see which mods they come from.", lastLogErrors.ToString("N0")));
         hr.Items = hr.Items.Select((x, i) => (x, i)).OrderBy(t => -t.x.Sev).ThenBy(t => t.x.Pos).ThenBy(t => t.i).Select(t => t.x).ToList();
         foreach (var h in hr.Items) { if (h.Sev >= 2) hr.Problems++; else if (h.Sev == 1) hr.Warnings++; }
         return hr;

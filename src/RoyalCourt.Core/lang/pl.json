@@ -834,5 +834,15 @@
  "All files": "Wszystkie pliki",
  "Draw with the graphics card (applies after a restart)": "Rysuj kartą graficzną (po ponownym uruchomieniu)",
  "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "Od następnego uruchomienia program będzie rysować kartą graficzną. Jeśli program sam się zamknie, wyłącz tę opcję.",
- "Drawing with the processor from the next start (steadier, uses less memory).": "Od następnego uruchomienia program będzie rysować procesorem (stabilniej, mniej pamięci)."
+ "Drawing with the processor from the next start (steadier, uses less memory).": "Od następnego uruchomienia program będzie rysować procesorem (stabilniej, mniej pamięci).",
+ "All": "Wszystkie",
+ "On": "Włączone",
+ "Off": "Wyłączone",
+ "Problems": "Problemy",
+ "Outdated": "Nieaktualne",
+ "Order unknown": "Kolejność nieznana",
+ "Large": "Duże",
+ "The game's last session wrote {0} errors to its log. Open the Game log in the Advanced menu to see which mods they come from.": "Ostatnia sesja gry zapisała w dzienniku {0} błędów. Otwórz dziennik gry w menu Zaawansowane, aby zobaczyć, z jakich modów pochodzą.",
+ "The mods turned on take {0} on disk. A big playset loads more slowly and uses more memory while you play, so close other programs first.": "Włączone mody zajmują {0} na dysku. Duży zestaw ładuje się wolniej i zużywa więcej pamięci podczas gry, więc najpierw zamknij inne programy.",
+ "Largest: {0}.": "Największe: {0}."
 }

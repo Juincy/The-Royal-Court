@@ -834,5 +834,15 @@
  "All files": "すべてのファイル",
  "Draw with the graphics card (applies after a restart)": "グラフィックカードで描画する(再起動後に反映)",
  "Drawing with the graphics card from the next start. If the program ever closes by itself, turn this off again.": "次回の起動からグラフィックカードで描画します。プログラムが勝手に終了する場合は、もう一度オフにしてください。",
- "Drawing with the processor from the next start (steadier, uses less memory).": "次回の起動からプロセッサで描画します(より安定し、メモリ使用量も少なくなります)。"
+ "Drawing with the processor from the next start (steadier, uses less memory).": "次回の起動からプロセッサで描画します(より安定し、メモリ使用量も少なくなります)。",
+ "All": "すべて",
+ "On": "オン",
+ "Off": "オフ",
+ "Problems": "問題あり",
+ "Outdated": "古い",
+ "Order unknown": "順序不明",
+ "Large": "大容量",
+ "The game's last session wrote {0} errors to its log. Open the Game log in the Advanced menu to see which mods they come from.": "前回のゲームセッションでログに {0} 件のエラーが書き込まれました。「詳細設定」メニューのゲームログを開くと、どの Mod が原因か確認できます。",
+ "The mods turned on take {0} on disk. A big playset loads more slowly and uses more memory while you play, so close other programs first.": "オンにしている Mod はディスク上で {0} を使用しています。大きなプレイセットは読み込みが遅く、プレイ中のメモリ使用量も増えるため、先に他のプログラムを閉じてください。",
+ "Largest: {0}.": "最大: {0}。"
 }
