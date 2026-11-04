@@ -147,13 +147,19 @@ public static class Sorter
         {
             long SizeOf(int i) => index.TryGetValue(ps.Mods[i].Id, out var f) ? f.Files.Count : 0;
             int budget = 3000;
-            foreach (var p in cr.Pairs)
+            // The pairs are taken in an order that does not depend on the current load order; otherwise which links are kept
+            // (a link that would make a loop is skipped) changed with the order, and sorting an already sorted list moved mods again.
+            var pairs = cr.Pairs.Where(q => q.A >= 0 && q.B >= 0 && q.A < n && q.B < n)
+                .OrderBy(q => string.CompareOrdinal(ps.Mods[q.A].Id, ps.Mods[q.B].Id) <= 0 ? ps.Mods[q.A].Id : ps.Mods[q.B].Id, StringComparer.Ordinal)
+                .ThenBy(q => string.CompareOrdinal(ps.Mods[q.A].Id, ps.Mods[q.B].Id) <= 0 ? ps.Mods[q.B].Id : ps.Mods[q.A].Id, StringComparer.Ordinal).ToList();
+            foreach (var p in pairs)
             {
                 if (budget-- <= 0 || p.Count < 3) continue;
                 int a = p.A, b = p.B;
                 if (a < 0 || b < 0 || a >= n || b >= n || IsLocked(a) || IsLocked(b) || plan.Cat[a] != plan.Cat[b]) continue;
                 if (tier[a] != tier[b] || rank[a] != rank[b]) continue;
                 long sa = SizeOf(a), sb = SizeOf(b);
+                if (sa > sb) { (a, b) = (b, a); (sa, sb) = (sb, sa); }   // a is the smaller mod, wherever it is now; the rule must not depend on the current order
                 if (sb <= sa * 2 || sa == 0) continue;
                 if (Reaches(a, b)) continue;
                 AddEdge(b, a, 1, "loads after \"" + NameOf(b) + "\" (they overwrite " + p.Count + " of the same files; the smaller, more targeted mod goes last so it wins)");

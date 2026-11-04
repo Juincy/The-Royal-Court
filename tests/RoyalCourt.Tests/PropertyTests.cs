@@ -43,7 +43,7 @@ public class PropertyTests
             for (int i = 0; i < ps.Mods.Count; i++) if (locked.Contains(ps.Mods[i].Id) && a.Order[i] != i) { bad++; log.WriteLine($"BAD lock moved round {r}"); }
             var q = new Playset { Name = "q" }; foreach (int o in a.Order) q.Mods.Add(ps.Mods[o]);
             var c = H.Plan(q, info, locked, null, db);
-            if (c.Changed) notIdem++;
+            if (c.Changed) { notIdem++; if (notIdem<=6) log.WriteLine($"NOTIDEM r{r} locked={locked.Count} warn={a.Warnings.Count} moves2="+string.Join("; ",c.Moves.Take(4).Select(mv=>mv.Id+" "+info[mv.Id].Name))+" | order: "+string.Join(" > ",q.Mods.Select(m=>info[m.Id].Name))); }
             if (a.Warnings.Count == 0 && locked.Count == 0 && c.Broken.Count > 0) { bad++; log.WriteLine($"BAD broken rule after sort round {r}: {c.Broken[0].Text}"); }
             if (a.Warnings.Count > 0) withWarn++;
             var pos = new Dictionary<string, int>(); int p = 0;
@@ -59,6 +59,38 @@ public class PropertyTests
         }
         log.WriteLine($"rounds {rounds} bad {bad} not-idempotent {notIdem} rule-breaks {ruleBreak} with-warnings {withWarn}");
         Assert.Equal(0, bad); Assert.Equal(0, ruleBreak);
+    }
+
+    /// <summary>With file overlaps (the conflict report), sorting, applying and sorting again must change nothing.</summary>
+    [Fact]
+    public void AutoSortStableWithConflicts()
+    {
+        var rng = new Random(4242); var db = Known.Builtin(); int notIdem = 0;
+        for (int r = 0; r < 600; r++)
+        {
+            var ms = new List<ModInfo>(); var idx = new Dictionary<string, ModFiles>();
+            int k = 4 + rng.Next(16);
+            for (int i = 0; i < k; i++)
+            {
+                string name = rng.Next(3) == 0 ? db[rng.Next(db.Count)].Names[0] : "Mod " + i + (rng.Next(4) == 0 ? " Patch" : "");
+                if (ms.Any(m => m.Name == name)) continue;
+                var mi = new ModInfo { Id = $"m{ms.Count}.mod", Name = name }; ms.Add(mi);
+                int fc = 1 + rng.Next(rng.Next(4) == 0 ? 60 : 8);
+                var files = Enumerable.Range(0, fc).Select(_ => "common/x/f" + rng.Next(25) + ".txt").Distinct().OrderBy(x => x, StringComparer.Ordinal).ToList();
+                idx[mi.Id] = new ModFiles { Files = files, Complete = true };
+            }
+            var ps = new Playset { Name = "p" };
+            foreach (int i in Enumerable.Range(0, ms.Count).OrderBy(_ => rng.Next())) ps.Mods.Add(new ModRef(ms[i].Id, true, ""));
+            var info = Playsets.InfoMap(ms);
+            var cr = Conflicts.Find(ps, info, idx);
+            var a = H.Plan(ps, info, new HashSet<string>(), null, db, cr, idx);
+            var q = new Playset { Name = "q" }; foreach (int o in a.Order) q.Mods.Add(ps.Mods[o]);
+            var cr2 = Conflicts.Find(q, info, idx);
+            var c = H.Plan(q, info, new HashSet<string>(), null, db, cr2, idx);
+            if (c.Changed) { notIdem++; if (notIdem <= 5) log.WriteLine($"NOTIDEM r{r}: " + string.Join("; ", c.Moves.Take(4).Select(mv => info[mv.Id].Name)) + " | " + string.Join(" > ", q.Mods.Select(m => info[m.Id].Name + "(" + idx[m.Id].Files.Count + ")"))); }
+        }
+        log.WriteLine("not-idempotent with conflicts: " + notIdem);
+        Assert.Equal(0, notIdem);
     }
 
     /// <summary>Mutation fuzzer for every parser that reads files the user or the internet controls (port of fuzz_core.cpp): nothing may throw or hang.</summary>

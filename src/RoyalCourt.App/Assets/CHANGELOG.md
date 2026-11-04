@@ -4,9 +4,12 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+- Fixed: Auto Sort could ask to sort again right after it had been applied. The rule that puts the smaller of two mods that overwrite the same files last only counted when the smaller mod happened to load first, so once it had been moved the rule stopped holding it there and other mods shifted. It now applies whatever the current order is, and the pairs are always taken in the same order. A new test sorts 600 random playsets with overlapping files twice and requires the second sort to change nothing.
 - Added: load orders for AGOT Dragons of Doggerland, AGOT Blood of the Dragon, AGOT Realistic Attraction (compatch), AI Build Cities: AGOT and LOTR Alessian Dynasty, plus AGOT Simple Terrain Colors, the AGOT Patch for Smooth Zoom Transitions and the Great Holy Grail War compatch.
 - Added: load orders from 8 more Workshop pages (AGOT Valyrian Houses, Trait Graphics Swap, Battlefield Duel +, the Travelers, Active Courtiers, Search & Trade Artifacts and Advanced Torture compatches, and Everyone can send to The Night's Watch).
 - Added: load orders for AGOT Chosen of Nagga, AGOT Wilderness Flavorization Fix, the AGOT Patch for Sharp Terrain & Better Water and AGOT Extra Building Slots (loads last).
+- Added: load orders for AGOT CUIOverhaul and AGOT - Real Eyes (loads last).
+- Added: load orders for AGOT: Defend the Night's Watch, AGOT: Eyes of the Old Gods and Legacy of Valyria - Texture Optimization (loads last).
 
 ## [0.27.1] - 2026-10-27
 - Added: load orders from 11 more Workshop pages (Theresia's Administrative Overhaul, AGOT County Expansion, AGOT Battlefield Duel 1.19, Ultimate Dynasty Tree, the Dominant Genes add-ons, Extinct Houses and others) and a warning for Theresia's Administrative Overhaul with AGOT.
