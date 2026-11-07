@@ -4,7 +4,8 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
-- Nothing yet.
+- Added: load orders for Color Picker +, DICM - Colonizable Valyria Compatch, AGOT - 7Kingdoms Holding Art and Lifestyles Perks Colored.
+- Added: load orders for AGOT - Armies Reforged and the Primae Noctis + AGOT Compatch.
 
 ## [0.27.3] - 2026-11-04
 - Added: load orders for AGoT: Expanded Music and Lifestyles Improved For AGOT.
