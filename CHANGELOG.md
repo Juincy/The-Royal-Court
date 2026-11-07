@@ -4,6 +4,8 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+- Added: load orders for the Legacy of Valyria - AGOT 0.5.2.1 Compatch, the King's Landing building compatch, AGOT: Ice and Fire and CK3 AGOT - Kiss of Life (Revival).
+- Added: load orders for AGOT Iron and Salt and the CTFAE + AGOT Compatch.
 - Added: load orders for Color Picker +, DICM - Colonizable Valyria Compatch, AGOT - 7Kingdoms Holding Art and Lifestyles Perks Colored.
 - Added: load orders for AGOT - Armies Reforged and the Primae Noctis + AGOT Compatch.
 
