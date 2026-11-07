@@ -37,6 +37,50 @@ public class ManagerTests
     }
 
     [Fact]
+    public void NotesAreKeptShownAndSearchable()
+    {
+        using var e = new TestEnv();
+        var mm = Make(e, out var ids);
+        mm.SetNote(ids[1], "  check\nlater  ");
+        Assert.Equal("check later", mm.NoteOf(ids[1]));
+        Assert.Contains("\u270E check later", mm.Rows.First(r => r.Id == ids[1]).Note);
+        Assert.DoesNotContain("\u270E", mm.Rows.First(r => r.Id == ids[0]).Note);
+        Assert.True(mm.St.Save());
+        Assert.Equal("check later", Settings.Load().Notes[ids[1]]);
+        mm.Filter = "later"; mm.Populate();
+        Assert.Single(mm.Shown);
+        mm.Filter = ""; mm.Populate();
+        Assert.Equal(300, ModManager.CleanNote(new string('x', 400)).Length);
+        mm.SetNote(ids[1], "   ");
+        Assert.Equal("", mm.NoteOf(ids[1])); Assert.Empty(mm.St.Notes);
+    }
+
+    [Fact]
+    public void HandMadeMovesAreRememberedUntilForgotten()
+    {
+        using var e = new TestEnv();
+        var mm = Make(e, out var ids);
+        var ps = mm.Active()!; foreach (var m in ps.Mods) m.Enabled = true;
+        string moved = ps.Mods[0].Id;
+        Assert.True(mm.MoveMod(0, 2));
+        Assert.Equal("a:" + ps.Mods[1].Id, mm.St.MyRules[moved]);            // now last: after the mod above it
+        Assert.True(mm.HasMyRule(moved));
+        Assert.Contains("loads after", mm.MyRulesText());
+        string top = ps.Mods[2].Id;
+        Assert.True(mm.MoveMod(2, 0));
+        Assert.Equal("b:" + ps.Mods[1].Id, mm.St.MyRules[top]);              // dragged to the top: before the mod below it
+        Assert.True(mm.St.Save()); Assert.Equal(mm.St.MyRules.Count, Settings.Load().MyRules.Count);
+        mm.ForgetMyRule(top); Assert.False(mm.HasMyRule(top));
+        mm.ToggleLearnMoves(); Assert.False(mm.St.LearnMoves);
+        int before = mm.St.MyRules.Count;
+        Assert.True(mm.MoveMod(1, 2)); Assert.Equal(before, mm.St.MyRules.Count);   // not learning any more
+        mm.ToggleLearnMoves();
+        mm.ToggleLock(new List<int> { 0 }, 0);                                // a locked mod is never remembered
+        string lockedId = ps.Mods[0].Id; mm.St.MyRules.Remove(lockedId);
+        Assert.True(mm.MoveMod(0, 1)); Assert.False(mm.St.MyRules.ContainsKey(lockedId));
+    }
+
+    [Fact]
     public void QuickFiltersNarrowTheListAndBlockDragging()
     {
         using var e = new TestEnv();

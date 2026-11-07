@@ -94,6 +94,60 @@ public class SortTests
     }
 
     [Fact]
+    public void TranslationsLoadAfterTheirOriginal()
+    {
+        Assert.Equal("agot additional models and special buildings", Names.TranslationBase("AGOT Additional Models and Special Buildings rus"));
+        Assert.Equal("agot additional models and special buildings", Names.TranslationBase("\u0420\u0443\u0441\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440 - AGOT Additional Models and Special Buildings"));
+        Assert.Equal("knights and banners", Names.TranslationBase("[AGOT] Knights & Banners | \u0420\u0443\u0441\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440"));
+        Assert.Equal("bloodlines legacies of agot", Names.TranslationBase("Bloodlines: Legacies of AGOT German Translation"));
+        Assert.Equal("", Names.TranslationBase("Better Barbershop"));
+        var ws = new List<ModInfo> { H.Mk("t1.mod", "AGOT Additional Models and Special Buildings rus"), H.Mk("t2.mod", "[AGOT] Knights & Banners | \u0420\u0443\u0441\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440"), H.Mk("t3.mod", "Cool Mod ES"),
+            H.Mk("o1.mod", "AGOT Additional Models and Special Buildings"), H.Mk("o2.mod", "[AGOT] Knights & Banners"), H.Mk("g.mod", "A Game of Thrones"), H.Mk("t4.mod", "Bloodlines: Legacies of AGOT German Translation"), H.Mk("o4.mod", "Bloodlines: Legacies of AGOT") };
+        var ps = H.PS("t", ws); var inf = Playsets.InfoMap(ws);
+        var pl = H.Plan(ps, inf, null, null, H.Db); var w = H.PosById(pl, ws);
+        Assert.True(w["o1.mod"] < w["t1.mod"] && w["o2.mod"] < w["t2.mod"] && w["o4.mod"] < w["t4.mod"], "translations after originals");
+        var q = new Playset { Name = "q" }; foreach (int o in pl.Order) q.Mods.Add(ps.Mods[o]);
+        Assert.False(H.Plan(q, inf, null, null, H.Db).Changed, "settled");
+    }
+
+    [Fact]
+    public void HealthShowsTheSortScore()
+    {
+        var ws = new List<ModInfo> { H.Mk("p.mod", "Better Barbershop Compatch for Cool Hair"), H.Mk("c.mod", "Cool Hair"), H.Mk("b.mod", "Better Barbershop") };
+        var ps = H.PS("h", ws); var inf = Playsets.InfoMap(ws);
+        var hr = Health.Check(ps, inf, "1.19.0", new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db);
+        Assert.True(hr.RulesChecked >= 1 && hr.RulesBroken >= 1 && hr.SortMoves >= 1);
+        Assert.Contains("order rules hold", Health.Text(hr, "h"));
+        var sorted = new Playset { Name = "s" }; foreach (int o in Sorter.Plan(ps, inf, new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db).Order) sorted.Mods.Add(ps.Mods[o]);
+        var h2 = Health.Check(sorted, inf, "1.19.0", new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db);
+        Assert.True(h2.RulesBroken == 0 && h2.SortMoves == 0);
+        Assert.Contains("0 broken", Health.Text(h2, "s"));
+    }
+
+    [Fact]
+    public void PlacesTheUserChoseAreKept()
+    {
+        var ws = new List<ModInfo> { H.Mk("a.mod", "Alpha Mod"), H.Mk("b.mod", "Beta Mod"), H.Mk("c.mod", "Gamma Mod") };
+        var ps = H.PS("m", ws); var inf = Playsets.InfoMap(ws);
+        var mine = new Dictionary<string, string> { ["c.mod"] = "b:a.mod" };    // Gamma goes before Alpha
+        var pl = Sorter.Plan(ps, inf, new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db, mine); var w = H.PosById(pl, ws);
+        Assert.True(w["c.mod"] < w["a.mod"], "Gamma before Alpha as the user chose");
+        var q = new Playset { Name = "q" }; foreach (int o in pl.Order) q.Mods.Add(ps.Mods[o]);
+        Assert.False(Sorter.Plan(q, inf, new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db, mine).Changed, "settled");
+        Assert.Contains("You put it before", string.Join("|", pl.Edges.Select(x => x.Text)));
+        // against a database rule the user's place wins: Character UI Overhaul is known to load after Better Barbershop
+        var ws2 = new List<ModInfo> { H.Mk("p.mod", "Better Barbershop"), H.Mk("u.mod", "Character UI Overhaul") };
+        var ps2 = H.PS("n", ws2); var inf2 = Playsets.InfoMap(ws2);
+        var free = H.PosById(Sorter.Plan(ps2, inf2, new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db), ws2);
+        Assert.True(free["p.mod"] < free["u.mod"]);
+        var own = H.PosById(Sorter.Plan(ps2, inf2, new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db, new Dictionary<string, string> { ["p.mod"] = "a:u.mod" }), ws2);
+        Assert.True(own["u.mod"] < own["p.mod"], "the user's place wins over the database rule");
+        // a rule about a mod that is turned off or gone is ignored
+        ps.Mods[0] = new ModRef("a.mod", false, "");
+        Assert.Equal(0, Sorter.Plan(ps, inf, new HashSet<string>(), new Dictionary<string, int>(), null, null, H.Db, mine).Order[0]);
+    }
+
+    [Fact]
     public void WorkshopRounds()
     {
         // 2026-10-12

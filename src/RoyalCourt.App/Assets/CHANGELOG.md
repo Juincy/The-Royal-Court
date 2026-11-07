@@ -4,6 +4,13 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+- Added: translations are now sorted automatically right after the mod they translate.
+- Added: The Royal Court remembers mods you move by hand and keeps them in place on the next Auto Sort. Forget one or all of them from the mod menu or the Advanced menu, or turn the learning off.
+- Added: the Health check now shows a load order score (rules checked, rules broken, how many mods Auto Sort would still move).
+- Added: Compare playsets opens a window listing every difference, with each mod's place in both playsets, a filter and a Copy report button.
+- Added: per-mod notes (right-click a mod). Notes show in the Notes column and are searchable.
+- Added: keyboard shortcuts (F5 refresh, Ctrl+F search, Ctrl+Z undo, Alt+Up/Down move, F2 note, F1 list of all shortcuts).
+- Improved: Auto Sort is about ten times faster on very large playsets (1000 mods: 3.9 s down to 0.35 s).
 - Added: load orders for the Legacy of Valyria - AGOT 0.5.2.1 Compatch, the King's Landing building compatch, AGOT: Ice and Fire and CK3 AGOT - Kiss of Life (Revival).
 - Added: load orders for AGOT Iron and Salt and the CTFAE + AGOT Compatch.
 - Added: load orders for Color Picker +, DICM - Colonizable Valyria Compatch, AGOT - 7Kingdoms Holding Art and Lifestyles Perks Colored.

@@ -463,9 +463,13 @@ public static class Scripts
 }
 
 // ---------- playset comparison & update detection ----------
+/// <summary>One line of a playset comparison. Kind: 0 enabled only in A, 1 enabled only in B, 2 on in A and off in B, 3 at a different place in the shared load order, 4 on in B and off in A. Positions are 1-based places in each playset's list (-1: not in that playset).</summary>
+public sealed class DiffRow { public int Kind, PosA = -1, PosB = -1; public string Id = "", Name = ""; }
+
 public sealed class PlaysetDiff
 {
     public List<string> OnlyA = new(), OnlyB = new(), EnabledDiffers = new(), Moved = new();
+    public List<DiffRow> Rows = new();
     public int Shared; public bool SameOrder = true;
 }
 
@@ -479,18 +483,23 @@ public static class Compare
         foreach (var m in a.Mods) ma[m.Id] = m;
         foreach (var m in b.Mods) mb[m.Id] = m;
         var oa = new List<string>(); var ob = new List<string>();
+        var pa = new Dictionary<string, int>(StringComparer.Ordinal); var pbp = new Dictionary<string, int>(StringComparer.Ordinal);
+        for (int i = 0; i < a.Mods.Count; i++) pa[a.Mods[i].Id] = i + 1;
+        for (int i = 0; i < b.Mods.Count; i++) pbp[b.Mods[i].Id] = i + 1;
+        int PA(string id) => pa.TryGetValue(id, out var v) ? v : -1;
+        int PB(string id) => pbp.TryGetValue(id, out var v) ? v : -1;
         foreach (var m in a.Mods)
         {
             bool has = mb.TryGetValue(m.Id, out var o);
             bool eb = has && o!.Enabled;
-            if (m.Enabled && !eb) { if (!has) d.OnlyA.Add(Nm(m)); else d.EnabledDiffers.Add(Trf("{0} (on in {1}, off in {2})", Nm(m), a.Name, b.Name)); }
+            if (m.Enabled && !eb) { d.Rows.Add(new DiffRow { Kind = has ? 2 : 0, Id = m.Id, Name = Nm(m), PosA = PA(m.Id), PosB = PB(m.Id) }); if (!has) d.OnlyA.Add(Nm(m)); else d.EnabledDiffers.Add(Trf("{0} (on in {1}, off in {2})", Nm(m), a.Name, b.Name)); }
             else if (m.Enabled && eb) oa.Add(m.Id);
         }
         foreach (var m in b.Mods)
         {
             bool has = ma.TryGetValue(m.Id, out var o);
             bool ea = has && o!.Enabled;
-            if (m.Enabled && !ea) { if (!has) d.OnlyB.Add(Nm(m)); else d.EnabledDiffers.Add(Trf("{0} (on in {1}, off in {2})", Nm(m), b.Name, a.Name)); }
+            if (m.Enabled && !ea) { d.Rows.Add(new DiffRow { Kind = has ? 4 : 1, Id = m.Id, Name = Nm(m), PosA = PA(m.Id), PosB = PB(m.Id) }); if (!has) d.OnlyB.Add(Nm(m)); else d.EnabledDiffers.Add(Trf("{0} (on in {1}, off in {2})", Nm(m), b.Name, a.Name)); }
             else if (m.Enabled && ea) ob.Add(m.Id);
         }
         d.Shared = oa.Count;
@@ -505,9 +514,39 @@ public static class Compare
             for (int i = 0; i < n; i++) for (int j = 0; j < i; j++) if (pb[oa[j]] < pb[oa[i]] && best[j] + 1 > best[i]) { best[i] = best[j] + 1; prev[i] = j; }
             int end = 0; for (int i = 0; i < n; i++) if (best[i] > best[end]) end = i;
             var keep = new HashSet<int>(); for (int i = end; i >= 0; i = prev[i]) keep.Add(i);
-            for (int i = 0; i < n; i++) if (!keep.Contains(i)) d.Moved.Add(info.TryGetValue(oa[i], out var mi) ? mi.Name : oa[i]);
+            for (int i = 0; i < n; i++) if (!keep.Contains(i))
+            {
+                string nm = info.TryGetValue(oa[i], out var mi) ? mi.Name : oa[i];
+                d.Moved.Add(nm); d.Rows.Add(new DiffRow { Kind = 3, Id = oa[i], Name = nm, PosA = PA(oa[i]), PosB = PB(oa[i]) });
+            }
         }
         return d;
+    }
+
+    /// <summary>What a row says, with the two playset names filled in.</summary>
+    public static string KindText(int kind, string a, string b) => kind switch
+    {
+        0 => Trf("Only enabled in {0}", a),
+        1 => Trf("Only enabled in {0}", b),
+        2 => Trf("On in {0}, off in {1}", a, b),
+        4 => Trf("On in {0}, off in {1}", b, a),
+        _ => Tr("Different place in the load order"),
+    };
+
+    /// <summary>The whole comparison as plain text (the dialog and the Copy button).</summary>
+    public static string Text(string nameA, string nameB, PlaysetDiff d)
+    {
+        static string Sect(string head, List<string> v)
+        {
+            var o = new StringBuilder(Trf("{0} ({1})", head, v.Count) + "\r\n");
+            if (v.Count == 0) o.Append("   -\r\n");
+            foreach (var x in v) o.Append("   ").Append(x).Append("\r\n");
+            return o.Append("\r\n").ToString();
+        }
+        var t = new StringBuilder(Trf("\"{0}\"  vs  \"{1}\"", nameA, nameB) + "\r\n\r\n" + Trf("{0} mods are enabled in both.", d.Shared) + "  " + (d.SameOrder ? Tr("Load order of those: identical.") : Tr("Load order of those: different.")) + "\r\n\r\n");
+        t.Append(Sect(Trf("Only enabled in {0}", nameA), d.OnlyA)).Append(Sect(Trf("Only enabled in {0}", nameB), d.OnlyB)).Append(Sect(Tr("Enabled in one, disabled in the other"), d.EnabledDiffers));
+        if (!d.SameOrder) t.Append(Sect(Tr("Mods at a different place in the shared load order"), d.Moved));
+        return t.ToString();
     }
 
     public static bool FingerprintChanged(string stored, string now)

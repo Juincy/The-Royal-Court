@@ -44,6 +44,11 @@ public sealed class Settings
     public SortedDictionary<string, long> Unsubbed = new(StringComparer.Ordinal);             // Workshop mods the user unsubscribed from -> when (seconds since 1970)
     public SortedDictionary<string, string> Launch = new(StringComparer.Ordinal);             // playset name -> extra command line options for the game
     public SortedDictionary<string, string> Seen = new(StringComparer.Ordinal);               // mod id -> fingerprint when Play was last pressed (update detection)
+    public SortedDictionary<string, string> Notes = new(StringComparer.Ordinal);              // mod id -> the user's own note about it (shown in the Notes column)
+    /// <summary>Where the user put a mod by hand: mod id -> "a:" + the id of the mod above it ("after") or "b:" + the id of the mod below it ("before", for a mod dragged to the top). Auto Sort keeps these places.</summary>
+    public SortedDictionary<string, string> MyRules = new(StringComparer.Ordinal);
+    public bool LearnMoves = true;                                                            // remember hand-made moves as MyRules
+    public const int NoteMax = 300;
     public int WinX, WinY, WinW, WinH; public bool WinMax;                                    // remembered window position and size (WinW == 0: none)
     public List<int> ColW = new();                                                            // remembered widths of the list columns (0 = automatic)
     public bool Pictures = true;                                                              // show the mod pictures (thumbnail.png from the mod folder) in the list
@@ -68,6 +73,11 @@ public sealed class Settings
             for (int i = 0; i < l.Keys.Count; i++) if (l.Vals[i].IsStr && l.Vals[i].S.Length > 0) st.Launch[l.Keys[i]] = l.Vals[i].S;
         if (root.Get("seen") is { IsObj: true } sn)
             for (int i = 0; i < sn.Keys.Count; i++) if (sn.Vals[i].IsStr) st.Seen[sn.Keys[i]] = sn.Vals[i].S;
+        if (root.Get("notes") is { IsObj: true } nt)
+            for (int i = 0; i < nt.Keys.Count && st.Notes.Count < 5000; i++) if (nt.Vals[i].IsStr && nt.Vals[i].S.Length > 0) st.Notes[nt.Keys[i]] = nt.Vals[i].S.Length > NoteMax ? nt.Vals[i].S[..NoteMax] : nt.Vals[i].S;
+        if (root.Get("myRules") is { IsObj: true } mr)
+            for (int i = 0; i < mr.Keys.Count && st.MyRules.Count < 5000; i++) if (mr.Vals[i].IsStr && mr.Vals[i].S.Length > 2 && (mr.Vals[i].S.StartsWith("a:", StringComparison.Ordinal) || mr.Vals[i].S.StartsWith("b:", StringComparison.Ordinal))) st.MyRules[mr.Keys[i]] = mr.Vals[i].S;
+        if (root.Get("learnMoves") is { IsBool: true } lm) st.LearnMoves = lm.B;
         if (root.Get("checkUpdates") is { IsBool: true } cu) st.CheckUpdates = cu.B;
         if (root.Get("gpu") is { IsBool: true } gp) st.Gpu = gp.B;
         if (root.Get("playCheck") is { IsBool: true } pc) st.PlayCheck = pc.B;
@@ -197,6 +207,9 @@ public sealed class Settings
         if (Unsubbed.Count > 0) { var o = J.Obj(); foreach (var kv in Unsubbed) o.Set(kv.Key, J.Num(kv.Value)); root.Set("unsubbed", o); }
         if (Launch.Count > 0) { var o = J.Obj(); foreach (var kv in Launch) o.Set(kv.Key, J.Str(kv.Value)); root.Set("launch", o); }
         if (Seen.Count > 0) { var o = J.Obj(); foreach (var kv in Seen) o.Set(kv.Key, J.Str(kv.Value)); root.Set("seen", o); }
+        if (Notes.Count > 0) { var o = J.Obj(); foreach (var kv in Notes) o.Set(kv.Key, J.Str(kv.Value)); root.Set("notes", o); }
+        if (MyRules.Count > 0) { var o = J.Obj(); foreach (var kv in MyRules) o.Set(kv.Key, J.Str(kv.Value)); root.Set("myRules", o); }
+        if (!LearnMoves) root.Set("learnMoves", J.Bool(false));
         if (CheckUpdates) root.Set("checkUpdates", J.Bool(true));
         if (Gpu) root.Set("gpu", J.Bool(true));
         if (!PlayCheck) root.Set("playCheck", J.Bool(false));

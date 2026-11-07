@@ -239,17 +239,7 @@ public sealed partial class ModManager
         if (pick < 0) return;
         var other = others[pick];
         var d = Compare.ComparePlaysets(ps, other, Info);
-        static string Sect(string head, List<string> v)
-        {
-            var o = new StringBuilder(Trf("{0} ({1})", head, v.Count) + "\r\n");
-            if (v.Count == 0) o.Append("   -\r\n");
-            foreach (var x in v) o.Append("   ").Append(x).Append("\r\n");
-            return o.Append("\r\n").ToString();
-        }
-        var t = new StringBuilder(Trf("\"{0}\"  vs  \"{1}\"", ps.Name, other.Name) + "\r\n\r\n" + Trf("{0} mods are enabled in both.", d.Shared) + "  " + (d.SameOrder ? Tr("Load order of those: identical.") : Tr("Load order of those: different.")) + "\r\n\r\n");
-        t.Append(Sect(Trf("Only enabled in {0}", ps.Name), d.OnlyA)).Append(Sect(Trf("Only enabled in {0}", other.Name), d.OnlyB)).Append(Sect(Tr("Enabled in one, disabled in the other"), d.EnabledDiffers));
-        if (!d.SameOrder) t.Append(Sect(Tr("Mods at a different place in the shared load order"), d.Moved));
-        await Dlg.ShowText(Tr("Compare playsets"), t.ToString());
+        await Dlg.ShowText(Tr("Compare playsets"), Compare.Text(ps.Name, other.Name, d));
     }
 
     public async Task Compatches()

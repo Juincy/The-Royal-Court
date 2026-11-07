@@ -26,7 +26,7 @@ public static class Sorter
 
     public static SortPlan Plan(Playset ps, IReadOnlyDictionary<string, ModInfo> info, ISet<string> locked,
                                 IReadOnlyDictionary<string, int> overrides, ConflictReport? cr, IReadOnlyDictionary<string, ModFiles>? index,
-                                IReadOnlyList<KnownMod>? db = null)
+                                IReadOnlyList<KnownMod>? db = null, IReadOnlyDictionary<string, string>? mine = null)
     {
         var plan = new SortPlan();
         int n = ps.Mods.Count;
@@ -95,6 +95,21 @@ public static class Sorter
             }
             return false;
         }
+        if (mine != null && mine.Count > 0)
+        {
+            // Where the user put mods by hand ("a:" id = after that mod, "b:" id = before it). These come before the database rules, so a rule that contradicts them is the one that gives way.
+            var where = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (int i = 0; i < n; i++) where.TryAdd(ps.Mods[i].Id, i);
+            for (int i = 0; i < n; i++)
+            {
+                if (!ps.Mods[i].Enabled || !mine.TryGetValue(ps.Mods[i].Id, out var rule) || rule.Length < 3) continue;
+                bool after = rule[0] == 'a';
+                if (!where.TryGetValue(rule.Substring(2), out int j) || j == i || !ps.Mods[j].Enabled) continue;
+                int first = after ? j : i, second = after ? i : j;
+                if (Reaches(second, first)) { plan.Warnings.Add(Trf("Your own place for \"{0}\" could not be kept (it would contradict a dependency).", NameOf(i))); continue; }
+                AddEdge(first, second, 2, after ? Trf("You put it after \"{0}\"", NameOf(j)) : Trf("You put it before \"{0}\"", NameOf(j)), "", NameOf(j), after);
+            }
+        }
         if (db != null)
         {
             for (int i = 0; i < n; i++)
@@ -139,6 +154,23 @@ public static class Sorter
                     else if (acr[j].Length >= 3 && padded.Contains(" " + acr[j] + " ", StringComparison.Ordinal)) hit = true;
                     if (!hit || Reaches(p, j)) continue;
                     AddEdge(j, p, 3, Trf("Is a patch for \"{0}\", so it loads after it", NameOf(j)));
+                    plan.PatchLinks++;
+                }
+            }
+        }
+        {
+            // A language pack ("... rus", "[RU]", "German Translation") loads right after the mod it translates.
+            var byNorm = new Dictionary<string, List<int>>(StringComparer.Ordinal);
+            for (int j = 0; j < n; j++) if (norm[j].Length > 0 && ps.Mods[j].Enabled) { if (!byNorm.TryGetValue(norm[j], out var l)) byNorm[norm[j]] = l = new List<int>(); l.Add(j); }
+            for (int p = 0; p < n; p++)
+            {
+                if (norm[p].Length == 0 || !ps.Mods[p].Enabled || !info.TryGetValue(ps.Mods[p].Id, out var tmi)) continue;
+                string tb = Names.TranslationBase(tmi.Name);
+                if (tb.Length == 0 || !byNorm.TryGetValue(tb, out var origs)) continue;
+                foreach (int j in origs)
+                {
+                    if (j == p || Reaches(p, j)) continue;
+                    AddEdge(j, p, 3, Trf("Is a translation of \"{0}\", so it loads after it", NameOf(j)));
                     plan.PatchLinks++;
                 }
             }
@@ -237,6 +269,9 @@ public static class Sorter
                 else plan.Warnings.Add(e.After ? Trf("\"{0}\" {1}: loads after \"{2}\", but a locked mod prevents it.", NameOf(e.To), e.Note, e.Other) : Trf("\"{0}\" {1}: loads before \"{2}\", but a locked mod prevents it.", NameOf(e.To), e.Note, e.Other));
             }
         }
+        var inE = new List<int>[n];   // links ending at each mod, in the order they were added (finding the reason for a move must not scan every link)
+        for (int i = 0; i < n; i++) inE[i] = new List<int>();
+        for (int e = 0; e < edges.Count; e++) inE[edges[e].To].Add(e);
         for (int p = 0; p < n; p++)
         {
             int old = plan.Order[p];
@@ -244,10 +279,10 @@ public static class Sorter
             if (old == p) continue;
             var mv = new SortMove { From = old, To = p, Id = ps.Mods[old].Id };
             string why = "";
-            foreach (var e in edges) if (e.To == old && e.Kind != 1 && e.From > old && why.Length == 0) why = e.Text;
+            foreach (int ei in inE[old]) { var e = edges[ei]; if (e.Kind != 1 && e.From > old) { why = e.Text; break; } }
             if (why.Length == 0 && tier[old] > 0) why = plan.Known[old];
             if (why.Length == 0 && tier[old] < 0) why = plan.Known[old];
-            if (why.Length == 0) foreach (var e in edges) if (e.To == old && e.Kind == 1) { why = Trf("Loads after \"{0}\" (they overwrite the same files; this is the smaller mod, so it wins)", NameOf(e.From)); break; }
+            if (why.Length == 0) foreach (int ei in inE[old]) { var e = edges[ei]; if (e.Kind != 1) continue; why = Trf("Loads after \"{0}\" (they overwrite the same files; this is the smaller mod, so it wins)", NameOf(e.From)); break; }
             if (why.Length == 0) why = plan.CatWhy[old].Length == 0 || plan.CatWhy[old] == "default" ? Trf("{0} group", Core.Cat.Name(plan.Cat[old])) : Trf("{0} group ({1})", Core.Cat.Name(plan.Cat[old]), plan.CatWhy[old]);
             mv.Reason = why;
             plan.Moves.Add(mv);

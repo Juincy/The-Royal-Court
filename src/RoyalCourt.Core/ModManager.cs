@@ -329,10 +329,12 @@ public sealed partial class ModManager
         var iss = Issues[i];
         sev = Analyze.IssueSeverity(iss);
         string sum = Analyze.IssueSummary(iss);
-        if (sum.Length > 0) return sum;
-        if (Info.TryGetValue(ps.Mods[i].Id, out var mi) && mi.Pending) return Tr("Downloaded from Steam. Tick the box to add it");
-        if (ps.Mods[i].Enabled && Info.ContainsKey(ps.Mods[i].Id)) { sev = 3; return "✓"; }
-        return "";
+        string mine = NoteOf(ps.Mods[i].Id); if (mine.Length > 0) mine = "\u270E " + mine;
+        string Join(string b) => mine.Length == 0 ? b : b.Length == 0 ? mine : b + "   " + mine;
+        if (sum.Length > 0) return Join(sum);
+        if (Info.TryGetValue(ps.Mods[i].Id, out var mi) && mi.Pending) return Join(Tr("Downloaded from Steam. Tick the box to add it"));
+        if (ps.Mods[i].Enabled && Info.ContainsKey(ps.Mods[i].Id)) { sev = 3; return Join("✓"); }
+        return Join("");
     }
 
     string ShownName(Playset ps, int i)
@@ -373,7 +375,7 @@ public sealed partial class ModManager
         var order = new List<int>();
         for (int i = 0; i < ps.Mods.Count; i++)
         {
-            if (f.Length > 0 && !Util.Lower(ShownName(ps, i)).Contains(f, StringComparison.Ordinal)) continue;
+            if (f.Length > 0 && !Util.Lower(ShownName(ps, i)).Contains(f, StringComparison.Ordinal) && !Util.Lower(NoteOf(ps.Mods[i].Id)).Contains(f, StringComparison.Ordinal)) continue;
             if (Quick != QAll && !QuickMatch(ps, i)) continue;
             order.Add(i);
         }

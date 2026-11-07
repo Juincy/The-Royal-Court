@@ -7,6 +7,8 @@ public sealed class HealthReport
     public List<HealthItem> Items = new();
     public int Enabled, Problems, Warnings;
     public bool OrderIssues;
+    /// <summary>The sort score: order rules that apply to this playset, how many are broken now, how many mods Auto Sort would move, and rules it cannot satisfy (locked mods, loops).</summary>
+    public int RulesChecked, RulesBroken, SortMoves, SortUnplaced;
     public bool Ok => Problems == 0 && Warnings == 0;
 }
 
@@ -17,7 +19,7 @@ public static class Health
     /// <summary>Turned-on mods this big (8 GB) get a size note in the health check.</summary>
     public const long HugePlayset = 8L << 30;
     public static HealthReport Check(Playset ps, IReadOnlyDictionary<string, ModInfo> info, string gameVersion, ISet<string> locked,
-                                     IReadOnlyDictionary<string, int> overrides, ConflictReport? cr, IReadOnlyDictionary<string, ModFiles>? index, IReadOnlyList<KnownMod>? db, int lastLogErrors = -1, Func<string, long>? sizeOf = null)
+                                     IReadOnlyDictionary<string, int> overrides, ConflictReport? cr, IReadOnlyDictionary<string, ModFiles>? index, IReadOnlyList<KnownMod>? db, int lastLogErrors = -1, Func<string, long>? sizeOf = null, IReadOnlyDictionary<string, string>? mine = null)
     {
         var hr = new HealthReport();
         int n = ps.Mods.Count;
@@ -36,7 +38,9 @@ public static class Health
             if (!ps.Mods[i].Enabled) continue;
             foreach (var iss in issues[i]) if (iss.Sev >= 1) Add(iss.Sev, i, iss.Text);
         }
-        var plan = Sorter.Plan(ps, info, locked, overrides, cr, index, db);
+        var plan = Sorter.Plan(ps, info, locked, overrides, cr, index, db, mine);
+        foreach (var e in plan.Edges) if (e.Kind != 1) hr.RulesChecked++;
+        hr.RulesBroken = plan.Broken.Count; hr.SortMoves = plan.Moves.Count; hr.SortUnplaced = plan.Warnings.Count;
         foreach (var b in plan.Broken)
         {
             if (b.Mod < 0 || b.Mod >= n) continue;
@@ -80,6 +84,14 @@ public static class Health
     public static string Text(HealthReport hr, string playsetName)
     {
         var t = new StringBuilder(Trf("Health check for \"{0}\": {1} mod(s) turned on", playsetName, hr.Enabled) + "\n\n");
+        if (hr.Enabled > 0)
+        {
+            string line = hr.RulesChecked == 0 ? Tr("Load order: no order rules apply to these mods.")
+                : Trf("Load order: {0} of {1} order rules hold, {2} broken.", Math.Max(0, hr.RulesChecked - hr.RulesBroken), hr.RulesChecked, hr.RulesBroken);
+            if (hr.SortMoves > 0) line += " " + Trf("Auto Sort would move {0} mod(s).", hr.SortMoves);
+            if (hr.SortUnplaced > 0) line += " " + Trf("{0} rule(s) cannot be met (locked mods or loops).", hr.SortUnplaced);
+            t.Append(line).Append("\n\n");
+        }
         if (hr.Ok && hr.Enabled > 0) t.Append(Tr("No problems found. This playset looks ready to play.")).Append('\n');
         if (hr.Enabled == 0) t.Append(Tr("No mods are turned on.")).Append('\n');
         void Section(int sev, string head)

@@ -401,7 +401,38 @@ public partial class MainWindow : Window
         Deactivated += (_, _) => Dispatcher.UIThread.Post(Anim.Refresh, DispatcherPriority.Background);
         PropertyChanged += (_, e) => { if (e.Property == BoundsProperty || e.Property == WindowStateProperty) SaveStateSoon(); };
         PositionChanged += (_, _) => SaveStateSoon();
-        KeyDown += (_, e) => { if (e.Key == Key.F5) { mm.RescanAll(); e.Handled = true; } };
+        KeyDown += OnShortcut;
+    }
+
+    static string ShortcutsText() =>
+        "F1" + "\t" + Tr("this list") + "\r\n" + "F5" + "\t" + Tr("scan the mods again") + "\r\n" + "Ctrl+F" + "\t" + Tr("go to the search box") + "\r\n" +
+        "Ctrl+Shift+S" + "\t" + Tr("Auto Sort") + "\r\n" + "Ctrl+Z" + "\t" + Tr("Undo order (back to before the last Auto Sort or move)") + "\r\n" +
+        "Alt+Up / Alt+Down" + "\t" + Tr("move the selected mod up or down one place") + "\r\n" + "Space" + "\t" + Tr("turn the selected mods on or off") + "\r\n" +
+        "Ctrl+L" + "\t" + Tr("lock or unlock the selected mods (Auto Sort never moves a locked mod)") + "\r\n" + "F2" + "\t" + Tr("add or edit your note on the selected mod") + "\r\n" +
+        "Enter" + "\t" + Tr("details of the selected mod") + "\r\n" + "Ctrl+A" + "\t" + Tr("select all mods");
+
+    void OnShortcut(object? sender, KeyEventArgs e)
+    {
+        bool ctrl = (e.KeyModifiers & KeyModifiers.Control) != 0, shift = (e.KeyModifiers & KeyModifiers.Shift) != 0, alt = (e.KeyModifiers & KeyModifiers.Alt) != 0;
+        bool typing = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is RcEdit;   // keys belong to the text box while it has the focus
+        if (e.Key == Key.F5) { mm.RescanAll(); e.Handled = true; }
+        else if (e.Key == Key.F1) { Run(() => Dlg.ShowText(Tr("Keyboard shortcuts"), ShortcutsText())); e.Handled = true; }
+        else if (ctrl && !shift && e.Key == Key.F) { filter.Focus(); e.Handled = true; }
+        else if (typing) return;
+        else if (ctrl && shift && e.Key == Key.S) { Run(async () => { await mm.AutoSort(); RefreshButtons(); }); e.Handled = true; }
+        else if (ctrl && !shift && e.Key == Key.Z) { if (mm.UndoAvailable) Do(() => { mm.UndoSort(); RefreshButtons(); }); e.Handled = true; }
+        else if (alt && (e.Key == Key.Up || e.Key == Key.Down))
+        {
+            if (list.Sel.Count == 1 && !mm.OrderLocked)
+            {
+                int r = list.Sel.Min, t = r + (e.Key == Key.Up ? -1 : 1);
+                if (t >= 0 && t < mm.Shown.Count && r < mm.Shown.Count) Do(() => { if (mm.MoveMod(mm.Shown[r], mm.Shown[t])) list.SelectOnly(t); });
+            }
+            else if (mm.OrderLocked) mm.Say(Tr("Clear the filter, the Show setting and column sorting (click the # header) to change load order."));
+            e.Handled = true;
+        }
+        else if (ctrl && !shift && e.Key == Key.L) { var sel = SelIdx(); if (sel.Count > 0) Do(() => mm.ToggleLock(sel, sel[0])); e.Handled = true; }
+        else if (e.Key == Key.F2) { var sel = SelIdx(); if (sel.Count == 1) Run(() => mm.EditNote(sel[0])); e.Handled = true; }
     }
     void RefreshButtons() { bUndo.IsEnabled = mm.UndoAvailable; }
     void FillCombo()
@@ -484,6 +515,7 @@ public partial class MainWindow : Window
             MenuDef.Title(Tr("Playset tools")),
             new(3, Tr("Compatch finder: patches for the mods you use...")), new(11, Tr("Compare with another playset...")),
             new(12, Tr("Game launch options for this playset...")),
+            new(26, mm.St.MyRules.Count > 0 ? Trf("My remembered places ({0})...", mm.St.MyRules.Count) : Tr("My remembered places...")),
         };
         if (mm.St.Hidden.Count > 0) items.Add(new(13, Trf("Show removed mods ({0})", mm.St.Hidden.Count)));
         items.Add(MenuDef.Title(Tr("Backups and folders")));
@@ -494,6 +526,7 @@ public partial class MainWindow : Window
         items.Add(new(17, Tr("Clear the shader cache (the game rebuilds it)..."))); items.Add(new(14, Tr("Delete all saves...")));
         items.Add(MenuDef.Title(Tr("Options")));
         items.Add(new(24, Tr("Show the mod pictures in the list"), mm.St.Pictures));
+        items.Add(new(27, Tr("Remember where I drag mods (Auto Sort keeps them there)"), mm.St.LearnMoves));
         items.Add(new(19, Tr("Run the health check when I press Play"), mm.St.PlayCheck));
         items.Add(new(20, Tr("Check for updates when the program starts"), mm.St.CheckUpdates));
         items.Add(new(25, Tr("Draw with the graphics card (applies after a restart)"), mm.St.Gpu));
@@ -501,6 +534,7 @@ public partial class MainWindow : Window
         items.Add(new(21, Tr("Report a sort problem (copy details)...")));
         items.Add(new(22, Tr("Open diagnostics log (for bug reports)")));
         items.Add(new(18, Tr("Show the quick tour again...")));
+        items.Add(new(28, Tr("Keyboard shortcuts...")));
         int r = await PopupMenu.Show(this, Below(bAdv), items);
         switch (r)
         {
@@ -515,7 +549,7 @@ public partial class MainWindow : Window
             case 8: mm.BackupNow(); break;
             case 9: await mm.RestoreBackup(); break;
             case 10: Platform.OpenShell(mm.BackupsFolder()); break;
-            case 11: await mm.ComparePlaysets(); break;
+            case 11: DiffWindow.Open(this); break;
             case 12: await mm.LaunchOptions(); break;
             case 13: mm.ShowRemovedMods(); break;
             case 14: await mm.DeleteAllSaves(); break;
@@ -527,6 +561,9 @@ public partial class MainWindow : Window
             case 19: mm.TogglePlayCheck(); break;
             case 20: mm.ToggleAutoUpdate(); break;
             case 25: mm.ToggleGpu(); break;
+            case 26: await mm.ForgetMyRules(); break;
+            case 27: mm.ToggleLearnMoves(); break;
+            case 28: await Dlg.ShowText(Tr("Keyboard shortcuts"), ShortcutsText()); break;
             case 21: await mm.SortReport(); break;
             case 22: mm.OpenLog(); break;
         }
@@ -548,7 +585,13 @@ public partial class MainWindow : Window
         for (int c = 0; c < Cat.Count; c++) items.Add(new(100 + c, n > 1 ? Trf("Type for all: {0}", Cat.Name(c)) : Trf("Type: {0}", Cat.Name(c)), n == 1 && ovr && cur == c));
         items.Add(new(100 + Cat.Count, n > 1 ? Tr("Type for all: automatic") : Tr("Type: automatic"), n == 1 && !ovr));
         items.Add(MenuDef.Separator);
-        if (n == 1) { items.Add(new(2, Tr("Explain this position..."))); items.Add(MenuDef.Separator); }
+        if (n == 1)
+        {
+            items.Add(new(2, Tr("Explain this position...")));
+            items.Add(new(6, mm.NoteOf(mr.Id).Length > 0 ? Tr("Edit my note...") : Tr("Add a note...")));
+            if (mm.HasMyRule(mr.Id)) items.Add(new(7, Tr("Forget where I put this mod")));
+            items.Add(MenuDef.Separator);
+        }
         bool anyWs = sel.Any(i => i < ps.Mods.Count && mm.HasWorkshopId(ps.Mods[i].Id));
         if (anyWs) items.Add(new(3, n > 1 ? Trf("Unsubscribe from {0} mods on Steam...", n) : Tr("Unsubscribe on Steam...")));
         items.Add(new(4, n > 1 ? Trf("Remove {0} mods from list...", n) : Tr("Remove from list...")));
@@ -562,6 +605,8 @@ public partial class MainWindow : Window
         else if (r == 3) await mm.Unsubscribe(sel);
         else if (r == 4) await mm.RemoveOrDelete(sel, false);
         else if (r == 5) await mm.RemoveOrDelete(sel, true);
+        else if (r == 6) await mm.EditNote(clicked);
+        else if (r == 7) mm.ForgetMyRule(mr.Id);
     }
     async Task ShowDetails(int row)
     {

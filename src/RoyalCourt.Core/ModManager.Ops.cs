@@ -114,7 +114,9 @@ public sealed partial class ModManager
         var m = ps.Mods[from];
         ps.Mods.RemoveAt(from);
         ps.Mods.Insert(to, m);
+        LearnMove(ps, to);
         SaveActive();
+        SaveSettingsNow();
         Populate();
         return true;
     }
@@ -284,7 +286,7 @@ public sealed partial class ModManager
     public SortPlan PlanSort()
     {
         var ps = Active()!;
-        return Sorter.Plan(ps, Info, LockedIds(), St.Cats, Conf.Valid ? Conf : null, FileIndex, KnownDb);
+        return Sorter.Plan(ps, Info, LockedIds(), St.Cats, Conf.Valid ? Conf : null, FileIndex, KnownDb, St.MyRules);
     }
 
     public async Task AutoSort()
@@ -553,7 +555,7 @@ public sealed partial class ModManager
     {
         var ps = Active();
         if (ps == null) return new HealthReport();
-        return Health.Check(ps, Info, GameVer, LockedIds(), St.Cats, Conf.Valid ? Conf : null, FileIndex, KnownDb, LastLogErrors(), SizeOf);
+        return Health.Check(ps, Info, GameVer, LockedIds(), St.Cats, Conf.Valid ? Conf : null, FileIndex, KnownDb, LastLogErrors(), SizeOf, St.MyRules);
     }
 
     /// <summary>Errors in the end of the game's own log (the last session), or -1 when there is no log. Reads at most 4 MB.</summary>

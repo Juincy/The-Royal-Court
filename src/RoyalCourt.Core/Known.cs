@@ -86,6 +86,23 @@ public static class Names
         return string.Join(' ', w);
     }
 
+    static readonly System.Text.RegularExpressions.Regex TranslationMarks = new(
+        @"(?<![\p{L}\p{N}])(russian|rus|ru|русификатор|русификация|русский|русская|локализация|перевод|german|deutsch|deutsche|french|francais|français|fr|spanish|español|espanol|spanish-español|es|italian|italiano|ita|polish|polski|pl|portuguese|brazilian|ptbr|br|turkish|korean|korea|chinese|simplified|zh|cn|translation|translations|translated|localization|localisation|localised|localized|lokalisierung|übersetzung|traduction|traducción|汉化版?|中文|简体中文|한국어|기계|번역|machine)(?![\p{L}\p{N}])",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(200));
+
+    /// <summary>A language pack says so in its title ("... rus", "[RU]", "German Translation", "Русификатор - ..."). Returns the normalised name of the mod it translates (the title without those words), or "" when the title has no such word.</summary>
+    public static string TranslationBase(string rawName)
+    {
+        try
+        {
+            string stripped = TranslationMarks.Replace(rawName, " ");
+            if (string.Equals(stripped, rawName, StringComparison.Ordinal)) return "";
+            string b = Norm(stripped);
+            return b.Length >= 5 && b != Norm(rawName) ? b : "";
+        }
+        catch (System.Text.RegularExpressions.RegexMatchTimeoutException) { return ""; }
+    }
+
     static readonly string[] Bad = { "patch", "patches", "compat", "compatch", "compatibility", "translation", "submod", "addon", "for", "plus", "extension", "expansion", "bridge", "of", "in", "and", "with" };
     static int Spaces(string s) { int n = 0; foreach (char c in s) if (c == ' ') n++; return n; }
 

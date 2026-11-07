@@ -316,3 +316,85 @@ public sealed class ChangelogWindow : RcWindow
         list.Count = vis.Count; list.Refresh();
     }
 }
+
+/// <summary>The active playset next to another one: what is only in one of them, what is turned on in one and off in the other, and which mods sit at a different place in the shared load order.</summary>
+public sealed class DiffWindow : ToolWindow
+{
+    string otherName = "";
+    PlaysetDiff d = new();
+    List<DiffRow> shown = new();
+    readonly RcButton bWith;
+    string NameA => mm.Active()?.Name ?? "";
+    public static void Open(MainWindow main)
+    {
+        var ps = main.mm.Active();
+        var others = main.mm.Playsets.Where(p => ps == null || p.Name != ps.Name).ToList();
+        if (ps == null || others.Count == 0) { _ = main.Dlg.Info(Tr("You need a second playset to compare with.")); return; }
+        var ex = main.SubWindows.OfType<DiffWindow>().FirstOrDefault();
+        if (ex != null) { if (ex.WindowState == WindowState.Minimized) ex.WindowState = WindowState.Normal; ex.Activate(); ex.RefreshAll(); return; }
+        var w = new DiffWindow(main, others[0].Name);
+        w.ShowSeparate(main);
+        w.RefreshAll();
+    }
+    DiffWindow(MainWindow owner, string other) : base(owner, Tr("Compare playsets - The Royal Court"), 980, 560, 720, 320)
+    {
+        otherName = other;
+        bWith = Btn("⇄", "", 330);
+        var copy = Btn("⎘", Tr("Copy report"), 150); var reload = Btn("↻", Tr("Reload"), 110);
+        left.Children.Add(bWith); right.Children.Add(copy); right.Children.Add(reload);
+        bWith.Click += () => Invalidate(PickOther);
+        copy.Click += () => Invalidate(async () =>
+        {
+            var a = mm.Active(); if (a == null) return;
+            if (!await main.Dlg.ClipboardSet(Compare.Text(a.Name, otherName, d))) await main.Dlg.Info(Tr("Could not copy to the clipboard (another program may be holding it). Try again."));
+            else status.Text = Tr("Report copied to the clipboard.");
+        });
+        reload.Click += RefreshAll;
+        filter.TextChanged += (_, _) => { if (filling) return; Fill(); };
+        list.Cell = (r, c) =>
+        {
+            if (r >= shown.Count) return "";
+            var x = shown[r];
+            return c == 0 ? Compare.KindText(x.Kind, NameA, otherName) : c == 1 ? x.Name : c == 2 ? (x.PosA > 0 ? x.PosA.ToString() : "") : (x.PosB > 0 ? x.PosB.ToString() : "");
+        };
+        list.CellFg = (r, c) =>
+        {
+            if (c != 0 || r >= shown.Count) return null;
+            var t = Skin.Cur; int k = shown[r].Kind;
+            return k == 0 ? t.Ok : k == 3 ? null : t.Warn;
+        };
+        KeyDown += (_, e) => { if (e.Key == Key.Escape) Close(); };
+    }
+    async Task PickOther()
+    {
+        var a = mm.Active(); if (a == null) return;
+        var others = mm.Playsets.Where(p => p.Name != a.Name).ToList();
+        if (others.Count == 0) return;
+        var at = bWith.PointToScreen(new Point(0, bWith.Bounds.Height));
+        int r = await PopupMenu.Show(this, at, others.Select((p, i) => new MenuDef(i + 1, p.Name, p.Name == otherName)).ToList());
+        if (r >= 1 && r <= others.Count) { otherName = others[r - 1].Name; RefreshAll(); }
+    }
+    void Fill()
+    {
+        string f = Util.Lower(filter.Text ?? "");
+        string a = NameA;
+        int Ord(int k) => k switch { 0 => 0, 2 => 1, 4 => 2, 1 => 3, _ => 4 };
+        shown = d.Rows.Where(x => f.Length == 0 || Util.Lower(x.Name).Contains(f, StringComparison.Ordinal) || Util.Lower(Compare.KindText(x.Kind, a, otherName)).Contains(f, StringComparison.Ordinal))
+            .OrderBy(x => Ord(x.Kind)).ThenBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
+        list.Count = shown.Count; list.Sel.Clear(); list.Refresh();
+        status.Text = d.Rows.Count == 0 ? Tr("These two playsets have the same mods turned on, in the same order.")
+            : Trf("{0} mods are enabled in both.", d.Shared) + "  " + (d.SameOrder ? Tr("Load order of those: identical.") : Tr("Load order of those: different.")) + "  " + Trf("{0} difference(s).", d.Rows.Count);
+    }
+    public override void RefreshAll()
+    {
+        var a = mm.Active();
+        if (a == null) { Close(); return; }
+        var b = mm.Playsets.FirstOrDefault(p => p.Name == otherName && p.Name != a.Name) ?? mm.Playsets.FirstOrDefault(p => p.Name != a.Name);
+        if (b == null) { Close(); return; }
+        otherName = b.Name;
+        d = Compare.ComparePlaysets(a, b, mm.Info);
+        bWith.Label = Trf("\"{0}\"  vs  \"{1}\"", a.Name, b.Name); bWith.InvalidateVisual();
+        SetColumns(new[] { (Tr("Difference"), 290), (Tr("Mod"), 300), (Trf("Place in {0}", a.Name), 200), (Trf("Place in {0}", b.Name), 200) });
+        Fill();
+    }
+}

@@ -127,8 +127,14 @@ public class CoreTests2
         Assert.True(d.Shared == 4 && !d.SameOrder);
         Assert.True(d.Moved.Count == 1 && d.Moved[0] == "Mod a");
         Assert.True(d.OnlyA.Count == 0 && d.OnlyB.Count == 0 && d.EnabledDiffers.Count == 1);
+        Assert.True(d.Rows.Count == 2);
+        var mv = d.Rows.Single(r => r.Kind == 3); Assert.True(mv.Id == "a.mod" && mv.PosA == 1 && mv.PosB == 4);
+        var ed = d.Rows.Single(r => r.Kind == 4); Assert.True(ed.Id == "e.mod" && ed.PosA == 5 && ed.PosB == 5);
+        Assert.Contains("On in B, off in A", Compare.KindText(4, "A", "B"));
+        Assert.Contains("Mod a", Compare.Text("A", "B", d));
         var d2 = Compare.ComparePlaysets(A, Mk("C", ("a", true), ("b", true)), inf);
         Assert.True(d2.OnlyA.Count == 2 && d2.SameOrder);
+        Assert.True(d2.Rows.Count == 2 && d2.Rows.All(r => r.Kind == 0 && r.PosB == -1));
         var iss = new List<ModIssue>[A.Mods.Count]; for (int i = 0; i < iss.Length; i++) iss[i] = new List<ModIssue>();
         var seen = new Dictionary<string, string> { ["a.mod"] = "1", ["b.mod"] = "1", ["e.mod"] = "1" };
         var now = new Dictionary<string, string> { ["a.mod"] = "1", ["b.mod"] = "2", ["c.mod"] = "9", ["e.mod"] = "2" };
