@@ -4,6 +4,8 @@ Every change to the mod manager is logged here, newest first, starting 2026-10-0
 This file ships inside the EXE (Changelog button) and in the zip.
 
 ## [Unreleased]
+
+## [0.27.4] - 2026-11-07
 - Added: translations are now sorted automatically right after the mod they translate.
 - Added: The Royal Court remembers mods you move by hand and keeps them in place on the next Auto Sort. Forget one or all of them from the mod menu or the Advanced menu, or turn the learning off.
 - Added: the Health check now shows a load order score (rules checked, rules broken, how many mods Auto Sort would still move).
